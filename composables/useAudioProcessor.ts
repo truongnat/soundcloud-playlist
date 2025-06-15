@@ -90,14 +90,13 @@ export const useAudioProcessor = () => {
 
       const timeoutPromise = new Promise((_, reject) => {
         setTimeout(() => reject(new Error('Conversion timeout (5 minutes)')), CONVERSION_TIMEOUT)
-      })
-
-      try {
+      })      try {
         await Promise.race([conversionPromise, timeoutPromise])
         console.log('Conversion completed successfully')
-      } catch (error) {
+      } catch (error: unknown) {
         console.error('Conversion error:', error)
-        throw new Error(`Conversion failed: ${error.message || 'Unknown error'}`)
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+        throw new Error(`Conversion failed: ${errorMessage}`)
       }
 
       console.log('Reading output file')
