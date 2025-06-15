@@ -1,11 +1,12 @@
 import { ref } from 'vue'
 import { FFmpeg } from '@ffmpeg/ffmpeg'
+import { toBlobURL } from '@ffmpeg/util'
 import type { FFmpegType } from '@/types'
 
 export const useAudioProcessor = () => {
   const ffmpeg = ref<FFmpegType>()
   const isLoadingFFmpeg = ref(false)
-
+  
   const initFFmpeg = async () => {
     if (ffmpeg.value?.loaded) {
       console.log('FFmpeg already loaded')
@@ -16,12 +17,20 @@ export const useAudioProcessor = () => {
       isLoadingFFmpeg.value = true
       console.log('Starting FFmpeg initialization')
       
-      ffmpeg.value = new FFmpeg()
-      console.log('Loading FFmpeg with default CDN URLs')
+      // Create FFmpeg instance with proper CORS configuration
+      ffmpeg.value = new FFmpeg({
+        log: true,
+        corePath: await toBlobURL(
+          'https://unpkg.com/@ffmpeg/core@0.12.6/dist/ffmpeg-core.js',
+          'text/javascript'
+        ),
+        wasmPath: await toBlobURL(
+          'https://unpkg.com/@ffmpeg/core@0.12.6/dist/ffmpeg-core.wasm',
+          'application/wasm'
+        )
+      })
       
-      // load() will automatically use the default CDN URLs
       await ffmpeg.value.load()
-      
       console.log('FFmpeg loaded successfully')
     } catch (error) {
       console.error('Error loading FFmpeg:', error)
