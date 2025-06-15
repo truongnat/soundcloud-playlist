@@ -1,14 +1,19 @@
 <template>
   <div>
-    <!-- Queue Toggle Button -->
-    <button 
+    <!-- Queue Toggle Button -->      <button 
       @click="toggleQueue"
-      class="fixed bottom-4 right-4 z-50 p-3 rounded-full bg-blue-600 text-white shadow-lg hover:bg-blue-700 transition-colors"
+      class="fixed bottom-6 right-6 z-50 p-4 rounded-full bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg hover:shadow-xl hover:from-blue-700 hover:to-blue-800 transform hover:scale-105 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
     >
-      <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path v-if="isQueueVisible" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
-        <path v-else stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-      </svg>
+      <div class="relative">
+        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path v-if="isQueueVisible" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+          <path v-else stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+        </svg>
+        <span v-if="queueItems.length && !isQueueVisible" 
+          class="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+          {{ queueItems.length }}
+        </span>
+      </div>
     </button>
 
     <!-- Download Queue Panel -->
@@ -54,59 +59,89 @@
                 </svg>
               </button>
             </div>
-          </div>
-
-          <!-- Queue List -->
-          <div class="overflow-y-auto max-h-80 p-4 space-y-4">
-            <div v-if="queueItems.length === 0" class="flex flex-col items-center justify-center py-8 text-gray-500">
-              <svg class="w-12 h-12 mb-2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              <p>Queue is empty</p>
-            </div>
-
-            <div v-for="item in queueItems" :key="item.track.id" class="flex items-center space-x-4 p-4 bg-white rounded-xl border border-gray-100 shadow-sm">
-              <!-- Track Info -->
-              <div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
-                <svg class="w-6 h-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2z" />
+          </div>          <!-- Queue List -->
+          <div class="overflow-y-auto max-h-[calc(100vh-16rem)] p-4 space-y-4">
+            <div v-if="queueItems.length === 0" class="flex flex-col items-center justify-center py-12 text-gray-500">
+              <div class="bg-gray-50 rounded-full p-4 mb-4">
+                <svg class="w-12 h-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
               </div>
+              <p class="text-lg font-medium">Download Queue Empty</p>
+              <p class="text-sm text-gray-400 mt-1">Start by downloading some tracks from the playlist</p>
+            </div>
 
-              <div class="flex-1 min-w-0">
-                <h4 class="font-medium text-gray-900 truncate">{{ item.track.title }}</h4>
-                <p class="text-sm text-gray-500">{{ getStatusText(item) }}</p>
-              </div>
-
-              <!-- Progress -->
-              <div v-if="['downloading', 'converting'].includes(item.status)" class="w-64">
-                <div class="flex items-center">
-                  <div class="flex-1">
-                    <div class="w-full bg-gray-100 rounded-full h-2">
-                      <div class="h-2 rounded-full transition-all duration-300" 
-                        :class="{
-                          'bg-blue-600': item.status === 'downloading',
-                          'bg-green-500': item.status === 'converting'
-                        }" 
-                        :style="{ width: `${item.progress}%` }"
-                      ></div>
+            <div v-for="item in queueItems" 
+              :key="item.track.id" 
+              class="group bg-white rounded-xl border border-gray-100 shadow-sm hover:border-blue-100 transition-all duration-200"
+            >
+              <div class="p-4">
+                <!-- Header -->
+                <div class="flex items-center justify-between mb-3">
+                  <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-gradient-to-br from-gray-100 to-gray-50 rounded-lg flex items-center justify-center">
+                      <svg class="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2z" />
+                      </svg>
+                    </div>
+                    <div class="min-w-0">
+                      <h4 class="font-medium text-gray-900 truncate">{{ item.track.title }}</h4>
+                      <p class="text-sm text-gray-500">{{ item.track.artist }}</p>
                     </div>
                   </div>
-                  <span class="ml-2 text-sm text-gray-500">{{ item.progress }}%</span>
-                </div>
-              </div>
 
-              <!-- Status Icons -->
-              <div class="flex items-center space-x-2">
-                <div v-if="item.status === 'completed'" class="text-green-500">
-                  <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <!-- Status Badge -->
+                  <div class="flex-shrink-0">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize"
+                      :class="{
+                        'bg-blue-100 text-blue-800': item.status === 'downloading',
+                        'bg-green-100 text-green-800': item.status === 'completed',
+                        'bg-yellow-100 text-yellow-800': item.status === 'converting',
+                        'bg-red-100 text-red-800': item.status === 'error',
+                        'bg-gray-100 text-gray-800': item.status === 'queued'
+                      }"
+                    >
+                      {{ getStatusText(item) }}
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Progress Bar -->
+                <div v-if="['downloading', 'converting'].includes(item.status)" class="mt-2">
+                  <div class="flex items-center">
+                    <div class="flex-1 mr-3">
+                      <div class="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+                        <div class="h-2 rounded-full transition-all duration-300" 
+                          :class="{
+                            'bg-gradient-to-r from-blue-500 to-blue-600': item.status === 'downloading',
+                            'bg-gradient-to-r from-green-500 to-green-600': item.status === 'converting'
+                          }" 
+                          :style="{ width: `${item.progress}%` }"
+                        ></div>
+                      </div>
+                    </div>
+                    <span class="text-sm font-medium" 
+                      :class="{
+                        'text-blue-600': item.status === 'downloading',
+                        'text-green-600': item.status === 'converting'
+                      }"
+                    >
+                      {{ item.progress }}%
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Error Message -->
+                <div v-if="item.status === 'error'" class="mt-2 text-sm text-red-600 bg-red-50 rounded-lg p-2">
+                  {{ item.error }}
+                </div>
+
+                <!-- Completed Check -->
+                <div v-if="item.status === 'completed'" class="mt-2 flex items-center text-sm text-green-600">
+                  <svg class="w-5 h-5 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                   </svg>
-                </div>
-                <div v-if="item.status === 'error'" class="text-red-500">
-                  <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
+                  Download completed successfully
                 </div>
               </div>
             </div>
