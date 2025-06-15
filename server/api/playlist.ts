@@ -33,10 +33,9 @@ export default defineEventHandler(async (event) => {
           id: track.id,
           title: track.title,
           artist: track.user.username,
-          duration: track.duration,
-          artwork: track.artwork_url?.replace('-large', '-t500x500') || 
+          duration: track.duration,          artwork: track.artwork_url?.replace('-large', '-t500x500') || 
                   track.user.avatar_url ||
-                  '/api/image-proxy?url=https://secure.gravatar.com/avatar/?size=500&default=mm',
+                  'https://secure.gravatar.com/avatar/?size=500&default=mm',
           url: track.permalink_url,
           streamUrl: null
         }
