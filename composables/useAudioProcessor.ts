@@ -88,21 +88,44 @@ export const useAudioProcessor = () => {
         console.error('Conversion error:', error)
         const errorMessage = error instanceof Error ? error.message : 'Unknown error'
         throw new Error(`Conversion failed: ${errorMessage}`)
-      }
-
-      console.log('Reading output file')
+      }      console.log('Reading output file')
       const data = await ffmpeg.value.readFile('output.mp3')
       
-      if (!(data instanceof Uint8Array) || data.length === 0) {
-        throw new Error('Invalid or empty output file')
+      if (!(data instanceof Uint8Array)) {
+        console.error('Output is not Uint8Array:', typeof data)
+        throw new Error('Invalid output type')
+      }
+      
+      if (data.length === 0) {
+        console.error('Output file is empty')
+        throw new Error('Empty output file')
       }
 
-      // Verify MP3 header
-      const isValidMp3 = data[0] === 0xFF && (data[1] & 0xE0) === 0xE0
+      // Log first few bytes for debugging
+      console.log('Output file first bytes:', Array.from(data.slice(0, 4)).map(b => b.toString(16).padStart(2, '0')).join(' '))
+      
+      // More thorough MP3 header verification
+      const hasID3 = data[0] === 0x49 && data[1] === 0x44 && data[2] === 0x33 // "ID3"
+      let offset = 0
+      
+      if (hasID3) {
+        // Skip ID3v2 tag if present
+        const id3Size = ((data[6] & 0x7f) << 21) | ((data[7] & 0x7f) << 14) | ((data[8] & 0x7f) << 7) | (data[9] & 0x7f)
+        offset = id3Size + 10
+        console.log('Found ID3v2 tag, skipping', offset, 'bytes')
+      }
+      
+      // Check for MP3 sync word (0xFFF) after ID3 tag if present
+      const isValidMp3 = (data[offset] === 0xFF && (data[offset + 1] & 0xE0) === 0xE0) || 
+                        (data[offset] === 0xFF && data[offset + 1] === 0xFB)
+      
       if (!isValidMp3) {
-        throw new Error('Invalid MP3 format')
+        console.error('Invalid MP3 header at offset', offset, ':', 
+          Array.from(data.slice(offset, offset + 4)).map(b => b.toString(16).padStart(2, '0')).join(' '))
+        throw new Error('Invalid MP3 format: No valid MP3 frame found')
       }
 
+      console.log('MP3 validation successful')
       return new Blob([data], { type: 'audio/mpeg' })
 
     } catch (error) {
