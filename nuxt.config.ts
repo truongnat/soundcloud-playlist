@@ -19,11 +19,15 @@ export default defineNuxtConfig({
   },
   nitro: {
     routeRules: {
-      '/**': {
+      '/api/image-proxy/**': {
+        headers: {
+          'Cross-Origin-Resource-Policy': 'cross-origin'
+        }
+      },
+      '/': {
         headers: {
           'Cross-Origin-Embedder-Policy': 'require-corp',
-          'Cross-Origin-Opener-Policy': 'same-origin',
-          'Cross-Origin-Resource-Policy': 'cross-origin'
+          'Cross-Origin-Opener-Policy': 'same-origin'
         }
       }
     },
