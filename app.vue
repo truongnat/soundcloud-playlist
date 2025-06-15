@@ -1,7 +1,7 @@
 <template>
   <div class="min-h-screen bg-gray-50">
     <header class="bg-white shadow-sm">
-      <div class="max-w-6xl mx-auto px-4 py-6">
+      <div class="max-w-7xl mx-auto px-4 py-4">
         <div class="flex items-center justify-between">
           <div class="flex items-center space-x-4">
             <svg class="w-8 h-8 text-orange-500" viewBox="0 0 24 24" fill="currentColor">
@@ -21,16 +21,24 @@
         </div>
       </div>
     </header>
-    <main>
-      <PlaylistInput @fetch-playlist="fetchPlaylist" :loading="loading" />
-      <TrackList
-        :tracks="tracks"
-        :loading="loading"
-        :error="error"
-        :playlist-title="playlistInfo.title"
-        :playlist-description="playlistInfo.description"
-        :playlist-artwork="playlistInfo.artwork"
-      />
+    <main class="flex">
+      <!-- Main Content -->
+      <div class="flex-1 min-w-0">
+        <PlaylistInput @fetch-playlist="fetchPlaylist" :loading="loading" />
+        <TrackList
+          :tracks="tracks"
+          :loading="loading"
+          :error="error"
+          :playlist-title="playlistInfo.title"
+          :playlist-description="playlistInfo.description"
+          :playlist-artwork="playlistInfo.artwork"
+        />
+      </div>
+      
+      <!-- Download Queue Panel -->
+      <div class="w-96 border-l border-gray-200 bg-white">
+        <DownloadQueue />
+      </div>
     </main>
   </div>
 </template>
