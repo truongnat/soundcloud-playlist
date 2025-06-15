@@ -18,17 +18,7 @@ export const useAudioProcessor = () => {
       console.log('Starting FFmpeg initialization')
       
       // Create FFmpeg instance with proper CORS configuration
-      ffmpeg.value = new FFmpeg({
-        log: true,
-        corePath: await toBlobURL(
-          'https://unpkg.com/@ffmpeg/core@0.12.6/dist/ffmpeg-core.js',
-          'text/javascript'
-        ),
-        wasmPath: await toBlobURL(
-          'https://unpkg.com/@ffmpeg/core@0.12.6/dist/ffmpeg-core.wasm',
-          'application/wasm'
-        )
-      })
+      ffmpeg.value = new FFmpeg()
       
       await ffmpeg.value.load()
       console.log('FFmpeg loaded successfully')
