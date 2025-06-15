@@ -22,12 +22,17 @@ export const usePlaylist = () => {
       const response = await $fetch<PlaylistResponse>('/api/playlist', {
         query: { url }
       })
+        // Process track artwork URLs to use our proxy
+      tracks.value = response.tracks.map(track => ({
+        ...track,
+        artwork: track.artwork ? `/api/image-proxy?url=${encodeURIComponent(track.artwork)}` : ''
+      }))
       
-      tracks.value = response.tracks
+      // Process playlist artwork
       playlistInfo.value = {
         title: response.title || '',
         description: response.description || '',
-        artwork: response.artwork || ''
+        artwork: response.artwork ? `/api/image-proxy?url=${encodeURIComponent(response.artwork)}` : ''
       }
     } catch (err: unknown) {
       const errorMessage = err instanceof Error 

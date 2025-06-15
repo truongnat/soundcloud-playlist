@@ -29,15 +29,14 @@ export default defineEventHandler(async (event) => {
 
     // Process tracks
     const tracks: ProcessedTrack[] = await Promise.all(
-      playlist.tracks.map(async (track: SoundCloudTrack) => {
-        const trackInfo: ProcessedTrack = {
+      playlist.tracks.map(async (track: SoundCloudTrack) => {        const trackInfo: ProcessedTrack = {
           id: track.id,
           title: track.title,
           artist: track.user.username,
           duration: track.duration,
           artwork: track.artwork_url?.replace('-large', '-t500x500') || 
                   track.user.avatar_url ||
-                  'https://secure.gravatar.com/avatar/?size=500&default=mm',
+                  '/api/image-proxy?url=https://secure.gravatar.com/avatar/?size=500&default=mm',
           url: track.permalink_url,
           streamUrl: null
         }
