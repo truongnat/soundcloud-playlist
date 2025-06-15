@@ -1,0 +1,127 @@
+import { ref } from 'vue'
+import { FFmpeg } from '@ffmpeg/ffmpeg'
+import type { FFmpegType } from '@/types'
+
+export const useAudioProcessor = () => {
+  const ffmpeg = ref<FFmpegType>()
+  const isLoadingFFmpeg = ref(false)
+
+  const initFFmpeg = async () => {
+    if (ffmpeg.value?.loaded) {
+      console.log('FFmpeg already loaded')
+      return
+    }
+    
+    try {
+      isLoadingFFmpeg.value = true
+      console.log('Starting FFmpeg initialization')
+      
+      ffmpeg.value = new FFmpeg()
+      console.log('Loading FFmpeg with default CDN URLs')
+      
+      // load() will automatically use the default CDN URLs
+      await ffmpeg.value.load()
+      
+      console.log('FFmpeg loaded successfully')
+    } catch (error) {
+      console.error('Error loading FFmpeg:', error)
+      throw new Error('Failed to load audio converter. Please try again or contact support if the issue persists.')
+    } finally {
+      isLoadingFFmpeg.value = false
+    }
+  }
+  const MAX_INPUT_SIZE = 100 * 1024 * 1024 // 100MB
+  const CONVERSION_TIMEOUT = 5 * 60 * 1000 // 5 minutes
+
+  const convertToMp3 = async (inputData: Uint8Array): Promise<Blob> => {
+    console.log('Starting audio conversion')
+    
+    try {
+      // Check input size
+      if (inputData.length > MAX_INPUT_SIZE) {
+        throw new Error('Input file too large (max 100MB)')
+      }
+
+      await initFFmpeg()
+      
+      if (!ffmpeg.value) {
+        throw new Error('FFmpeg not initialized')
+      }
+
+      console.log('Writing input file')
+      await ffmpeg.value.writeFile('input.audio', inputData)
+      
+      console.log('Converting to MP3')
+      // Add timeout promise
+      const conversionPromise = ffmpeg.value.exec([
+        '-i', 'input.audio',
+        '-acodec', 'libmp3lame', // Explicitly set audio codec
+        '-ar', '44100',          // Set sample rate
+        '-ac', '2',              // Set to stereo
+        '-ab', '320k',           // Set bitrate
+        '-map', '0:a',           // Only map audio stream
+        '-y',                    // Overwrite output
+        'output.mp3'
+      ])
+
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Conversion timeout (5 minutes)')), CONVERSION_TIMEOUT)
+      })
+
+      await Promise.race([conversionPromise, timeoutPromise])
+
+      console.log('Reading output file')
+      const data = await ffmpeg.value.readFile('output.mp3')
+      
+      if (!(data instanceof Uint8Array) || data.length === 0) {
+        throw new Error('Invalid or empty output file')
+      }
+
+      // Verify MP3 header
+      const isValidMp3 = data[0] === 0xFF && (data[1] & 0xE0) === 0xE0
+      if (!isValidMp3) {
+        throw new Error('Invalid MP3 format')
+      }
+
+      return new Blob([data], { type: 'audio/mpeg' })
+
+    } catch (error) {
+      console.error('Error converting to MP3:', error)
+      let errorMessage = 'Unknown error during conversion'
+      
+      if (error instanceof Error) {
+        if (error.message.includes('timeout')) {
+          errorMessage = 'Conversion took too long'
+        } else if (error.message.includes('EBML')) {
+          errorMessage = 'Invalid input format'
+        } else if (error.message.includes('too large')) {
+          errorMessage = 'File too large'
+        } else {
+          errorMessage = error.message
+        }
+      }
+      
+      throw new Error('Failed to convert audio: ' + errorMessage)
+    } finally {
+      // Cleanup with timeout
+      try {
+        if (ffmpeg.value) {
+          await Promise.race([
+            Promise.all([
+              ffmpeg.value.deleteFile('input.audio'),
+              ffmpeg.value.deleteFile('output.mp3')
+            ]),
+            new Promise(r => setTimeout(r, 5000)) // 5s timeout for cleanup
+          ])
+        }
+      } catch (error) {
+        console.warn('Cleanup error:', error)
+      }
+    }
+  }
+
+  return {
+    isLoadingFFmpeg,
+    convertToMp3
+  }
+}

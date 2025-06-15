@@ -1,0 +1,33 @@
+{
+  "name": "nuxt-app",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare"
+  },
+  "dependencies": {
+    "@ffmpeg/core": "^0.12.10",
+    "@ffmpeg/ffmpeg": "^0.12.15",
+    "@ffmpeg/util": "^0.12.2",
+    "@nuxtjs/tailwindcss": "^7.0.0-beta.0",
+    "@types/howler": "^2.2.12",
+    "axios": "^1.9.0",
+    "howler": "^2.2.4",
+    "m3u8-parser": "^7.2.0",
+    "nuxt": "^3.17.5",
+    "scrape-it": "^6.1.5",
+    "soundcloud-api-client": "^0.0.9",
+    "soundcloud-scraper": "^5.0.3",
+    "soundcloud-v2-api": "^0.1.4",
+    "soundcloud.ts": "^0.6.5",
+    "vue": "^3.5.16",
+    "vue-router": "^4.5.1"
+  },
+  "devDependencies": {
+    "@types/m3u8-parser": "^7.2.2"
+  }
+}
