@@ -18,12 +18,32 @@ export default defineNuxtConfig({
     }
   },
   nitro: {
+    routeRules: {
+      '/**': {
+        headers: {
+          'Cross-Origin-Embedder-Policy': 'require-corp',
+          'Cross-Origin-Opener-Policy': 'same-origin',
+          'Cross-Origin-Resource-Policy': 'cross-origin'
+        }
+      }
+    },
+  },
+  nitro: {
     publicAssets: [
       {
         baseURL: '/',
         dir: 'public',
         maxAge: 60 * 60 * 24 * 365 // 1 year
       }
-    ]
+    ],
+    routeRules: {
+      '/**': {
+        headers: {
+          'Cross-Origin-Embedder-Policy': 'require-corp',
+          'Cross-Origin-Opener-Policy': 'same-origin',
+          'Cross-Origin-Resource-Policy': 'cross-origin'
+        }
+      }
+    }
   }
 })

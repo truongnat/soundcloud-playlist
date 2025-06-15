@@ -59,9 +59,23 @@ export const useAudioProcessor = () => {
 
       console.log('Writing input file')
       await ffmpeg.value.writeFile('input.audio', inputData)
+        console.log('Converting to MP3')
       
-      console.log('Converting to MP3')
-      // Add timeout promise
+      // Verify input data format before conversion
+      const isMP3 = inputData[0] === 0xFF && (inputData[1] & 0xE0) === 0xE0
+      const isM4A = (
+        inputData[4] === 0x66 && // f
+        inputData[5] === 0x74 && // t
+        inputData[6] === 0x79 && // y
+        inputData[7] === 0x70    // p
+      )
+      
+      console.log('Input format:', isMP3 ? 'MP3' : isM4A ? 'M4A' : 'Unknown')
+      
+      // Add timeout promise      // Write input file
+      await ffmpeg.value.writeFile('input.audio', inputData)
+      
+      // Start conversion
       const conversionPromise = ffmpeg.value.exec([
         '-i', 'input.audio',
         '-acodec', 'libmp3lame', // Explicitly set audio codec
@@ -69,6 +83,7 @@ export const useAudioProcessor = () => {
         '-ac', '2',              // Set to stereo
         '-ab', '320k',           // Set bitrate
         '-map', '0:a',           // Only map audio stream
+        '-f', 'mp3',             // Force MP3 format
         '-y',                    // Overwrite output
         'output.mp3'
       ])
@@ -77,7 +92,13 @@ export const useAudioProcessor = () => {
         setTimeout(() => reject(new Error('Conversion timeout (5 minutes)')), CONVERSION_TIMEOUT)
       })
 
-      await Promise.race([conversionPromise, timeoutPromise])
+      try {
+        await Promise.race([conversionPromise, timeoutPromise])
+        console.log('Conversion completed successfully')
+      } catch (error) {
+        console.error('Conversion error:', error)
+        throw new Error(`Conversion failed: ${error.message || 'Unknown error'}`)
+      }
 
       console.log('Reading output file')
       const data = await ffmpeg.value.readFile('output.mp3')
