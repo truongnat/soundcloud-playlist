@@ -101,8 +101,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import type { Track, QueueItem } from '@/types'
-import { useAudioProcessor } from './useAudioProcessor'
-
+import { useAudioProcessor } from '@/composables/useAudioProcessor'
 const downloadQueue = ref<Record<string, QueueItem>>({})
 const { convertToMp3 } = useAudioProcessor()
 
