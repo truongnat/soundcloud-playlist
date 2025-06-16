@@ -166,24 +166,25 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import type { Track, QueueItem } from '@/types'
-import { useAudioProcessor } from '@/composables/useAudioProcessor'
+import { useDownloadQueue } from '@/composables/useDownloadQueue'
 
 const emit = defineEmits<{
   (e: 'close'): void
   (e: 'download-complete', trackId: string): void
 }>()
 
-const downloadQueue = ref<Record<string, QueueItem>>({})
-const { convertToMp3 } = useAudioProcessor()
-
-// Queue state
-const queueItems = computed(() => Object.values(downloadQueue.value))
-const hasActiveDownloads = computed(() => queueItems.value.some(item => ['downloading', 'converting'].includes(item.status)))
-const activeCount = computed(() => queueItems.value.filter(item => ['downloading', 'converting'].includes(item.status)).length)
-const hasCompletedDownloads = computed(() => queueItems.value.some(item => item.status === 'completed'))
-const queuedItems = computed(() => queueItems.value.filter(item => item.status === 'queued'))
+const {
+  queueItems,
+  hasActiveDownloads,
+  activeCount,
+  hasCompletedDownloads,
+  queuedItems,
+  addToQueue,
+  startDownload,
+  removeFromQueue,
+  clearCompleted,
+  startAllDownloads
+} = useDownloadQueue()
 
 // Helpers
 const getTrackId = (id: string | number): string => id.toString()
