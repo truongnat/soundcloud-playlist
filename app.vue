@@ -85,6 +85,9 @@ const trackListRef = ref()
 
 // Khôi phục trạng thái queue khi mount
 onMounted(() => {
+  // Cleanup localStorage trước
+  uiStore.checkAndCleanup()
+
   // Kiểm tra nếu có download đang chạy hoặc queued thì mở queue
   const hasActiveOrQueued = downloadQueueStore.queueItems.some(item =>
     ['downloading', 'converting', 'queued'].includes(item.status)
