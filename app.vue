@@ -51,7 +51,6 @@
         />
       </USlideover>
     </div>
-  </div>
 
     <!-- Floating Download Indicator -->
     <UButton
