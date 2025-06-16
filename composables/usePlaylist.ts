@@ -2,6 +2,15 @@ import { ref } from 'vue'
 import type { Track } from '@/types'
 import type { PlaylistInfo, PlaylistResponse } from '@/types'
 
+interface CacheData {
+  timestamp: number
+  tracks: Track[]
+  info: PlaylistInfo
+}
+
+const CACHE_EXPIRY = 30 * 60 * 1000 // 30 minutes in milliseconds
+const CACHE_PREFIX = 'playlist_cache_'
+
 export const usePlaylist = () => {
   const tracks = ref<Track[]>([])
   const loading = ref(false)
@@ -12,12 +21,64 @@ export const usePlaylist = () => {
     artwork: ''
   })
 
+  const getCacheKey = (url: string): string => {
+    return CACHE_PREFIX + encodeURIComponent(url)
+  }
+
+  const saveToCache = (url: string, tracks: Track[], info: PlaylistInfo): void => {
+    try {
+      const cacheData: CacheData = {
+        timestamp: Date.now(),
+        tracks,
+        info
+      }
+      localStorage.setItem(getCacheKey(url), JSON.stringify(cacheData))
+    } catch (err) {
+      console.warn('Failed to save playlist to cache:', err)
+    }
+  }
+
+  const getFromCache = (url: string): CacheData | null => {
+    try {
+      const cacheKey = getCacheKey(url)
+      const cachedData = localStorage.getItem(cacheKey)
+      
+      if (!cachedData) return null
+
+      const data: CacheData = JSON.parse(cachedData)
+      const age = Date.now() - data.timestamp
+
+      // Check if cache is expired
+      if (age > CACHE_EXPIRY) {
+        localStorage.removeItem(cacheKey)
+        return null
+      }
+
+      return data
+    } catch (err) {
+      console.warn('Failed to read playlist from cache:', err)
+      return null
+    }
+  }
+
   const fetchPlaylist = async (url: string) => {
     tracks.value = []
     error.value = ''
     loading.value = true
     
     try {
+      // Try to get data from cache first
+      const cachedData = getFromCache(url)
+      if (cachedData) {
+        console.log('Loading playlist from cache')
+        tracks.value = cachedData.tracks
+        playlistInfo.value = cachedData.info
+        loading.value = false
+        return
+      }
+
+      // If not in cache or expired, fetch from API
+      console.log('Fetching playlist from API')
       const response = await $fetch<PlaylistResponse>('/api/playlist', {
         query: { url }
       })
@@ -28,6 +89,9 @@ export const usePlaylist = () => {
         description: response.description || '',
         artwork: response.artwork || ''
       }
+
+      // Save the new data to cache
+      saveToCache(url, response.tracks, playlistInfo.value)
     } catch (err: unknown) {
       const errorMessage = err instanceof Error 
         ? err.message 
