@@ -2,36 +2,42 @@
   <div class="h-screen flex flex-col">
     <!-- Queue Header -->
     <div class="flex items-center justify-between p-4 border-b border-gray-200 bg-white sticky top-0 z-10">
-      <div class="flex items-center space-x-3">
-        <svg class="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <!-- Left side: Title and status -->
+      <div class="flex items-center space-x-3 flex-1 min-w-0">
+        <svg class="w-5 h-5 text-gray-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
         </svg>
-        <h2 class="text-lg font-semibold text-gray-900">Download Queue</h2>
-        <span v-if="downloadStats.active > 0" class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
+        <h2 class="text-lg font-semibold text-gray-900 flex-shrink-0">Download Queue</h2>
+        <span v-if="downloadStats.active > 0" class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full flex-shrink-0">
           {{ downloadStats.active }} active
         </span>
       </div>
-      <div class="flex items-center space-x-3">
-        <div class="flex items-center space-x-3">
-          <button v-if="downloadStats.completed > 0"
-            @click="downloadQueueStore.clearCompleted"
-            class="text-sm text-gray-500 hover:text-gray-700 transition-colors"
-          >
-            Clear completed
-          </button>
 
-          <button v-if="downloadStats.total > 0"
-            @click="handleDiscardAll"
-            class="flex items-center space-x-1 text-sm text-red-500 hover:text-red-700 transition-colors font-medium"
-            title="Stop all downloads and clear queue"
-          >
-            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-            </svg>
-            <span>Discard All</span>
-          </button>
-        </div>
-        <button @click="$emit('close')" class="text-gray-400 hover:text-gray-600">
+      <!-- Right side: Action buttons -->
+      <div class="flex items-center space-x-2 flex-shrink-0">
+        <!-- Clear completed button -->
+        <button v-if="downloadStats.completed > 0"
+          @click="downloadQueueStore.clearCompleted"
+          class="px-2 py-1 text-xs text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition-colors"
+          title="Clear completed downloads"
+        >
+          Clear completed
+        </button>
+
+        <!-- Discard all button -->
+        <button v-if="downloadStats.total > 0"
+          @click="handleDiscardAll"
+          class="flex items-center space-x-1 px-2 py-1 text-xs text-red-500 hover:text-red-700 hover:bg-red-50 rounded transition-colors font-medium"
+          title="Stop all downloads and clear queue"
+        >
+          <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          </svg>
+          <span>Discard All</span>
+        </button>
+
+        <!-- Close button -->
+        <button @click="$emit('close')" class="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors ml-1">
           <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
           </svg>
