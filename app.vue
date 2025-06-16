@@ -54,6 +54,7 @@
           <DownloadQueue 
             ref="downloadQueueRef" 
             @close="showQueue = false"
+            @download-complete="handleDownloadComplete"
           />
         </div>
       </Transition>
