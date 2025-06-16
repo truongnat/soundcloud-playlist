@@ -36,6 +36,7 @@
       <div class="flex-1 min-w-0 py-6">
         <PlaylistInput @fetch-playlist="fetchPlaylist" :loading="loading" />
         <TrackList
+          ref="trackListRef"
           :tracks="tracks"
           :loading="loading"
           :error="error"
@@ -76,10 +77,16 @@ import type { Track } from '@/types'
 const { tracks, loading, error, playlistInfo, fetchPlaylist } = usePlaylist()
 const showQueue = ref(false)
 const downloadQueueRef = ref()
+const trackListRef = ref()
 
 const handleDownloadTrack = (track: Track) => {
   showQueue.value = true
   downloadQueueRef.value?.addToQueue(track)
+}
+
+const handleDownloadComplete = (trackId: string) => {
+  // Remove from activeDownloads in TrackList
+  trackListRef.value?.handleDownloadComplete(trackId)
 }
 
 const handleDownloadAll = (tracks: Track[]) => {

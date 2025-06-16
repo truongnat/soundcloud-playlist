@@ -245,14 +245,15 @@ const startDownload = async (trackId: string): Promise<void> => {
 
     // Save file
     const filename = `${downloadQueue.value[trackId].track.title}.mp3`.replace(/[<>:"/\\|?*]/g, '_')
-    await downloadFile(mp3Blob, filename)
-
-    // Mark as completed
+    await downloadFile(mp3Blob, filename)    // Mark as completed
     downloadQueue.value[trackId] = {
       ...downloadQueue.value[trackId],
       status: 'completed',
       progress: 100
     }
+    
+    // Notify completion
+    emit('download-complete', trackId)
   } catch (error: any) {
     console.error('Download failed:', error)
     downloadQueue.value[trackId] = {

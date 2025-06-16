@@ -213,4 +213,15 @@ const downloadAllTracks = () => {
 
   emit('download-all', availableTracks)
 }
+
+const handleDownloadComplete = (trackId: string) => {
+  const index = activeDownloads.value.indexOf(trackId)
+  if (index !== -1) {
+    activeDownloads.value.splice(index, 1)
+  }
+}
+
+defineExpose({
+  handleDownloadComplete
+})
 </script>
