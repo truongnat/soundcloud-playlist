@@ -153,7 +153,7 @@ export const useDownloadQueue = () => {
       }
 
       // Convert to MP3
-      downloadQueue.value[trackId].status = 'converting'
+      store.updateTrackStatus(trackId, 'converting')
       const mp3Blob = await convertToMp3(audioData!)
 
       // Save file
@@ -161,22 +161,14 @@ export const useDownloadQueue = () => {
       await downloadFile(mp3Blob, filename)
 
       // Mark as completed
-      downloadQueue.value[trackId] = {
-        ...downloadQueue.value[trackId],
-        status: 'completed',
-        progress: 100
-      }    } catch (error: any) {
+      store.updateTrackStatus(trackId, 'completed')
+      store.updateTrackProgress(trackId, 100)
+    } catch (error: any) {
       console.error('Download failed:', error)
-      const queueItem = downloadQueue.value[trackId]
-      const retries = (queueItem.retries || 0)
-      
-      downloadQueue.value[trackId] = {
-        ...downloadQueue.value[trackId],
-        status: 'error',
-        error: error.message,
-        retries,
-        progress: 0
-      }
+
+      // Mark as error
+      store.updateTrackStatus(trackId, 'error', error.message)
+      store.updateTrackProgress(trackId, 0)
     }
   }
 
@@ -196,8 +188,6 @@ export const useDownloadQueue = () => {
 
   return {
     retryDownload,
-    downloadQueue,
-    isQueueVisible,
     queueItems,
     hasActiveDownloads,
     activeCount,

@@ -45,6 +45,34 @@ export const useUIStore = defineStore('ui', {
       if (this.shouldKeepQueueOpen) {
         this.showDownloadQueue = true
       }
+    },
+
+    // Reset trạng thái khi không còn download nào
+    resetKeepQueueOpen() {
+      this.shouldKeepQueueOpen = false
+    },
+
+    // Kiểm tra và cleanup localStorage khi cần
+    checkAndCleanup() {
+      if (typeof window !== 'undefined') {
+        // Nếu không còn download nào đang chạy, clear localStorage
+        const downloadQueueData = localStorage.getItem('download-queue')
+        if (downloadQueueData) {
+          try {
+            const data = JSON.parse(downloadQueueData)
+            const hasActiveDownloads = data.queue && Object.values(data.queue).some((item: any) =>
+              ['downloading', 'converting', 'queued'].includes(item.status)
+            )
+
+            if (!hasActiveDownloads) {
+              localStorage.removeItem('download-queue')
+              this.shouldKeepQueueOpen = false
+            }
+          } catch (error) {
+            console.warn('Error checking download queue data:', error)
+          }
+        }
+      }
     }
   }
 })
