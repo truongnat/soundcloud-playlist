@@ -43,13 +43,17 @@
           :playlist-description="playlistInfo.description"
           :playlist-artwork="playlistInfo.artwork"
           @download-track="handleDownloadTrack"
+          @download-all="handleDownloadAll"
         />
       </div>
 
       <!-- Download Queue Sidebar -->
       <Transition name="slide">
         <div v-if="showQueue" class="w-96 border-l border-gray-200 bg-white shadow-lg fixed right-0 top-0 h-full">
-          <DownloadQueue ref="downloadQueueRef" />
+          <DownloadQueue 
+            ref="downloadQueueRef" 
+            @close="showQueue = false"
+          />
         </div>
       </Transition>
     </div>
@@ -59,14 +63,22 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { usePlaylist } from './composables/usePlaylist'
+import type { Track } from '@/types'
 
 const { tracks, loading, error, playlistInfo, fetchPlaylist } = usePlaylist()
 const showQueue = ref(false)
 const downloadQueueRef = ref()
 
-const handleDownloadTrack = (track: any) => {
+const handleDownloadTrack = (track: Track) => {
   showQueue.value = true
   downloadQueueRef.value?.addToQueue(track)
+}
+
+const handleDownloadAll = (tracks: Track[]) => {
+  showQueue.value = true
+  tracks.forEach(track => {
+    downloadQueueRef.value?.addToQueue(track)
+  })
 }
 </script>
 
