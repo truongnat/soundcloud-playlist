@@ -71,7 +71,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, nextTick } from 'vue'
 import { usePlaylist } from './composables/usePlaylist'
 import type { Track } from '@/types'
 
@@ -80,9 +80,11 @@ const showQueue = ref(false)
 const downloadQueueRef = ref()
 const trackListRef = ref()
 
-const handleDownloadTrack = (track: Track) => {
-  console.log('Adding track to queue:', track.title) // Debug log
+const handleDownloadTrack = async (track: Track) => {
+  console.log('Adding track to queue:', track.title)
   showQueue.value = true
+  // Wait for the next tick to ensure the download queue component is mounted
+  await nextTick()
   if (downloadQueueRef.value) {
     downloadQueueRef.value.addToQueue(track)
   } else {
@@ -96,9 +98,11 @@ const handleDownloadComplete = (trackId: string) => {
   }
 }
 
-const handleDownloadAll = (tracks: Track[]) => {
-  console.log('Adding all tracks to queue:', tracks.length) // Debug log
+const handleDownloadAll = async (tracks: Track[]) => {
+  console.log('Adding all tracks to queue:', tracks.length)
   showQueue.value = true
+  // Wait for the next tick to ensure the download queue component is mounted
+  await nextTick()
   if (downloadQueueRef.value) {
     tracks.forEach(track => {
       downloadQueueRef.value.addToQueue(track)
