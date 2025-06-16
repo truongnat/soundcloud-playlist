@@ -1,80 +1,82 @@
 <template>
-  <div class="min-h-screen bg-gray-50 flex flex-col">
-    <!-- Header -->
-    <UHeader class="backdrop-blur border-b border-gray-200">
-      <template #left>
-        <div class="flex items-center space-x-3">
-          <UIcon name="i-heroicons-musical-note" class="w-8 h-8 text-orange-500" />
-          <h1 class="text-xl font-bold text-gray-900">SoundCloud Playlist</h1>
-        </div>
-      </template>
-      <template #right>
-        <UTooltip text="View source on GitHub">
-          <UButton
-            color="neutral"
-            variant="ghost"
-            icon="i-heroicons-code-bracket"
-            to="https://github.com/your-username/playlist-soundcloud"
-            target="_blank"
-          />
-        </UTooltip>
-      </template>
-    </UHeader>
+  <UTooltipProvider>
+    <div class="min-h-screen bg-gray-50 flex flex-col">
+      <!-- Header -->
+      <UHeader class="backdrop-blur border-b border-gray-200">
+        <template #left>
+          <div class="flex items-center space-x-3">
+            <UIcon name="i-heroicons-musical-note" class="w-8 h-8 text-orange-500" />
+            <h1 class="text-xl font-bold text-gray-900">SoundCloud Playlist</h1>
+          </div>
+        </template>
+        <template #right>
+          <UTooltip text="View source on GitHub">
+            <UButton
+              color="neutral"
+              variant="ghost"
+              icon="i-heroicons-code-bracket"
+              to="https://github.com/your-username/playlist-soundcloud"
+              target="_blank"
+            />
+          </UTooltip>
+        </template>
+      </UHeader>
 
-    <!-- Main Content -->
-    <div class="flex-1 flex">
-      <!-- Main Area -->
-      <div class="flex-1 min-w-0 py-6">
-        <PlaylistInput @fetch-playlist="fetchPlaylist" :loading="loading" />
-        <TrackList
-          ref="trackListRef"
-          :tracks="tracks"
-          :loading="loading"
-          :error="error"
-          :playlist-title="playlistInfo.title"
-          :playlist-description="playlistInfo.description"
-          :playlist-artwork="playlistInfo.artwork"
-          @download-track="handleDownloadTrack"
-          @download-all="handleDownloadAll"
+      <!-- Main Content -->
+      <div class="flex-1 flex">
+        <!-- Main Area -->
+        <div class="flex-1 min-w-0 py-6">
+          <PlaylistInput @fetch-playlist="fetchPlaylist" :loading="loading" />
+          <TrackList
+            ref="trackListRef"
+            :tracks="tracks"
+            :loading="loading"
+            :error="error"
+            :playlist-title="playlistInfo.title"
+            :playlist-description="playlistInfo.description"
+            :playlist-artwork="playlistInfo.artwork"
+            @download-track="handleDownloadTrack"
+            @download-all="handleDownloadAll"
+          />
+        </div>
+
+        <!-- Download Queue Sidebar -->
+        <USlideover
+          v-model="uiStore.showDownloadQueue"
+          :width="450"
+        >
+          <DownloadQueue
+            ref="downloadQueueRef"
+            @close="() => uiStore.showDownloadQueue = false"
+            @download-complete="handleDownloadComplete"
+          />
+        </USlideover>
+      </div>
+    </div>
+
+    <!-- Floating Download Indicator -->
+    <UButton
+      v-if="downloadStats.total > 0 && !uiStore.showDownloadQueue"
+      @click="() => { uiStore.showDownloadQueue = true }"
+      :icon="downloadStats.active ? 'i-heroicons-arrow-path' : 'i-heroicons-cloud-arrow-down'"
+      color="primary"
+      class="fixed bottom-6 right-6 hover:scale-105 transition-transform"
+      size="xl"
+    >
+      <UBadge
+        :value="downloadStats.total"
+        color="error"
+        position="top-right"
+      />
+      <div v-if="downloadStats.active > 0" class="absolute inset-0 flex items-center justify-center">
+        <UProgress
+          class="w-12 h-12"
+          :value="downloadStats.activeProgress"
+          circle
         />
       </div>
-
-      <!-- Download Queue Sidebar -->
-      <USlideover
-        v-model="uiStore.showDownloadQueue"
-        :width="450"
-      >
-        <DownloadQueue
-          ref="downloadQueueRef"
-          @close="() => uiStore.showDownloadQueue = false"
-          @download-complete="handleDownloadComplete"
-        />
-      </USlideover>
-    </div>
-  </div>
-
-  <!-- Floating Download Indicator -->
-  <UButton
-    v-if="downloadStats.total > 0 && !uiStore.showDownloadQueue"
-    @click="() => { uiStore.showDownloadQueue = true }"
-    :icon="downloadStats.active ? 'i-heroicons-arrow-path' : 'i-heroicons-cloud-arrow-down'"
-    color="primary"
-    class="fixed bottom-6 right-6 hover:scale-105 transition-transform"
-    size="xl"
-  >
-    <UBadge
-      :value="downloadStats.total"
-      color="error"
-      position="top-right"
-    />
-    <div v-if="downloadStats.active > 0" class="absolute inset-0 flex items-center justify-center">
-      <UProgress
-        class="w-12 h-12"
-        :value="downloadStats.activeProgress"
-        circle
-      />
-    </div>
-  </UButton>
+    </UButton>
+  </UTooltipProvider>
 </template>
 
 <script setup lang="ts">
