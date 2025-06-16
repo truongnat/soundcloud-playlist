@@ -117,7 +117,14 @@ export const useDownloadQueue = () => {
 
       while (attempt < maxRetries) {
         try {
-          const audioResponse = await fetch(data.streamUrl)
+          // Kiểm tra cancel trước khi download
+          if (abortController.signal.aborted) {
+            throw new Error('Download cancelled')
+          }
+
+          const audioResponse = await fetch(data.streamUrl, {
+            signal: abortController.signal
+          })
           if (!audioResponse.ok) throw new Error('Failed to download audio')
           
           if (!audioResponse.body) throw new Error('No response body')
@@ -129,6 +136,11 @@ export const useDownloadQueue = () => {
           const chunks: Uint8Array[] = []
 
           while (true) {
+            // Kiểm tra cancel trong quá trình download
+            if (abortController.signal.aborted) {
+              throw new Error('Download cancelled')
+            }
+
             const { done, value } = await reader.read()
             if (done) break
 
@@ -178,9 +190,19 @@ export const useDownloadQueue = () => {
         }
       }
 
+      // Kiểm tra cancel trước khi convert
+      if (abortController.signal.aborted) {
+        throw new Error('Download cancelled')
+      }
+
       // Convert to MP3
       store.updateTrackStatus(trackId, 'converting')
       const mp3Blob = await convertToMp3(audioData!)
+
+      // Kiểm tra cancel trước khi save
+      if (abortController.signal.aborted) {
+        throw new Error('Download cancelled')
+      }
 
       // Save file
       const filename = `${track.title}.mp3`.replace(/[<>:"/\\|?*]/g, '_')
@@ -192,9 +214,18 @@ export const useDownloadQueue = () => {
     } catch (error: any) {
       console.error('Download failed:', error)
 
-      // Mark as error
-      store.updateTrackStatus(trackId, 'error', error.message)
-      store.updateTrackProgress(trackId, 0)
+      // Kiểm tra nếu là cancel thì không hiển thị error
+      if (error.message === 'Download cancelled' || abortController.signal.aborted) {
+        console.log('Download was cancelled for track:', trackId)
+        // Store sẽ handle việc set status thành cancelled
+      } else {
+        // Mark as error cho các lỗi khác
+        store.updateTrackStatus(trackId, 'error', error.message)
+        store.updateTrackProgress(trackId, 0)
+      }
+    } finally {
+      // Cleanup abort controller
+      activeDownloads.delete(trackId)
     }
   }
 
