@@ -1,7 +1,6 @@
 <template>
-  <UContainer>
-    <UTooltipProvider>
-      <div class="min-h-screen bg-gray-50 flex flex-col">
+  <UTooltipProvider>
+    <div class="min-h-screen bg-gray-50 flex flex-col">
         <!-- Header -->
         <UHeader class="backdrop-blur border-b border-gray-200">
           <template #left>
@@ -78,7 +77,6 @@
         </div>
       </UButton>
     </UTooltipProvider>
-  </UContainer>
 </template>
 
 <script setup lang="ts">
