@@ -209,6 +209,20 @@ export const useDownloadQueue = () => {
     }
   }
 
+  // Start all queued downloads
+  const startAllDownloads = async (): Promise<void> => {
+    const queuedItems = queueItems.value.filter(item => item.status === 'queued')
+    
+    for (const item of queuedItems) {
+      try {
+        await startDownload(item.track.id.toString())
+      } catch (error) {
+        console.error('Failed to download track:', item.track.title, error)
+        // Continue with next track
+      }
+    }
+  }
+
   return {
     retryDownload,
     downloadQueue,
@@ -220,6 +234,7 @@ export const useDownloadQueue = () => {
     addToQueue,
     removeFromQueue,
     clearCompleted,
-    startDownload
+    startDownload,
+    startAllDownloads
   }
 }
