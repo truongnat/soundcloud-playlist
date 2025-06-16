@@ -116,12 +116,11 @@
                       :d="activeDownloads.includes(getTrackId(currentTrack.id))
                         ? 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z'
                         : 'M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4'" />
-                  </svg>
-                  {{ !currentTrack.streamUrl 
+                  </svg>                  {{ !currentTrack.streamUrl 
                     ? 'Unavailable' 
                     : activeDownloads.includes(getTrackId(currentTrack.id)) 
                       ? 'Processing...' 
-                      : 'Add to Queue' }}
+                      : 'Download' }}
                 </button>                <a 
                   class="p-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors"
                   :href="currentTrack.url"
