@@ -24,6 +24,18 @@
           Clear completed
         </button>
 
+        <!-- Retry all failed button -->
+        <button v-if="downloadStats.failed > 0"
+          @click="handleRetryAllFailed"
+          class="flex items-center space-x-1 px-2 py-1 text-xs text-orange-500 hover:text-orange-700 hover:bg-orange-50 rounded transition-colors font-medium"
+          title="Retry all failed downloads"
+        >
+          <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          <span>Retry Failed</span>
+        </button>
+
         <!-- Discard all button -->
         <button v-if="downloadStats.total > 0"
           @click="handleDiscardAll"
@@ -168,13 +180,22 @@
                   Download Completed
                 </div>
 
-                <div v-else-if="item.status === 'error'" 
-                  class="flex items-center text-sm text-red-600 bg-red-50 px-3 py-1.5 rounded-lg mt-1"
+                <div v-else-if="item.status === 'error'"
+                  class="flex items-center justify-between text-sm text-red-600 bg-red-50 px-3 py-1.5 rounded-lg mt-1"
                 >
-                  <svg class="w-4 h-4 mr-1.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  {{ item.error }}
+                  <div class="flex items-center flex-1 min-w-0">
+                    <svg class="w-4 h-4 mr-1.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span class="truncate">{{ item.error }}</span>
+                  </div>
+                  <button
+                    @click="handleRetry(item.track.id)"
+                    class="ml-2 px-2 py-1 text-xs bg-red-100 hover:bg-red-200 text-red-700 rounded transition-colors flex-shrink-0"
+                    title="Retry download"
+                  >
+                    Retry
+                  </button>
                 </div>
 
                 <div v-else class="text-sm text-gray-500 mt-1 flex items-center">
@@ -214,6 +235,7 @@ const {
   removeFromQueue,
   clearCompleted,
   discardAll,
+  retryDownload,
   startAllDownloads
 } = useDownloadQueue()
 
@@ -285,6 +307,17 @@ const handleDiscardAll = () => {
   if (confirm('Are you sure you want to stop all downloads and clear the queue? This action cannot be undone.')) {
     console.log('Discarding all downloads...')
     discardAll()
+  }
+}
+
+// Handle retry failed download
+const handleRetry = async (trackId: string | number) => {
+  try {
+    console.log('Retrying download for track:', trackId)
+    await retryDownload(trackId.toString())
+    emit('download-complete', trackId.toString())
+  } catch (error) {
+    console.error('Retry failed:', error)
   }
 }
 
