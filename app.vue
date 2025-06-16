@@ -101,11 +101,11 @@ onMounted(() => {
 const handleDownloadTrack = async (track: Track) => {
   console.log('Adding track to queue:', track.title)
 
-  // Thêm track vào queue store
+  // Thêm track vào queue store (không tự động mở panel)
   await downloadQueueStore.addToQueue(track)
 
-  // Hiển thị queue panel
-  uiStore.showQueue()
+  // Chỉ đánh dấu có download để hiển thị indicator
+  uiStore.markKeepQueueOpen()
 
   // Wait for the next tick to ensure the download queue component is mounted
   await nextTick()
@@ -125,13 +125,10 @@ const handleDownloadComplete = (trackId: string) => {
 const handleDownloadAll = async (tracks: Track[]) => {
   console.log('Adding all tracks to queue:', tracks.length)
 
-  // Thêm tất cả tracks vào queue store
+  // Thêm tất cả tracks vào queue store (không tự động mở panel)
   for (const track of tracks) {
     await downloadQueueStore.addToQueue(track)
   }
-
-  // Hiển thị queue panel
-  uiStore.showQueue()
 
   // Wait for the next tick to ensure the download queue component is mounted
   await nextTick()
