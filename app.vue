@@ -52,21 +52,6 @@
       </USlideover>
     </div>
   </div>
-          <DownloadQueue
-            ref="downloadQueueRef"
-            @close="() => uiStore.showDownloadQueue = false"
-            @download-complete="handleDownloadComplete"
-          />
-        </div>
-      </Transition>
-
-      <!-- Backdrop -->
-      <Transition name="fade">
-        <div v-if="uiStore.showDownloadQueue"
-          class="fixed inset-0 bg-black/20 backdrop-blur-sm z-40"
-          @click="() => uiStore.showDownloadQueue = false"
-        ></div>
-      </Transition>
 
       <!-- Floating Download Indicator -->
       <Transition name="bounce">
