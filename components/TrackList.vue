@@ -156,15 +156,13 @@
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
       </svg>
       <p class="text-lg">Enter a SoundCloud playlist URL to see tracks</p>
-    </div>    <!-- Download Queue Component -->
-    <DownloadQueue ref="downloadQueueRef" />
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
 import type { Track } from '@/types'
-import DownloadQueue from './DownloadQueue.vue'
 
 // Props
 const props = defineProps<{
@@ -176,7 +174,11 @@ const props = defineProps<{
   playlistArtwork?: string
 }>()
 
-const downloadQueueRef = ref<InstanceType<typeof DownloadQueue> | null>(null)
+const emit = defineEmits<{
+  (e: 'download-track', track: Track): void
+  (e: 'download-all', tracks: Track[]): void
+}>()
+
 const downloadErrors = ref<Record<string, string>>({})
 const activeDownloads = ref<string[]>([])
 
@@ -203,7 +205,7 @@ const downloadTrack = (track: Track) => {
   }
 
   activeDownloads.value.push(trackId)
-  downloadQueueRef.value?.addToQueue(track)
+  emit('download-track', track)
 }
 
 // Download all tracks in the playlist
