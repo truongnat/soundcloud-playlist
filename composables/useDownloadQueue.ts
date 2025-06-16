@@ -1,13 +1,23 @@
-import { ref, computed } from 'vue'
-import type { Track, QueueItem } from '@/types'
+import type { Track } from '@/types'
 import { useAudioProcessor } from './useAudioProcessor'
+import { useDownloadQueueStore } from '@/stores/downloadQueue'
+
+const { convertToMp3 } = useAudioProcessor()
+
+// Helper for file download
+const downloadFile = async (blob: Blob, filename: string): Promise<void> => {
+  const url = window.URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = filename
+  document.body.appendChild(a)
+  a.click()
+  window.URL.revokeObjectURL(url)
+  document.body.removeChild(a)
+}
 
 export const useDownloadQueue = () => {
-  const downloadQueue = ref<Record<string, QueueItem>>({})
-  const isQueueVisible = ref(true)
-
-  // Composables
-  const { convertToMp3 } = useAudioProcessor()
+  const store = useDownloadQueueStore()
 
   // Helper functions
   const getTrackId = (id: string | number): string => id.toString()
