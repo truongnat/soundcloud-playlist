@@ -81,20 +81,31 @@ const downloadQueueRef = ref()
 const trackListRef = ref()
 
 const handleDownloadTrack = (track: Track) => {
+  console.log('Adding track to queue:', track.title) // Debug log
   showQueue.value = true
-  downloadQueueRef.value?.addToQueue(track)
+  if (downloadQueueRef.value) {
+    downloadQueueRef.value.addToQueue(track)
+  } else {
+    console.warn('downloadQueueRef is not available')
+  }
 }
 
 const handleDownloadComplete = (trackId: string) => {
-  // Remove from activeDownloads in TrackList
-  trackListRef.value?.handleDownloadComplete(trackId)
+  if (trackListRef.value) {
+    trackListRef.value.handleDownloadComplete(trackId)
+  }
 }
 
 const handleDownloadAll = (tracks: Track[]) => {
+  console.log('Adding all tracks to queue:', tracks.length) // Debug log
   showQueue.value = true
-  tracks.forEach(track => {
-    downloadQueueRef.value?.addToQueue(track)
-  })
+  if (downloadQueueRef.value) {
+    tracks.forEach(track => {
+      downloadQueueRef.value.addToQueue(track)
+    })
+  } else {
+    console.warn('downloadQueueRef is not available')
+  }
 }
 </script>
 
