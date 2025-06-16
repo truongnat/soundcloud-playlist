@@ -83,6 +83,27 @@ export const useDownloadQueueStore = defineStore('downloadQueue', {
           error
         }
       }
+    },
+
+    // Dừng và xóa toàn bộ queue
+    discardAll() {
+      // Đánh dấu tất cả downloads đang chạy là cancelled
+      Object.keys(this.queue).forEach(trackId => {
+        const item = this.queue[trackId]
+        if (['downloading', 'converting'].includes(item.status)) {
+          this.queue[trackId] = {
+            ...item,
+            status: 'error',
+            error: 'Cancelled by user',
+            progress: 0
+          }
+        }
+      })
+
+      // Sau đó xóa toàn bộ queue
+      setTimeout(() => {
+        this.queue = {}
+      }, 100) // Delay nhỏ để UI có thể hiển thị trạng thái cancelled
     }
   }
 })

@@ -55,14 +55,14 @@
       <Transition name="fade">
         <div v-if="uiStore.showDownloadQueue"
           class="fixed inset-0 bg-black/20 backdrop-blur-sm z-40"
-          @click="uiStore.hideQueue()"
+          @click="() => uiStore.showDownloadQueue = false"
         ></div>
       </Transition>
 
       <!-- Floating Download Indicator -->
       <Transition name="bounce">
         <div v-if="downloadStats.total > 0 && !uiStore.showDownloadQueue"
-          @click="uiStore.showQueue()"
+          @click="() => uiStore.showDownloadQueue = true"
           class="fixed bottom-6 right-6 bg-blue-600 hover:bg-blue-700 text-white rounded-full p-4 shadow-lg cursor-pointer transition-all duration-200 hover:scale-105 z-30"
           title="Open download queue"
         >
