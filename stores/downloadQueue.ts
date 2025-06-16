@@ -1,17 +1,10 @@
 import { defineStore } from 'pinia'
 import type { Track, QueueItem } from '@/types'
-import { useAudioProcessor } from '@/composables/useAudioProcessor'
 
 export const useDownloadQueueStore = defineStore('downloadQueue', {
   state: () => ({
     queue: {} as Record<string, QueueItem>
   }),
-
-  persist: {
-    key: 'download-queue',
-    storage: typeof window !== 'undefined' ? localStorage : undefined,
-    paths: ['queue']
-  },
 
   getters: {
     queueItems: (state) => Object.values(state.queue),
