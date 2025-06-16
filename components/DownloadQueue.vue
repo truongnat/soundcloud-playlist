@@ -13,7 +13,7 @@
       </div>
       <div class="flex items-center space-x-3">
         <button v-if="downloadStats.completed > 0"
-          @click="clearCompleted"
+          @click="downloadQueueStore.clearCompleted"
           class="text-sm text-gray-500 hover:text-gray-700 transition-colors"
         >
           Clear completed
@@ -90,9 +90,9 @@
                     </svg>
                     <span>Start</span>
                   </button>
-                  <button 
+                  <button
                     v-if="item.status === 'queued'"
-                    @click="removeFromQueue(item.track.id.toString())"
+                    @click="downloadQueueStore.removeFromQueue(item.track.id.toString())"
                     class="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
                     title="Remove from queue"
                   >
@@ -247,7 +247,7 @@ const handleDownloadAll = async () => {
   try {
     await startAllDownloads()
     // Emit download complete for successfully downloaded items
-    queueItems.value
+    storeQueueItems.value
       .filter(item => item.status === 'completed')
       .forEach(item => emit('download-complete', item.track.id.toString()))
   } catch (error) {
