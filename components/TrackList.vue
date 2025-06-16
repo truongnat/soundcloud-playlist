@@ -196,11 +196,6 @@ const downloadTrack = (track: Track) => {
     return
   }
 
-  if (activeDownloads.value.includes(trackId)) {
-    return
-  }
-
-  activeDownloads.value.push(trackId)
   emit('download-track', track)
 }
 
@@ -212,8 +207,6 @@ const downloadAllTracks = () => {
     return
   }
 
-  for (const track of availableTracks) {
-    downloadTrack(track)
-  }
+  emit('download-all', availableTracks)
 }
 </script>

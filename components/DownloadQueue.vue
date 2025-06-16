@@ -65,8 +65,22 @@
             </div>
             
             <div class="flex-1 min-w-0">
-              <h4 class="font-medium text-gray-900 text-sm truncate">{{ item.track.title }}</h4>
-              <p class="text-xs text-gray-500">{{ item.track.artist }}</p>
+              <div class="flex items-center justify-between">
+                <div>
+                  <h4 class="font-medium text-gray-900 text-sm truncate">{{ item.track.title }}</h4>
+                  <p class="text-xs text-gray-500">{{ item.track.artist }}</p>
+                </div>
+                <button 
+                  v-if="item.status === 'queued'"
+                  @click="removeFromQueue(getTrackId(item.track.id))"
+                  class="ml-2 p-1 text-gray-400 hover:text-gray-600"
+                  title="Remove from queue"
+                >
+                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
               
               <!-- Status and Progress -->
               <div class="mt-2">
@@ -240,8 +254,17 @@ const addToQueue = (track: Track): void => {
   const trackId = getTrackId(track.id)
   console.log('Adding track to queue:', track.title)
   
-  if (downloadQueue.value[trackId]?.status === 'completed') {
-    return // Skip if already downloaded
+  if (downloadQueue.value[trackId]) {
+    if (downloadQueue.value[trackId].status === 'error') {
+      // If track failed, allow retry by adding it again
+      downloadQueue.value[trackId] = {
+        track,
+        status: 'queued',
+        progress: 0,
+        error: undefined
+      }
+    }
+    return // Skip if already in queue
   }
 
   downloadQueue.value[trackId] = {
