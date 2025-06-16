@@ -12,12 +12,22 @@
         </span>
       </div>
       <div class="flex items-center space-x-3">
-        <button v-if="downloadStats.completed > 0"
-          @click="downloadQueueStore.clearCompleted"
-          class="text-sm text-gray-500 hover:text-gray-700 transition-colors"
-        >
-          Clear completed
-        </button>
+        <div class="flex items-center space-x-3">
+          <button v-if="downloadStats.completed > 0"
+            @click="downloadQueueStore.clearCompleted"
+            class="text-sm text-gray-500 hover:text-gray-700 transition-colors"
+          >
+            Clear completed
+          </button>
+
+          <button v-if="downloadStats.total > 0"
+            @click="handleDiscardAll"
+            class="text-sm text-red-500 hover:text-red-700 transition-colors font-medium"
+            title="Stop all downloads and clear queue"
+          >
+            Discard All
+          </button>
+        </div>
         <button @click="$emit('close')" class="text-gray-400 hover:text-gray-600">
           <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -194,6 +204,7 @@ const {
   startDownload,
   removeFromQueue,
   clearCompleted,
+  discardAll,
   startAllDownloads
 } = useDownloadQueue()
 
@@ -252,6 +263,14 @@ const handleDownloadAll = async () => {
       .forEach(item => emit('download-complete', item.track.id.toString()))
   } catch (error) {
     console.error('Failed to download all tracks:', error)
+  }
+}
+
+// Handle discard all
+const handleDiscardAll = () => {
+  if (confirm('Are you sure you want to stop all downloads and clear the queue? This action cannot be undone.')) {
+    console.log('Discarding all downloads...')
+    discardAll()
   }
 }
 

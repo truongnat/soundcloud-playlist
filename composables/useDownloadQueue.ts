@@ -252,6 +252,7 @@ export const useDownloadQueue = () => {
     addToQueue,
     removeFromQueue,
     clearCompleted,
+    discardAll,
     startDownload,
     startAllDownloads
   }
