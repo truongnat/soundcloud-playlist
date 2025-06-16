@@ -34,84 +34,45 @@ export const useDownloadQueue = () => {
   }
 
   const retryDownload = async (trackId: string): Promise<void> => {
-    const queueItem = downloadQueue.value[trackId]
+    const queueItem = store.queue[trackId]
     if (!queueItem || !['error', 'retry'].includes(queueItem.status)) return
 
-    // Reset the item state
-    downloadQueue.value[trackId] = {
-      ...queueItem,
-      status: 'queued',
-      progress: 0,
-      error: undefined,
-      retries: (queueItem.retries || 0) + 1
-    }
+    // Reset the item state using store action
+    store.updateTrackStatus(trackId, 'queued')
+    store.updateTrackProgress(trackId, 0)
 
     // Start the download again
     await startDownload(trackId)
   }
 
-  // Queue state getters
-  const queueItems = computed(() => Object.values(downloadQueue.value))
+  // Queue state getters từ store
+  const queueItems = computed(() => store.queueItems)
+  const hasActiveDownloads = computed(() => store.hasActiveDownloads)
+  const activeCount = computed(() => store.activeCount)
+  const hasCompletedDownloads = computed(() => store.hasCompletedDownloads)
 
-  const hasActiveDownloads = computed(() => {
-    return Object.values(downloadQueue.value).some(item => 
-      ['downloading', 'converting'].includes(item.status)
-    )
-  })
-
-  const activeCount = computed(() => {
-    return Object.values(downloadQueue.value).filter(item => 
-      ['downloading', 'converting'].includes(item.status)
-    ).length
-  })
-
-  const hasCompletedDownloads = computed(() => {
-    return Object.values(downloadQueue.value).some(item => 
-      item.status === 'completed'
-    )
-  })
-
-  // Queue management
+  // Queue management sử dụng store actions
   const addToQueue = (track: Track): void => {
-    const trackId = getTrackId(track.id)
-    console.log('Adding track to queue:', track.title)
-    downloadQueue.value[trackId] = {
-      track,
-      status: 'queued',
-      progress: 0
-    }
+    store.addToQueue(track)
   }
 
   const removeFromQueue = (trackId: string | number): void => {
-    const id = getTrackId(trackId)
-    if (downloadQueue.value[id]?.status === 'queued') {
-      const { [id]: removed, ...rest } = downloadQueue.value
-      downloadQueue.value = rest
-    }
+    store.removeFromQueue(getTrackId(trackId))
   }
 
   const clearCompleted = (): void => {
-    downloadQueue.value = Object.entries(downloadQueue.value).reduce((acc, [id, item]) => {
-      if (item.status !== 'completed') {
-        acc[id] = item
-      }
-      return acc
-    }, {} as Record<string, QueueItem>)
+    store.clearCompleted()
   }
 
   // Download processing
   const startDownload = async (trackId: string): Promise<void> => {
-    const queueItem = downloadQueue.value[trackId]
+    const queueItem = store.queue[trackId]
     if (!queueItem || queueItem.status !== 'queued') return
 
     try {
-      // Update status to downloading
-      downloadQueue.value[trackId] = {
-        ...queueItem,
-        status: 'downloading',
-        progress: 0,
-        error: undefined
-      }
+      // Update status to downloading using store
+      store.updateTrackStatus(trackId, 'downloading')
+      store.updateTrackProgress(trackId, 0)
 
       const track = queueItem.track
       console.log('Starting download:', track.title)
@@ -149,7 +110,7 @@ export const useDownloadQueue = () => {
             receivedLength += value.length
 
             if (contentLength) {
-              downloadQueue.value[trackId].progress = Math.round((receivedLength / contentLength) * 100)
+              store.updateTrackProgress(trackId, Math.round((receivedLength / contentLength) * 100))
             }
           }
 
