@@ -4,6 +4,9 @@ import { useDownloadQueueStore } from '@/stores/downloadQueue'
 
 const { convertToMp3 } = useAudioProcessor()
 
+// Global abort controllers để có thể cancel downloads
+const activeDownloads = new Map<string, AbortController>()
+
 // Helper for file download
 const downloadFile = async (blob: Blob, filename: string): Promise<void> => {
   const url = window.URL.createObjectURL(blob)
@@ -64,10 +67,26 @@ export const useDownloadQueue = () => {
     store.clearCompleted()
   }
 
+  const discardAll = (): void => {
+    // Cancel tất cả active downloads
+    activeDownloads.forEach((controller, trackId) => {
+      console.log('Cancelling download for track:', trackId)
+      controller.abort()
+    })
+    activeDownloads.clear()
+
+    // Discard queue trong store
+    store.discardAll()
+  }
+
   // Download processing
   const startDownload = async (trackId: string): Promise<void> => {
     const queueItem = store.queue[trackId]
     if (!queueItem || queueItem.status !== 'queued') return
+
+    // Tạo AbortController cho download này
+    const abortController = new AbortController()
+    activeDownloads.set(trackId, abortController)
 
     try {
       // Update status to downloading using store
@@ -77,10 +96,17 @@ export const useDownloadQueue = () => {
       const track = queueItem.track
       console.log('Starting download:', track.title)
 
+      // Kiểm tra nếu đã bị cancel
+      if (abortController.signal.aborted) {
+        throw new Error('Download cancelled')
+      }
+
       // Get stream URL from our API
-      const response = await fetch(`/api/stream-mp3?url=${encodeURIComponent(track.url)}`)
+      const response = await fetch(`/api/stream-mp3?url=${encodeURIComponent(track.url)}`, {
+        signal: abortController.signal
+      })
       if (!response.ok) throw new Error('Failed to get stream URL')
-      
+
       const data = await response.json()
       if (!data?.streamUrl) throw new Error('No stream URL in response')
 
