@@ -177,11 +177,16 @@
 import { computed } from 'vue'
 import type { Track, QueueItem } from '@/types'
 import { useDownloadQueue } from '@/composables/useDownloadQueue'
+import { useDownloadQueueStore } from '@/stores/downloadQueue'
+import { useUIStore } from '@/stores/ui'
 
 const emit = defineEmits<{
   (e: 'close'): void
   (e: 'download-complete', trackId: string): void
 }>()
+
+const downloadQueueStore = useDownloadQueueStore()
+const uiStore = useUIStore()
 
 const {
   queueItems,
@@ -191,6 +196,9 @@ const {
   clearCompleted,
   startAllDownloads
 } = useDownloadQueue()
+
+// Sử dụng store để lấy queue items
+const storeQueueItems = computed(() => downloadQueueStore.queueItems)
 
 // Compute download statistics
 const downloadStats = computed(() => {
