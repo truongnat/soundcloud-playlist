@@ -1,5 +1,5 @@
 <template>
-  <UTooltipProvider>
+  <TooltipProvider>
     <div class="min-h-screen bg-gray-50 flex flex-col">
         <!-- Header -->
         <UHeader class="backdrop-blur border-b border-gray-200">
@@ -45,13 +45,11 @@
           v-model="uiStore.showDownloadQueue"
           :width="450"
         >
-          <UTooltipProvider>
             <DownloadQueue
               ref="downloadQueueRef"
               @close="() => uiStore.showDownloadQueue = false"
               @download-complete="handleDownloadComplete"
             />
-          </UTooltipProvider>
         </USlideover>
       </div>
       </div>
@@ -78,7 +76,7 @@
           />
         </div>
       </UButton>
-    </UTooltipProvider>
+    </TooltipProvider>
 </template>
 
 <script setup lang="ts">
