@@ -166,6 +166,7 @@
 </template>
 
 <script setup lang="ts">
+import type { Track, QueueItem } from '@/types'
 import { useDownloadQueue } from '@/composables/useDownloadQueue'
 
 const emit = defineEmits<{
@@ -179,26 +180,11 @@ const {
   activeCount,
   hasCompletedDownloads,
   queuedItems,
-  addToQueue,
   startDownload,
   removeFromQueue,
   clearCompleted,
-  startAllDownloads
+  startAllDownloads,
 } = useDownloadQueue()
-
-// Helpers
-const getTrackId = (id: string | number): string => id.toString()
-
-const downloadFile = async (blob: Blob, filename: string): Promise<void> => {
-  const url = window.URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = filename
-  document.body.appendChild(a)
-  a.click()
-  window.URL.revokeObjectURL(url)
-  document.body.removeChild(a)
-}
 
 // Status text formatter
 const getStatusText = (item: QueueItem): string => {
@@ -218,126 +204,18 @@ const getStatusText = (item: QueueItem): string => {
   }
 }
 
-// Download processing
-const startDownload = async (trackId: string): Promise<void> => {
+// Handle download and emit completion event
+const handleDownload = async (trackId: string | number) => {
   try {
-    // Get stream URL from our API
-    const response = await fetch(`/api/stream-mp3?url=${encodeURIComponent(downloadQueue.value[trackId].track.url)}`)
-    if (!response.ok) throw new Error('Failed to get stream URL')
-    
-    const data = await response.json()
-    if (!data?.streamUrl) throw new Error('No stream URL in response')
-
-    // Download the audio file directly from streamUrl
-    const audioResponse = await fetch(data.streamUrl)
-    if (!audioResponse.ok) throw new Error('Failed to download audio')
-    
-    if (!audioResponse.body) throw new Error('No response body')
-
-    downloadQueue.value[trackId].status = 'downloading'
-
-    // Download with progress tracking
-    const reader = audioResponse.body.getReader()
-    const contentLength = +(audioResponse.headers.get('Content-Length') || 0)
-    let receivedLength = 0
-    const chunks: Uint8Array[] = []
-
-    while (true) {
-      const { done, value } = await reader.read()
-      if (done) break
-
-      chunks.push(value)
-      receivedLength += value.length
-
-      if (contentLength) {
-        downloadQueue.value[trackId].progress = Math.round((receivedLength / contentLength) * 100)
-      }
-    }
-
-    // Combine chunks
-    const audioData = new Uint8Array(receivedLength)
-    let position = 0
-    for (const chunk of chunks) {
-      audioData.set(chunk, position)
-      position += chunk.length
-    }
-
-    // Convert to MP3
-    downloadQueue.value[trackId].status = 'converting'
-    const mp3Blob = await convertToMp3(audioData)
-
-    // Save file
-    const filename = `${downloadQueue.value[trackId].track.title}.mp3`.replace(/[<>:"/\\|?*]/g, '_')
-    await downloadFile(mp3Blob, filename)    // Mark as completed
-    downloadQueue.value[trackId] = {
-      ...downloadQueue.value[trackId],
-      status: 'completed',
-      progress: 100
-    }
-    
-    // Notify completion
-    emit('download-complete', trackId)
-  } catch (error: any) {
+    await startDownload(trackId.toString())
+    emit('download-complete', trackId.toString())
+  } catch (error) {
     console.error('Download failed:', error)
-    downloadQueue.value[trackId] = {
-      ...downloadQueue.value[trackId],
-      status: 'error',
-      error: error.message
-    }
-  }
-}
-
-// Queue management
-const addToQueue = (track: Track): void => {
-  const trackId = getTrackId(track.id)
-  console.log('Adding track to queue:', track.title)
-  
-  if (downloadQueue.value[trackId]) {
-    if (downloadQueue.value[trackId].status === 'error') {
-      // If track failed, allow retry by adding it again
-      downloadQueue.value[trackId] = {
-        track,
-        status: 'queued',
-        progress: 0,
-        error: undefined
-      }
-    }
-    return // Skip if already in queue
-  }
-
-  downloadQueue.value[trackId] = {
-    track,
-    status: 'queued',
-    progress: 0,
-    error: undefined
-  }
-}
-
-const removeFromQueue = (trackId: string): void => {
-  if (downloadQueue.value[trackId]?.status === 'queued') {
-    const { [trackId]: removed, ...rest } = downloadQueue.value
-    downloadQueue.value = rest
-  }
-}
-
-const clearCompleted = (): void => {
-  downloadQueue.value = Object.entries(downloadQueue.value).reduce((acc, [id, item]) => {
-    if (item.status !== 'completed') {
-      acc[id] = item
-    }
-    return acc
-  }, {} as Record<string, QueueItem>)
-}
-
-const startAllDownloads = async (): Promise<void> => {
-  const queued = queuedItems.value
-  for (const item of queued) {
-    await startDownload(getTrackId(item.track.id))
   }
 }
 
 defineExpose({
-  addToQueue
+  addToQueue: useDownloadQueue().addToQueue
 })
 </script>
 
