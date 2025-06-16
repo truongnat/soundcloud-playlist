@@ -45,7 +45,7 @@
 
     <!-- Queue List -->
     <div class="flex-1 overflow-y-auto">
-      <div v-if="queueItems.length === 0" class="flex flex-col items-center justify-center h-full text-gray-500 p-8">
+      <div v-if="storeQueueItems.length === 0" class="flex flex-col items-center justify-center h-full text-gray-500 p-8">
         <div class="bg-gray-50 rounded-full p-4 mb-4">
           <svg class="w-10 h-10 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -56,7 +56,7 @@
       </div>
 
       <div v-else class="divide-y divide-gray-100">
-        <div v-for="item in queueItems" 
+        <div v-for="item in storeQueueItems"
           :key="item.track.id" 
           class="p-4 hover:bg-gray-50 transition-colors"
         >
@@ -200,9 +200,9 @@ const {
 // Sử dụng store để lấy queue items
 const storeQueueItems = computed(() => downloadQueueStore.queueItems)
 
-// Compute download statistics
+// Compute download statistics từ store
 const downloadStats = computed(() => {
-  return queueItems.value.reduce((stats, item) => {
+  return storeQueueItems.value.reduce((stats, item) => {
     if (item.status === 'queued') stats.queued++
     else if (['downloading', 'converting'].includes(item.status)) stats.active++
     else if (item.status === 'completed') stats.completed++
