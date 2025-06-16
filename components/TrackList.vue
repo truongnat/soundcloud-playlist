@@ -122,18 +122,16 @@
                     : activeDownloads.includes(getTrackId(currentTrack.id)) 
                       ? 'Processing...' 
                       : 'Add to Queue' }}
-                </button>
-
-                <a 
-                  class="flex items-center px-4 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors"
+                </button>                <a 
+                  class="p-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors"
                   :href="currentTrack.url"
                   target="_blank"
                   rel="noopener noreferrer"
+                  title="Open in SoundCloud"
                 >
-                  <svg class="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                   </svg>
-                  Open in SoundCloud
                 </a>
               </div>
               
