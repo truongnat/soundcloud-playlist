@@ -2,7 +2,7 @@
 export default defineNuxtConfig({
   compatibilityDate: '2025-05-15',
   devtools: { enabled: true },
-  modules: ['@nuxtjs/tailwindcss', '@pinia/nuxt', '@nuxt/ui'],
+  modules: ['@nuxtjs/tailwindcss', '@pinia/nuxt'],
   vite: {
     optimizeDeps: {
       exclude: ['@ffmpeg/ffmpeg', '@ffmpeg/util'],
