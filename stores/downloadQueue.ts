@@ -7,6 +7,12 @@ export const useDownloadQueueStore = defineStore('downloadQueue', {
     queue: {} as Record<string, QueueItem>
   }),
 
+  persist: {
+    key: 'download-queue',
+    storage: typeof window !== 'undefined' ? localStorage : undefined,
+    paths: ['queue']
+  },
+
   getters: {
     queueItems: (state) => Object.values(state.queue),
     hasActiveDownloads: (state) => 
