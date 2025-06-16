@@ -53,38 +53,28 @@
     </div>
   </div>
 
-      <!-- Floating Download Indicator -->
-      <Transition name="bounce">
-        <div v-if="downloadStats.total > 0 && !uiStore.showDownloadQueue"
-          @click="() => uiStore.showDownloadQueue = true"
-          class="fixed bottom-6 right-6 bg-blue-600 hover:bg-blue-700 text-white rounded-full p-4 shadow-lg cursor-pointer transition-all duration-200 hover:scale-105 z-30"
-          title="Open download queue"
-        >
-          <div class="relative">
-            <!-- Download Icon -->
-            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-            </svg>
-
-            <!-- Badge với số lượng -->
-            <div class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full min-w-[20px] h-5 flex items-center justify-center px-1">
-              {{ downloadStats.total }}
-            </div>
-
-            <!-- Progress ring cho active downloads -->
-            <div v-if="downloadStats.active > 0" class="absolute inset-0 -m-1">
-              <svg class="w-8 h-8 transform -rotate-90" viewBox="0 0 32 32">
-                <circle cx="16" cy="16" r="14" stroke="currentColor" stroke-width="2" fill="none" opacity="0.3"/>
-                <circle cx="16" cy="16" r="14" stroke="currentColor" stroke-width="2" fill="none"
-                  stroke-dasharray="87.96"
-                  :stroke-dashoffset="87.96 - (87.96 * downloadStats.activeProgress / 100)"
-                  class="transition-all duration-300"/>
-              </svg>
-            </div>
-          </div>
-        </div>
-      </Transition>
-    </div>
+    <!-- Floating Download Indicator -->
+    <UButton
+      v-if="downloadStats.total > 0 && !uiStore.showDownloadQueue"
+      @click="() => { uiStore.showDownloadQueue = true }"
+      :icon="downloadStats.active ? 'i-heroicons-arrow-path' : 'i-heroicons-cloud-arrow-down'"
+      color="primary"
+      class="fixed bottom-6 right-6 hover:scale-105 transition-transform"
+      size="xl"
+    >
+      <UBadge
+        :value="downloadStats.total"
+        color="error"
+        position="top-right"
+      />
+      <div v-if="downloadStats.active > 0" class="absolute inset-0 flex items-center justify-center">
+        <UProgress
+          class="w-12 h-12"
+          :value="downloadStats.activeProgress"
+          circle
+        />
+      </div>
+    </UButton>
   </div>
 </template>
 
