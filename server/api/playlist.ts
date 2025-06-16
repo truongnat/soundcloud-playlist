@@ -41,7 +41,7 @@ export default defineEventHandler(async (event) => {
         }
 
         try {
-          // Try multiple methods to get the stream URL
+          // Try multiple methods to get the stream URL with retry logic
           const methods = [
             // Method 1: From track details
             async () => {
@@ -55,19 +55,39 @@ export default defineEventHandler(async (event) => {
             // Method 3: From track URL
             async () => {
               return await soundcloud.util.streamLink(track.permalink_url)
+            },
+            // Method 4: Alternative approach using track ID directly
+            async () => {
+              return await soundcloud.util.streamLink(`https://soundcloud.com/track/${track.id}`)
+            },
+            // Method 5: Try with different client approach
+            async () => {
+              const trackDetails = await soundcloud.tracks.get(track.id.toString())
+              return await soundcloud.util.streamLink(trackDetails.id.toString())
             }
           ]
 
+          let methodIndex = 0
           for (const method of methods) {
+            methodIndex++
             try {
               const streamUrl = await method()
               if (streamUrl) {
-                console.log(`Got stream URL for track ${track.id} using method ${methods.indexOf(method) + 1}`)
+                console.log(`Got stream URL for track ${track.id} using method ${methodIndex}`)
                 trackInfo.streamUrl = streamUrl
                 break
               }
-            } catch (methodError) {            console.log(`Method ${methods.indexOf(method) + 1} failed for track ${track.id}:`, 
-                methodError instanceof Error ? methodError.message : 'Unknown error')
+            } catch (methodError: any) {
+              const errorMsg = methodError instanceof Error ? methodError.message : 'Unknown error'
+
+              // Check for rate limiting
+              if (errorMsg.includes('429') || errorMsg.includes('Too Many Requests')) {
+                console.log(`Method ${methodIndex} failed for track ${track.id}: Rate limited, waiting...`)
+                // Wait before trying next method
+                await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000))
+              } else {
+                console.log(`Method ${methodIndex} failed for track ${track.id}:`, errorMsg)
+              }
             }
           }
 

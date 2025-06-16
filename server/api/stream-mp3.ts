@@ -55,34 +55,78 @@ export default defineEventHandler(async (event): Promise<StreamResponse> => {
       })
     }
 
-    // Get track details
+    // Get track details with retry logic
     let trackDetails
-    try {
-      trackDetails = await soundcloud.tracks.get(url)
-    } catch (error: any) {
-      throw createError({
-        statusCode: 404,
-        message: 'Could not get track details: ' + (error.message || 'Unknown error')
-      })
-    }    // Get transcoding URL and type
-    const { url: transcodingUrl, isHLS } = getTranscoding(trackDetails)
+    const maxRetries = 3
+    let attempt = 0
 
-    // Get stream URL 
-    const response = await fetch(transcodingUrl + '?client_id=' + clientId)
-    
-    if (!response.ok) {
-      throw createError({
-        statusCode: response.status,
-        message: `Failed to get ${isHLS ? 'HLS' : 'MP3'} stream: ${response.statusText}`
-      })
+    while (attempt < maxRetries) {
+      try {
+        trackDetails = await soundcloud.tracks.get(url)
+        break
+      } catch (error: any) {
+        attempt++
+        if (attempt === maxRetries) {
+          throw createError({
+            statusCode: 404,
+            message: 'Could not get track details: ' + (error.message || 'Unknown error')
+          })
+        }
+
+        // Wait before retry, especially for rate limiting
+        const delay = 1000 * attempt + Math.random() * 1000
+        console.log(`Retry ${attempt}/${maxRetries} for track details after ${delay}ms`)
+        await new Promise(resolve => setTimeout(resolve, delay))
+      }
     }
 
-    const data = await response.json()
-    if (!data?.url) {
-      throw createError({
-        statusCode: 500,
-        message: `Invalid ${isHLS ? 'HLS' : 'MP3'} stream response`
-      })
+    // Get transcoding URL and type
+    const { url: transcodingUrl, isHLS } = getTranscoding(trackDetails)
+
+    // Get stream URL with retry logic
+    let streamData
+    attempt = 0
+
+    while (attempt < maxRetries) {
+      try {
+        const response = await fetch(transcodingUrl + '?client_id=' + clientId)
+
+        if (!response.ok) {
+          if (response.status === 429) {
+            // Rate limited, wait longer
+            const delay = 2000 * (attempt + 1) + Math.random() * 2000
+            console.log(`Rate limited, waiting ${delay}ms before retry ${attempt + 1}/${maxRetries}`)
+            await new Promise(resolve => setTimeout(resolve, delay))
+            attempt++
+            continue
+          }
+
+          throw createError({
+            statusCode: response.status,
+            message: `Failed to get ${isHLS ? 'HLS' : 'MP3'} stream: ${response.statusText}`
+          })
+        }
+
+        streamData = await response.json()
+        if (!streamData?.url) {
+          throw createError({
+            statusCode: 500,
+            message: `Invalid ${isHLS ? 'HLS' : 'MP3'} stream response`
+          })
+        }
+
+        break // Success, exit retry loop
+
+      } catch (error: any) {
+        attempt++
+        if (attempt === maxRetries) {
+          throw error
+        }
+
+        const delay = 1000 * attempt + Math.random() * 1000
+        console.log(`Stream URL fetch retry ${attempt}/${maxRetries} after ${delay}ms`)
+        await new Promise(resolve => setTimeout(resolve, delay))
+      }
     }
 
     return {
