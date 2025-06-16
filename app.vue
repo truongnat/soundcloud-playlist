@@ -51,30 +51,30 @@
         />
       </USlideover>
     </div>
-
-    <!-- Floating Download Indicator -->
-    <UButton
-      v-if="downloadStats.total > 0 && !uiStore.showDownloadQueue"
-      @click="() => { uiStore.showDownloadQueue = true }"
-      :icon="downloadStats.active ? 'i-heroicons-arrow-path' : 'i-heroicons-cloud-arrow-down'"
-      color="primary"
-      class="fixed bottom-6 right-6 hover:scale-105 transition-transform"
-      size="xl"
-    >
-      <UBadge
-        :value="downloadStats.total"
-        color="error"
-        position="top-right"
-      />
-      <div v-if="downloadStats.active > 0" class="absolute inset-0 flex items-center justify-center">
-        <UProgress
-          class="w-12 h-12"
-          :value="downloadStats.activeProgress"
-          circle
-        />
-      </div>
-    </UButton>
   </div>
+
+  <!-- Floating Download Indicator -->
+  <UButton
+    v-if="downloadStats.total > 0 && !uiStore.showDownloadQueue"
+    @click="() => { uiStore.showDownloadQueue = true }"
+    :icon="downloadStats.active ? 'i-heroicons-arrow-path' : 'i-heroicons-cloud-arrow-down'"
+    color="primary"
+    class="fixed bottom-6 right-6 hover:scale-105 transition-transform"
+    size="xl"
+  >
+    <UBadge
+      :value="downloadStats.total"
+      color="error"
+      position="top-right"
+    />
+    <div v-if="downloadStats.active > 0" class="absolute inset-0 flex items-center justify-center">
+      <UProgress
+        class="w-12 h-12"
+        :value="downloadStats.activeProgress"
+        circle
+      />
+    </div>
+  </UButton>
 </template>
 
 <script setup lang="ts">

@@ -129,9 +129,7 @@
           </div>
         </div>
       </div>
-    </div>
-
-    <div v-else class="flex flex-col items-center justify-center py-12">
+    </div>    <div v-else-if="!tracks.length" class="flex flex-col items-center justify-center py-12">
       <UIcon
         name="i-heroicons-musical-note"
         class="w-16 h-16 mb-4 text-gray-400"
