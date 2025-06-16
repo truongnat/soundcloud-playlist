@@ -23,10 +23,10 @@ export const useDownloadQueueStore = defineStore('downloadQueue', {
   },
 
   actions: {
-    addToQueue(track: Track) {
+    async addToQueue(track: Track) {
       const trackId = track.id.toString()
       console.log('Adding track to queue:', track.title)
-      
+
       if (this.queue[trackId]) {
         if (this.queue[trackId].status === 'error') {
           // If track failed, allow retry by adding it again
@@ -45,6 +45,17 @@ export const useDownloadQueueStore = defineStore('downloadQueue', {
         status: 'queued',
         progress: 0,
         error: undefined
+      }
+
+      // Đánh dấu cần giữ queue mở khi có item trong queue
+      if (typeof window !== 'undefined') {
+        try {
+          const { useUIStore } = await import('@/stores/ui')
+          const uiStore = useUIStore()
+          uiStore.markKeepQueueOpen()
+        } catch (error) {
+          console.warn('Could not access UI store:', error)
+        }
       }
     },
 
