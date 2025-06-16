@@ -195,6 +195,11 @@ const downloadTrack = (track: Track) => {
     return
   }
 
+  if (activeDownloads.value.includes(trackId)) {
+    return
+  }
+
+  activeDownloads.value.push(trackId)
   emit('download-track', track)
 }
 

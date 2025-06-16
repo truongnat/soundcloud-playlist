@@ -150,6 +150,7 @@ import { useAudioProcessor } from '@/composables/useAudioProcessor'
 
 const emit = defineEmits<{
   (e: 'close'): void
+  (e: 'download-complete', trackId: string): void
 }>()
 
 const downloadQueue = ref<Record<string, QueueItem>>({})
