@@ -221,7 +221,7 @@ const downloadStats = computed(() => {
     else if (['downloading', 'converting'].includes(item.status)) acc.active++
     else if (item.status === 'completed') acc.completed++
     return acc
-  }, { queued: 0, active: 0, completed: 0 })
+  }, { queued: 0, active: 0, completed: 0, total: 0 })
 
   // Thêm total count
   stats.total = storeQueueItems.value.length
