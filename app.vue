@@ -156,7 +156,7 @@ const handleDownloadTrack = async (track: Track) => {
   console.log('Adding track to queue:', track.title)
 
   // Thêm track vào queue store (không tự động mở panel)
-  await downloadQueueStore.addToQueue(track)
+  downloadQueueStore.addToQueue(track)
 
   // Wait for the next tick to ensure the download queue component is mounted
   await nextTick()
@@ -178,7 +178,7 @@ const handleDownloadAll = async (tracks: Track[]) => {
 
   // Thêm tất cả tracks vào queue store (không tự động mở panel)
   for (const track of tracks) {
-    await downloadQueueStore.addToQueue(track)
+    downloadQueueStore.addToQueue(track)
   }
 
   // Wait for the next tick to ensure the download queue component is mounted
@@ -224,5 +224,25 @@ const handleDownloadAll = async (tracks: Track[]) => {
 .fade-enter-to,
 .fade-leave-from {
   opacity: 1;
+}
+
+.bounce-enter-active {
+  animation: bounce-in 0.5s;
+}
+
+.bounce-leave-active {
+  animation: bounce-in 0.5s reverse;
+}
+
+@keyframes bounce-in {
+  0% {
+    transform: scale(0);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 </style>
