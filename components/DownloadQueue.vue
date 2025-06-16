@@ -73,7 +73,7 @@
                 <div class="flex items-center space-x-2 flex-shrink-0">
                   <button 
                     v-if="item.status === 'queued'"
-                    @click="startDownload(getTrackId(item.track.id))"
+                    @click="handleDownload(item.track.id)"
                     class="flex items-center space-x-1 px-3 py-1.5 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
                     title="Start download"
                   >
@@ -84,7 +84,7 @@
                   </button>
                   <button 
                     v-if="item.status === 'queued'"
-                    @click="removeFromQueue(getTrackId(item.track.id))"
+                    @click="removeFromQueue(item.track.id.toString())"
                     class="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
                     title="Remove from queue"
                   >
