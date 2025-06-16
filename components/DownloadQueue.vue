@@ -175,7 +175,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { QueueItem } from '@/types'
+import type { Track, QueueItem } from '@/types'
 import { useDownloadQueue } from '@/composables/useDownloadQueue'
 
 const emit = defineEmits<{
@@ -194,11 +194,11 @@ const {
 
 // Compute download statistics
 const downloadStats = computed(() => {
-  return queueItems.value.reduce((acc, item) => {
-    if (item.status === 'queued') acc.queued++
-    else if (['downloading', 'converting'].includes(item.status)) acc.active++
-    else if (item.status === 'completed') acc.completed++
-    return acc
+  return queueItems.value.reduce((stats, item) => {
+    if (item.status === 'queued') stats.queued++
+    else if (['downloading', 'converting'].includes(item.status)) stats.active++
+    else if (item.status === 'completed') stats.completed++
+    return stats
   }, { queued: 0, active: 0, completed: 0 })
 })
 
@@ -222,9 +222,11 @@ const getStatusText = (item: QueueItem): string => {
 
 // Handle individual download
 const handleDownload = async (trackId: string | number) => {
+  if (downloadStats.value.active > 0) return
+  
   try {
-    const result = await startDownload(trackId.toString())
-    emit('download-complete', result)
+    await startDownload(trackId.toString())
+    emit('download-complete', trackId.toString())
   } catch (error) {
     console.error('Download failed:', error)
   }
