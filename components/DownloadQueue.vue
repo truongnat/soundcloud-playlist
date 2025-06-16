@@ -57,18 +57,16 @@
               Discard All
             </UButton>
           </UTooltip>
+
+          <!-- Close button -->
+          <button @click="$emit('close')" class="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors ml-1">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
         </div>
       </div>
     </UCard>
-
-        <!-- Close button -->
-        <button @click="$emit('close')" class="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors ml-1">
-          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
-      </div>
-    </div>
 
     <!-- Queue Actions -->
     <div v-if="downloadStats.queued > 0" class="p-4 bg-gray-50 border-b border-gray-200">
