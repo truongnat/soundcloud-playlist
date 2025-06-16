@@ -2,12 +2,9 @@ import { ref, computed } from 'vue'
 import type { Track, QueueItem } from '@/types'
 import { useAudioProcessor } from './useAudioProcessor'
 
-export const useDownloadQueue = () => {
-  const downloadQueue = ref<Record<string, QueueItem>>({})
-  const isQueueVisible = ref(true)
-
-  // Composables
-  const { convertToMp3 } = useAudioProcessor()
+// Global state
+const downloadQueue = ref<Record<string, QueueItem>>({})
+const { convertToMp3 } = useAudioProcessor()
 
   // Helper functions
   const getTrackId = (id: string | number): string => id.toString()
