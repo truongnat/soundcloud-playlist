@@ -1,5 +1,5 @@
-<template>
-  <div class="h-screen flex flex-col">    <!-- Queue Header -->
+<template>  <div class="h-screen flex flex-col">
+    <!-- Queue Header -->
     <UCard class="sticky top-0 z-10" ui="p-4">
       <!-- Left side: Title and status -->
       <div class="flex items-center justify-between">

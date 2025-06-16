@@ -29,23 +29,17 @@
           color="primary"
           variant="solid"
           size="lg"
-        >
-          <template v-if="loading">
-            <svg class="animate-spin -ml-1 mr-2 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
+        >          <template v-if="loading">
+            <UIcon name="i-heroicons-arrow-path" class="animate-spin mr-2" />
             Loading playlist...
           </template>
           <template v-else>
-            <svg class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13l-3 3m0 0l-3-3m3 3V8m0 13a9 9 0 110-18 9 9 0 010 18z" />
-            </svg>
+            <UIcon name="i-heroicons-cloud-arrow-down" class="mr-2" />
             Get Playlist
           </template>
-        </button>
+        </UButton>
       </div>
-    </div>
+    </UCard>
   </div>
 </template>
 

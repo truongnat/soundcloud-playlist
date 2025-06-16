@@ -38,15 +38,17 @@
             icon="i-heroicons-cloud-arrow-down"
           >
             Download All
-          </UButton>
-      </div>
+          </UButton>        </div>
+      </UCard>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">      <!-- Track Cards -->
-        <div 
-          v-for="currentTrack in tracks" 
-          :key="currentTrack.id" 
-          class="group bg-white rounded-xl shadow-sm border border-gray-100 p-5 hover:shadow-md hover:border-blue-100 transition-all duration-200"
-        >          <div class="flex space-x-5">
+      <!-- Track Cards -->
+      <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <UCard
+          v-for="currentTrack in tracks"
+          :key="currentTrack.id"
+          class="group hover:shadow-lg transition-shadow"
+        >
+          <div class="flex space-x-5">
             <div class="relative flex-shrink-0">
               <UAvatar
                 v-if="currentTrack.artwork"
