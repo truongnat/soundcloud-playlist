@@ -130,15 +130,16 @@ export default defineEventHandler(async (event): Promise<StreamResponse> => {
     }
 
     return {
-      streamUrl: data.url,
-      isHLS,track: {
+      streamUrl: streamData.url,
+      isHLS,
+      track: {
         id: trackDetails.id,
         title: trackDetails.title,
         artist: trackDetails.user.username,
         duration: trackDetails.duration,
         artwork: trackDetails.artwork_url || '',
         url: trackDetails.permalink_url,
-        streamUrl: data.url
+        streamUrl: streamData.url
       }
     }
 

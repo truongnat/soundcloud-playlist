@@ -101,14 +101,35 @@ export const useDownloadQueue = () => {
         throw new Error('Download cancelled')
       }
 
-      // Get stream URL from our API
-      const response = await fetch(`/api/stream-mp3?url=${encodeURIComponent(track.url)}`, {
-        signal: abortController.signal
-      })
-      if (!response.ok) throw new Error('Failed to get stream URL')
+      // Get stream URL from our API with fallback
+      let data
+      try {
+        const response = await fetch(`/api/stream-mp3?url=${encodeURIComponent(track.url)}`, {
+          signal: abortController.signal
+        })
+        if (!response.ok) throw new Error(`API failed with status ${response.status}`)
 
-      const data = await response.json()
-      if (!data?.streamUrl) throw new Error('No stream URL in response')
+        data = await response.json()
+        if (!data?.streamUrl) throw new Error('No stream URL in response')
+      } catch (apiError: any) {
+        console.log('Main API failed, trying fallback:', apiError.message)
+
+        // Try fallback API
+        try {
+          const fallbackResponse = await fetch(`/api/track-fallback?url=${encodeURIComponent(track.url)}`, {
+            signal: abortController.signal
+          })
+          if (!fallbackResponse.ok) throw new Error(`Fallback API failed with status ${fallbackResponse.status}`)
+
+          const fallbackData = await fallbackResponse.json()
+          if (!fallbackData?.streamUrl) throw new Error('No stream URL in fallback response')
+
+          data = fallbackData
+          console.log('Fallback API succeeded')
+        } catch (fallbackError: any) {
+          throw new Error(`Both main and fallback APIs failed: ${apiError.message} | ${fallbackError.message}`)
+        }
+      }
 
       console.log('Got stream URL, downloading...')      // Download the audio file
       let audioData: Uint8Array
