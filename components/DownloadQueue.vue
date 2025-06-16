@@ -248,8 +248,9 @@ const downloadStats = computed(() => {
     if (item.status === 'queued') acc.queued++
     else if (['downloading', 'converting'].includes(item.status)) acc.active++
     else if (item.status === 'completed') acc.completed++
+    else if (item.status === 'error') acc.failed++
     return acc
-  }, { queued: 0, active: 0, completed: 0, total: 0 })
+  }, { queued: 0, active: 0, completed: 0, failed: 0, total: 0 })
 
   // Thêm total count
   stats.total = storeQueueItems.value.length
@@ -318,6 +319,24 @@ const handleRetry = async (trackId: string | number) => {
     emit('download-complete', trackId.toString())
   } catch (error) {
     console.error('Retry failed:', error)
+  }
+}
+
+// Handle retry all failed downloads
+const handleRetryAllFailed = async () => {
+  const failedItems = storeQueueItems.value.filter(item => item.status === 'error')
+  if (failedItems.length === 0) return
+
+  console.log(`Retrying ${failedItems.length} failed downloads...`)
+
+  for (const item of failedItems) {
+    try {
+      await retryDownload(item.track.id.toString())
+      // Small delay between retries to avoid overwhelming the API
+      await new Promise(resolve => setTimeout(resolve, 1000))
+    } catch (error) {
+      console.error(`Retry failed for track ${item.track.id}:`, error)
+    }
   }
 }
 
