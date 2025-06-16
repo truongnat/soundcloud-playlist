@@ -216,12 +216,17 @@ const storeQueueItems = computed(() => downloadQueueStore.queueItems)
 
 // Compute download statistics từ store
 const downloadStats = computed(() => {
-  return storeQueueItems.value.reduce((stats, item) => {
-    if (item.status === 'queued') stats.queued++
-    else if (['downloading', 'converting'].includes(item.status)) stats.active++
-    else if (item.status === 'completed') stats.completed++
-    return stats
+  const stats = storeQueueItems.value.reduce((acc, item) => {
+    if (item.status === 'queued') acc.queued++
+    else if (['downloading', 'converting'].includes(item.status)) acc.active++
+    else if (item.status === 'completed') acc.completed++
+    return acc
   }, { queued: 0, active: 0, completed: 0 })
+
+  // Thêm total count
+  stats.total = storeQueueItems.value.length
+
+  return stats
 })
 
 // Status text formatter
