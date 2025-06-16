@@ -96,46 +96,47 @@
                     : 'bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 focus:ring-blue-500'"
                 >
                   <svg class="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                      :d="activeDownloads.includes(getTrackId(currentTrack.id))
-                        ? 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z'
-                        : 'M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4'" />
-                  </svg>                  {{ !currentTrack.streamUrl 
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"                >
+                  {{ !currentTrack.streamUrl 
                     ? 'Unavailable' 
                     : activeDownloads.includes(getTrackId(currentTrack.id)) 
                       ? 'Processing...' 
                       : 'Download' }}
-                </button>                <a 
-                  class="p-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors"
-                  :href="currentTrack.url"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  title="Open in SoundCloud"
-                >
-                  <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                  </svg>
-                </a>
+                </UButton>
+                <UTooltip text="Open in SoundCloud">
+                  <UButton
+                    :to="currentTrack.url"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    icon="i-heroicons-arrow-top-right-on-square"
+                    color="neutral"
+                    variant="ghost"
+                  />
+                </UTooltip>
               </div>
               
-              <p v-if="downloadErrors[currentTrack.id]" class="mt-3 text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg flex items-center">
-                <svg class="w-4 h-4 mr-1.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                {{ downloadErrors[currentTrack.id] }}
-              </p>
+              <UAlert
+                v-if="downloadErrors[currentTrack.id]"
+                class="mt-3"
+                color="error"
+                variant="soft"
+                :title="downloadErrors[currentTrack.id]"
+                icon="i-heroicons-exclamation-circle"
+              />
             </div>
           </div>
         </div>
       </div>
     </div>
 
-    <div v-else class="flex flex-col items-center justify-center py-12 text-gray-500">
-      <svg class="w-16 h-16 mb-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
-      </svg>
-      <p class="text-lg">Enter a SoundCloud playlist URL to see tracks</p>
+    <div v-else class="flex flex-col items-center justify-center py-12">
+      <UIcon
+        name="i-heroicons-musical-note"
+        class="w-16 h-16 mb-4 text-gray-400"
+      />
+      <p class="text-lg text-gray-500">Enter a SoundCloud playlist URL to see tracks</p>
     </div>
+  </div>
   </div>
 </template>
 
