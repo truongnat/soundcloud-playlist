@@ -29,13 +29,13 @@
     <!-- Queue Actions -->
     <div v-if="queuedItems.length > 0" class="p-4 bg-gray-50 border-b border-gray-200">
       <button
-        @click="startQueuedDownloads"
+        @click="startAllDownloads"
         class="w-full flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
       >
         <svg class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
         </svg>
-        Start Downloads ({{ queuedItems.length }})
+        Start All Downloads ({{ queuedItems.length }})
       </button>
     </div>
 
@@ -70,16 +70,29 @@
                   <h4 class="font-medium text-gray-900 text-sm truncate">{{ item.track.title }}</h4>
                   <p class="text-xs text-gray-500">{{ item.track.artist }}</p>
                 </div>
-                <button 
-                  v-if="item.status === 'queued'"
-                  @click="removeFromQueue(getTrackId(item.track.id))"
-                  class="ml-2 p-1 text-gray-400 hover:text-gray-600"
-                  title="Remove from queue"
-                >
-                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
+                <div class="flex items-center space-x-2">
+                  <button 
+                    v-if="item.status === 'queued'"
+                    @click="startDownload(getTrackId(item.track.id))"
+                    class="p-1.5 text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
+                    title="Start download"
+                  >
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </button>
+                  <button 
+                    v-if="item.status === 'queued'"
+                    @click="removeFromQueue(getTrackId(item.track.id))"
+                    class="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                    title="Remove from queue"
+                  >
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
               </div>
               
               <!-- Status and Progress -->
@@ -291,12 +304,10 @@ const clearCompleted = (): void => {
   }, {} as Record<string, QueueItem>)
 }
 
-const startQueuedDownloads = async (): Promise<void> => {
+const startAllDownloads = async (): Promise<void> => {
   const queued = queuedItems.value
   for (const item of queued) {
-    if (item.status === 'queued') {
-      await startDownload(getTrackId(item.track.id))
-    }
+    await startDownload(getTrackId(item.track.id))
   }
 }
 
