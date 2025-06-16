@@ -11,7 +11,7 @@
             <h1 class="text-xl font-bold text-gray-900">SoundCloud Playlist</h1>
           </div>
           <div class="flex items-center space-x-4">
-            <button @click="showQueue = !showQueue" 
+            <button @click="uiStore.toggleDownloadQueue()"
               class="flex items-center space-x-1 text-gray-600 hover:text-gray-900"
             >
               <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -50,10 +50,10 @@
 
       <!-- Download Queue Sidebar -->
       <Transition name="slide">
-        <div v-if="showQueue" class="w-[450px] border-l border-gray-200 bg-white shadow-2xl fixed right-0 top-0 h-full z-50">
-          <DownloadQueue 
-            ref="downloadQueueRef" 
-            @close="showQueue = false"
+        <div v-if="uiStore.showDownloadQueue" class="w-[450px] border-l border-gray-200 bg-white shadow-2xl fixed right-0 top-0 h-full z-50">
+          <DownloadQueue
+            ref="downloadQueueRef"
+            @close="uiStore.hideQueue()"
             @download-complete="handleDownloadComplete"
           />
         </div>
@@ -61,9 +61,9 @@
 
       <!-- Backdrop -->
       <Transition name="fade">
-        <div v-if="showQueue" 
+        <div v-if="uiStore.showDownloadQueue"
           class="fixed inset-0 bg-black/20 backdrop-blur-sm z-40"
-          @click="showQueue = false"
+          @click="uiStore.hideQueue()"
         ></div>
       </Transition>
     </div>
@@ -71,14 +71,29 @@
 </template>
 
 <script setup lang="ts">
-import { ref, nextTick } from 'vue'
+import { ref, nextTick, onMounted } from 'vue'
 import { usePlaylist } from './composables/usePlaylist'
+import { useUIStore } from '@/stores/ui'
+import { useDownloadQueueStore } from '@/stores/downloadQueue'
 import type { Track } from '@/types'
 
 const { tracks, loading, error, playlistInfo, fetchPlaylist } = usePlaylist()
-const showQueue = ref(false)
+const uiStore = useUIStore()
+const downloadQueueStore = useDownloadQueueStore()
 const downloadQueueRef = ref()
 const trackListRef = ref()
+
+// Khôi phục trạng thái queue khi mount
+onMounted(() => {
+  // Kiểm tra nếu có download đang chạy hoặc queued thì mở queue
+  const hasActiveOrQueued = downloadQueueStore.queueItems.some(item =>
+    ['downloading', 'converting', 'queued'].includes(item.status)
+  )
+
+  if (hasActiveOrQueued || uiStore.shouldKeepQueueOpen) {
+    uiStore.restoreQueueIfNeeded()
+  }
+})
 
 const handleDownloadTrack = async (track: Track) => {
   console.log('Adding track to queue:', track.title)

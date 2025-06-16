@@ -1,7 +1,8 @@
 import { createPersistedState } from 'pinia-plugin-persistedstate'
+import type { Pinia } from 'pinia'
 
 export default defineNuxtPlugin(({ $pinia }) => {
-  $pinia.use(createPersistedState({
+  ($pinia as Pinia).use(createPersistedState({
     storage: localStorage,
     auto: true
   }))
