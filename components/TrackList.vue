@@ -46,58 +46,51 @@
           v-for="currentTrack in tracks" 
           :key="currentTrack.id" 
           class="group bg-white rounded-xl shadow-sm border border-gray-100 p-5 hover:shadow-md hover:border-blue-100 transition-all duration-200"
-        >
-          <div class="flex space-x-5">
+        >          <div class="flex space-x-5">
             <div class="relative flex-shrink-0">
-              <img 
-                v-if="currentTrack.artwork" 
-                :src="currentTrack.artwork" 
+              <UAvatar
+                v-if="currentTrack.artwork"
+                :src="currentTrack.artwork"
                 :alt="currentTrack.title"
-                class="w-28 h-28 object-cover rounded-lg shadow-sm group-hover:shadow transition-shadow"
-                loading="lazy"
-              >
-              <div v-else class="w-28 h-28 bg-gradient-to-br from-gray-100 to-gray-50 rounded-lg flex items-center justify-center">
-                <svg class="w-12 h-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
-                </svg>
+                size="2xl"
+              />
+              <div v-else class="w-28 h-28 bg-gray-100 rounded-lg flex items-center justify-center">
+                <UIcon name="i-heroicons-musical-note" class="w-12 h-12 text-gray-400" />
               </div>
               
-              <div class="absolute -top-2 -right-2">
-                <div v-if="activeDownloads.includes(getTrackId(currentTrack.id))" 
-                  class="animate-pulse bg-blue-500 text-white p-1.5 rounded-full shadow-sm">
-                  <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                </div>
-              </div>
+              <UBadge
+                v-if="activeDownloads.includes(getTrackId(currentTrack.id))"
+                class="absolute -top-2 -right-2"
+                color="primary"
+                variant="solid"
+              >
+                <UIcon name="i-heroicons-arrow-path" class="animate-spin" />
+              </UBadge>
             </div>
             
             <div class="flex-1 min-w-0">
               <div class="flex justify-between items-start space-x-4 mb-2">
                 <div>
-                  <h3 class="font-medium text-gray-900 text-lg leading-tight line-clamp-2">
+                  <h3 class="font-medium text-lg leading-tight line-clamp-2">
                     {{ currentTrack.title }}
                   </h3>
                   <p class="text-sm text-gray-600 mt-1 flex items-center">
-                    <svg class="w-4 h-4 mr-1 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg>
+                    <UIcon name="i-heroicons-user" class="mr-1 text-gray-400" />
                     {{ currentTrack.artist }}
                   </p>
                 </div>
                 <span class="text-sm text-gray-500 whitespace-nowrap flex items-center">
-                  <svg class="w-4 h-4 mr-1 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
+                  <UIcon name="i-heroicons-clock" class="mr-1 text-gray-400" />
                   {{ formatDuration(currentTrack.duration) }}
                 </span>
               </div>
-                <div class="flex items-center space-x-3 mt-4">
-                <button 
+              <div class="flex items-center space-x-3 mt-4">
+                <UButton
                   @click="downloadTrack(currentTrack)"
                   :disabled="!currentTrack.streamUrl || activeDownloads.includes(getTrackId(currentTrack.id))"
-                  class="flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-1"
+                  color="neutral"
+                  variant="soft"
+                  icon="i-heroicons-cloud-arrow-down"
                   :class="!currentTrack.streamUrl || activeDownloads.includes(getTrackId(currentTrack.id))
                     ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                     : 'bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 focus:ring-blue-500'"
