@@ -189,35 +189,47 @@ const getTrackId = (id: string | number): string => id.toString()
 
 // Download a single track
 const downloadTrack = (track: Track) => {
+  console.log('TrackList: Starting download for track:', track.title)
   const trackId = getTrackId(track.id)
+  
   if (!track.streamUrl) {
+    console.warn('Track not available for download:', track.title)
     downloadErrors.value[trackId] = 'This track is not available for download.'
     return
   }
 
   if (activeDownloads.value.includes(trackId)) {
+    console.log('Track already in active downloads:', track.title)
     return
   }
 
+  console.log('TrackList: Emitting download-track for:', track.title)
   activeDownloads.value.push(trackId)
   emit('download-track', track)
 }
 
 // Download all tracks in the playlist
 const downloadAllTracks = () => {
+  console.log('TrackList: Starting download all')
   const availableTracks = props.tracks.filter(track => track.streamUrl)
+  
   if (availableTracks.length === 0) {
+    console.warn('No tracks available for download')
     downloadErrors.value['all'] = 'No tracks available for download.'
     return
   }
 
+  console.log(`TrackList: Emitting download-all with ${availableTracks.length} tracks`)
   emit('download-all', availableTracks)
 }
 
+// Handle download completion
 const handleDownloadComplete = (trackId: string) => {
+  console.log('TrackList: Handling download complete for:', trackId)
   const index = activeDownloads.value.indexOf(trackId)
   if (index !== -1) {
     activeDownloads.value.splice(index, 1)
+    console.log('Removed track from activeDownloads:', trackId)
   }
 }
 
