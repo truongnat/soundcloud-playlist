@@ -1,7 +1,7 @@
 <template>
   <div class="h-screen flex flex-col">
     <!-- Queue Header -->
-    <div class="flex items-center justify-between p-4 border-b border-gray-200 bg-white">
+    <div class="flex items-center justify-between p-4 border-b border-gray-200 bg-white sticky top-0 z-10">
       <div class="flex items-center space-x-3">
         <svg class="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -11,14 +11,32 @@
           {{ activeCount }} active
         </span>
       </div>
-      <div class="flex items-center space-x-2">
+      <div class="flex items-center space-x-3">
         <button v-if="hasCompletedDownloads"
           @click="clearCompleted"
           class="text-sm text-gray-500 hover:text-gray-700 transition-colors"
         >
           Clear completed
         </button>
+        <button @click="$emit('close')" class="text-gray-400 hover:text-gray-600">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
       </div>
+    </div>
+
+    <!-- Queue Actions -->
+    <div v-if="queuedItems.length > 0" class="p-4 bg-gray-50 border-b border-gray-200">
+      <button
+        @click="startQueuedDownloads"
+        class="w-full flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+      >
+        <svg class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+        </svg>
+        Start Downloads ({{ queuedItems.length }})
+      </button>
     </div>
 
     <!-- Queue List -->
@@ -30,7 +48,7 @@
           </svg>
         </div>
         <p class="text-base font-medium">Queue is empty</p>
-        <p class="text-sm text-gray-400 mt-1 text-center">Download tracks from the playlist to see them here</p>
+        <p class="text-sm text-gray-400 mt-1 text-center">Add tracks from the playlist to download them</p>
       </div>
 
       <div v-else class="divide-y divide-gray-100">
@@ -102,6 +120,11 @@
 import { ref, computed } from 'vue'
 import type { Track, QueueItem } from '@/types'
 import { useAudioProcessor } from '@/composables/useAudioProcessor'
+
+const emit = defineEmits<{
+  (e: 'close'): void
+}>()
+
 const downloadQueue = ref<Record<string, QueueItem>>({})
 const { convertToMp3 } = useAudioProcessor()
 
@@ -160,6 +183,8 @@ const startDownload = async (trackId: string): Promise<void> => {
     
     if (!audioResponse.body) throw new Error('No response body')
 
+    downloadQueue.value[trackId].status = 'downloading'
+
     // Download with progress tracking
     const reader = audioResponse.body.getReader()
     const contentLength = +(audioResponse.headers.get('Content-Length') || 0)
@@ -211,18 +236,20 @@ const startDownload = async (trackId: string): Promise<void> => {
 }
 
 // Queue management
-const addToQueue = async (track: Track): Promise<void> => {
+const addToQueue = (track: Track): void => {
   const trackId = getTrackId(track.id)
-  console.log('Adding and starting download for track:', track.title)
+  console.log('Adding track to queue:', track.title)
   
+  if (downloadQueue.value[trackId]?.status === 'completed') {
+    return // Skip if already downloaded
+  }
+
   downloadQueue.value[trackId] = {
     track,
-    status: 'downloading',
+    status: 'queued',
     progress: 0,
     error: undefined
   }
-
-  await startDownload(trackId)
 }
 
 const removeFromQueue = (trackId: string): void => {
@@ -239,6 +266,15 @@ const clearCompleted = (): void => {
     }
     return acc
   }, {} as Record<string, QueueItem>)
+}
+
+const startQueuedDownloads = async (): Promise<void> => {
+  const queued = queuedItems.value
+  for (const item of queued) {
+    if (item.status === 'queued') {
+      await startDownload(getTrackId(item.track.id))
+    }
+  }
 }
 
 defineExpose({
