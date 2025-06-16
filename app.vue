@@ -45,11 +45,13 @@
           v-model="uiStore.showDownloadQueue"
           :width="450"
         >
-          <DownloadQueue
-            ref="downloadQueueRef"
-            @close="() => uiStore.showDownloadQueue = false"
-            @download-complete="handleDownloadComplete"
-          />
+          <UTooltipProvider>
+            <DownloadQueue
+              ref="downloadQueueRef"
+              @close="() => uiStore.showDownloadQueue = false"
+              @download-complete="handleDownloadComplete"
+            />
+          </UTooltipProvider>
         </USlideover>
       </div>
       </div>
