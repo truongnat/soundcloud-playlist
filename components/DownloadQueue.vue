@@ -66,20 +66,21 @@
             
             <div class="flex-1 min-w-0">
               <div class="flex items-center justify-between">
-                <div>
-                  <h4 class="font-medium text-gray-900 text-sm truncate">{{ item.track.title }}</h4>
-                  <p class="text-xs text-gray-500">{{ item.track.artist }}</p>
-                </div>                <div class="flex items-center space-x-2">
+                <div class="min-w-0 flex-1 mr-4">
+                  <h4 class="font-medium text-gray-900 text-sm max-w-[200px] truncate">{{ item.track.title }}</h4>
+                  <p class="text-xs text-gray-500 truncate">{{ item.track.artist }}</p>
+                </div>
+                <div class="flex items-center space-x-2 flex-shrink-0">
                   <button 
                     v-if="item.status === 'queued'"
                     @click="startDownload(getTrackId(item.track.id))"
-                    class="flex items-center space-x-1 px-3 py-1.5 text-sm text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
+                    class="flex items-center space-x-1 px-3 py-1.5 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
                     title="Start download"
                   >
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
                     </svg>
-                    <span>Download</span>
+                    <span>Start</span>
                   </button>
                   <button 
                     v-if="item.status === 'queued'"
@@ -93,7 +94,8 @@
                   </button>
                 </div>
               </div>
-                <!-- Status and Progress -->
+              
+              <!-- Status and Progress -->
               <div class="mt-2">
                 <div v-if="['downloading', 'converting'].includes(item.status)" class="space-y-2">
                   <div class="flex items-center justify-between text-xs">
