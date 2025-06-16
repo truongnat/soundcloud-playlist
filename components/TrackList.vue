@@ -1,53 +1,44 @@
-<template>
-  <div class="max-w-6xl mx-auto px-4 py-8">
-    <div v-if="loading" class="flex justify-center items-center py-8">
-      <div class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-600"></div>
-      <span class="ml-3 text-gray-600">Loading playlist...</span>
-    </div>
+<template>  <div class="max-w-6xl mx-auto px-4 py-8">
+    <UProgress v-if="loading" animation="carousel" class="mb-4" />
 
-    <div v-else-if="error" class="bg-red-50 border border-red-200 rounded-lg p-4 my-4">
-      <div class="flex">
-        <div class="flex-shrink-0">
-          <svg class="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
-          </svg>
-        </div>
-        <div class="ml-3">
-          <p class="text-sm text-red-700">{{ error }}</p>
-        </div>
-      </div>
-    </div>
+    <UAlert
+      v-else-if="error"
+      color="red"
+      :title="error"
+      icon="i-heroicons-exclamation-circle"
+      class="mb-4"
+    />
 
     <div v-else-if="tracks.length" class="space-y-6">
       <!-- Playlist Header -->
-      <div class="flex items-center justify-between bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
-        <div class="flex items-center space-x-6">
-          <img 
-            v-if="playlistArtwork" 
-            :src="playlistArtwork" 
-            :alt="playlistTitle"
-            class="w-32 h-32 object-cover rounded-xl shadow-md"
-          >
-          <div>
-            <h1 class="text-3xl font-bold text-gray-900 mb-2">{{ playlistTitle }}</h1>
-            <p v-if="playlistDescription" class="text-gray-600 mb-3">{{ playlistDescription }}</p>
-            <div class="flex items-center text-sm text-gray-500">
-              <svg class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
-              </svg>
-              {{ tracks.length }} tracks
+      <UCard>
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-6">
+            <UAvatar
+              v-if="playlistArtwork"
+              :src="playlistArtwork"
+              :alt="playlistTitle"
+              size="2xl"
+            />
+            <div>
+              <h1 class="text-3xl font-bold mb-2">{{ playlistTitle }}</h1>
+              <p v-if="playlistDescription" class="text-gray-600 mb-3">{{ playlistDescription }}</p>
+              <UBadge
+                color="gray"
+                variant="subtle"
+                icon="i-heroicons-musical-note"
+              >
+                {{ tracks.length }} tracks
+              </UBadge>
             </div>
           </div>
-        </div>
-        <button 
-          @click="downloadAllTracks"
-          class="flex items-center px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition-colors"
-        >
-          <svg class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-          </svg>
-          Download All
-        </button>
+          <UButton
+            @click="downloadAllTracks"
+            color="primary"
+            icon="i-heroicons-cloud-arrow-down"
+          >
+            Download All
+          </UButton>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">      <!-- Track Cards -->
