@@ -7,12 +7,12 @@
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
         </svg>
         <h2 class="text-lg font-semibold text-gray-900">Download Queue</h2>
-        <span v-if="activeCount > 0" class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
-          {{ activeCount }} active
+        <span v-if="downloadStats.active > 0" class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
+          {{ downloadStats.active }} active
         </span>
       </div>
       <div class="flex items-center space-x-3">
-        <button v-if="hasCompletedDownloads"
+        <button v-if="downloadStats.completed > 0"
           @click="clearCompleted"
           class="text-sm text-gray-500 hover:text-gray-700 transition-colors"
         >
@@ -27,15 +27,19 @@
     </div>
 
     <!-- Queue Actions -->
-    <div v-if="queuedItems.length > 0" class="p-4 bg-gray-50 border-b border-gray-200">
+    <div v-if="downloadStats.queued > 0" class="p-4 bg-gray-50 border-b border-gray-200">
       <button
-        @click="startAllDownloads"
-        class="w-full flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+        @click="handleDownloadAll"
+        :disabled="downloadStats.active > 0"
+        class="w-full flex items-center justify-center px-4 py-2 rounded-lg transition-colors"
+        :class="downloadStats.active > 0 
+          ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+          : 'bg-blue-600 text-white hover:bg-blue-700'"
       >
         <svg class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
         </svg>
-        Start All Downloads ({{ queuedItems.length }})
+        Start All Downloads ({{ downloadStats.queued }})
       </button>
     </div>
 
@@ -74,7 +78,11 @@
                   <button 
                     v-if="item.status === 'queued'"
                     @click="handleDownload(item.track.id)"
-                    class="flex items-center space-x-1 px-3 py-1.5 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+                    :disabled="downloadStats.active > 0"
+                    class="flex items-center space-x-1 px-3 py-1.5 text-sm font-medium rounded-lg transition-colors"
+                    :class="downloadStats.active > 0 
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+                      : 'bg-blue-600 text-white hover:bg-blue-700'"
                     title="Start download"
                   >
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -166,7 +174,8 @@
 </template>
 
 <script setup lang="ts">
-import type { Track, QueueItem } from '@/types'
+import { computed } from 'vue'
+import type { QueueItem } from '@/types'
 import { useDownloadQueue } from '@/composables/useDownloadQueue'
 
 const emit = defineEmits<{
@@ -176,15 +185,22 @@ const emit = defineEmits<{
 
 const {
   queueItems,
-  hasActiveDownloads,
-  activeCount,
-  hasCompletedDownloads,
-  queuedItems,
+  addToQueue,
   startDownload,
   removeFromQueue,
   clearCompleted,
-  startAllDownloads,
+  startAllDownloads
 } = useDownloadQueue()
+
+// Compute download statistics
+const downloadStats = computed(() => {
+  return queueItems.value.reduce((acc, item) => {
+    if (item.status === 'queued') acc.queued++
+    else if (['downloading', 'converting'].includes(item.status)) acc.active++
+    else if (item.status === 'completed') acc.completed++
+    return acc
+  }, { queued: 0, active: 0, completed: 0 })
+})
 
 // Status text formatter
 const getStatusText = (item: QueueItem): string => {
@@ -204,18 +220,33 @@ const getStatusText = (item: QueueItem): string => {
   }
 }
 
-// Handle download and emit completion event
+// Handle individual download
 const handleDownload = async (trackId: string | number) => {
   try {
-    await startDownload(trackId.toString())
-    emit('download-complete', trackId.toString())
+    const result = await startDownload(trackId.toString())
+    emit('download-complete', result)
   } catch (error) {
     console.error('Download failed:', error)
   }
 }
 
+// Handle download all
+const handleDownloadAll = async () => {
+  if (downloadStats.value.active > 0) return
+
+  try {
+    await startAllDownloads()
+    // Emit download complete for successfully downloaded items
+    queueItems.value
+      .filter(item => item.status === 'completed')
+      .forEach(item => emit('download-complete', item.track.id.toString()))
+  } catch (error) {
+    console.error('Failed to download all tracks:', error)
+  }
+}
+
 defineExpose({
-  addToQueue: useDownloadQueue().addToQueue
+  addToQueue
 })
 </script>
 
