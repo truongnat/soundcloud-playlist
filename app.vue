@@ -49,12 +49,20 @@
 
       <!-- Download Queue Sidebar -->
       <Transition name="slide">
-        <div v-if="showQueue" class="w-96 border-l border-gray-200 bg-white shadow-lg fixed right-0 top-0 h-full">
+        <div v-if="showQueue" class="w-[450px] border-l border-gray-200 bg-white shadow-2xl fixed right-0 top-0 h-full z-50">
           <DownloadQueue 
             ref="downloadQueueRef" 
             @close="showQueue = false"
           />
         </div>
+      </Transition>
+
+      <!-- Backdrop -->
+      <Transition name="fade">
+        <div v-if="showQueue" 
+          class="fixed inset-0 bg-black/20 backdrop-blur-sm z-40"
+          @click="showQueue = false"
+        ></div>
       </Transition>
     </div>
   </div>
@@ -85,16 +93,33 @@ const handleDownloadAll = (tracks: Track[]) => {
 <style>
 .slide-enter-active,
 .slide-leave-active {
-  transition: transform 0.3s ease;
+  transition: all 0.3s ease;
 }
 
 .slide-enter-from,
 .slide-leave-to {
   transform: translateX(100%);
+  opacity: 0;
 }
 
 .slide-enter-to,
 .slide-leave-from {
   transform: translateX(0);
+  opacity: 1;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+.fade-enter-to,
+.fade-leave-from {
+  opacity: 1;
 }
 </style>
