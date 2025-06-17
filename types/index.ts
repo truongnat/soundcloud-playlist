@@ -22,7 +22,7 @@ export interface SoundCloudPlaylist {
   tracks: SoundCloudTrack[]
 }
 
-// Processed Types
+// Track Types
 export interface Track {
   id: string | number
   title: string
@@ -34,7 +34,7 @@ export interface Track {
   streamUrl: string | null
 }
 
-export interface ProcessedTrack extends Track {} // Same as Track for now, but might diverge in future
+export interface ProcessedTrack extends Track {}
 
 export interface PlaylistInfo {
   title: string
@@ -48,21 +48,52 @@ export interface PlaylistResponse {
 }
 
 // Download Queue Types
-export type DownloadStatus = 'queued' | 'downloading' | 'converting' | 'completed' | 'error'
+export type DownloadStatus = 'queued' | 'downloading' | 'converting' | 'completed' | 'error' | 'retry'
 
 export interface QueueItem {
   track: Track
-  status: 'queued' | 'downloading' | 'converting' | 'completed' | 'error' | 'retry'
+  status: DownloadStatus
   progress: number
   error?: string
   retries?: number
 }
 
+// Stream Response Type
+export interface StreamResponse {
+  streamUrl: string
+  isHLS: boolean
+  track: Track
+}
+
+// Download Queue Instance Type
 export interface DownloadQueueInstance {
   addToQueue: (track: Track) => void
   downloadTrack: (track: Track) => Promise<boolean>
   downloadHlsTrack: (track: Track) => Promise<Uint8Array>
 }
 
-// FFmpeg Types
+// Audio Processing Types
+export interface AudioProcessingOptions {
+  progressCallback?: (progress: number) => void
+  abortSignal?: AbortSignal
+}
+
+// External Library Types
 export type { FFmpeg as FFmpegType } from '@ffmpeg/ffmpeg'
+
+// UI State Types
+export interface UIState {
+  showDownloadQueue: boolean
+  shouldKeepQueueOpen: boolean
+}
+
+// Download Queue Store State
+export interface DownloadQueueState {
+  queue: Record<string, QueueItem>
+}
+
+// Store Types
+export interface RootState {
+  ui: UIState
+  downloadQueue: DownloadQueueState
+}
