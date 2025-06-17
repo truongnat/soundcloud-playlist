@@ -43,12 +43,8 @@ export interface PlaylistInfo {
 }
 
 export interface PlaylistResponse {
-  id: number
-  title: string
-  description: string | null
-  artwork: string | null
-  tracksCount: number
-  tracks: ProcessedTrack[]
+  tracks: Track[]
+  info: PlaylistInfo
 }
 
 // Download Queue Types
