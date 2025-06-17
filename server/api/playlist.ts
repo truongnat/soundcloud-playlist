@@ -396,3 +396,12 @@ export default defineEventHandler(async (event) => {
     })
   }
 })
+
+interface PlaylistResponse {
+  id: number;
+  title: string;
+  description: string;
+  artwork: string | null;
+  tracksCount: number;
+  tracks: ProcessedTrack[];
+}
