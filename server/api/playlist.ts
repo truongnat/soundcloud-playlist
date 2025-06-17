@@ -9,9 +9,12 @@ import type {
 
 // Initialize with mobile client ID
 const MOBILE_CLIENT_ID = 'iZIs9mchVcX5lhVRyQGGAYlNPVldzAoX'
-const soundcloud = new Soundcloud({
-  clientId: MOBILE_CLIENT_ID
-})
+let soundcloud = new Soundcloud(MOBILE_CLIENT_ID)
+
+// Function to recreate the client with new client ID
+const updateClientId = (newClientId: string) => {
+  soundcloud = new Soundcloud(newClientId)
+}
 
 // Hàm để lấy client ID mới nếu cần
 async function getNewClientId(): Promise<string> {
@@ -79,15 +82,13 @@ async function resolveMobileUrl(url: string): Promise<string> {
 // Hàm lấy stream URL với nhiều phương thức và retry
 async function getStreamUrl(track: SoundCloudTrack, retryCount = 0): Promise<string | null> {
   const methods = [
-    // Method 1: Direct media URL with current client ID
+    // Method 1: Try to get stream URL directly from track
     async () => {
-      if (track.media?.transcodings) {
-        const progressive = track.media.transcodings.find(t => t.format.protocol === 'progressive');
-        if (progressive?.url) {
-          return progressive.url;
-        }
+      try {
+        return await soundcloud.util.streamLink(track.id.toString());
+      } catch {
+        return null;
       }
-      return null;
     },
     // Method 2: Stream URL from track URL
     async () => {
@@ -119,12 +120,11 @@ async function getStreamUrl(track: SoundCloudTrack, retryCount = 0): Promise<str
       }
     } catch (error: any) {
       console.log(`Method ${i + 1} failed for track ${track.id}:`, error.message);
-      
-      if (error.message.includes('client_id') || error.message.includes('Client ID')) {
+        if (error.message.includes('client_id') || error.message.includes('Client ID')) {
         if (retryCount < 1) {
           console.log('Updating client ID and retrying...');
           const newClientId = await getNewClientId();
-          soundcloud.setClientId(newClientId);
+          updateClientId(newClientId);
           return getStreamUrl(track, retryCount + 1);
         }
       }
