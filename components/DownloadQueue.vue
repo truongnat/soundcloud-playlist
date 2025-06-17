@@ -334,6 +334,22 @@ const handleRetryAllFailed = async () => {
   }
 }
 
+// Handle retry individual download
+const handleRetry = async (trackId: string | number) => {
+  if (downloadStats.value.active > 0) return
+  
+  try {
+    // Reset status to queued
+    downloadQueueStore.updateTrackStatus(trackId.toString(), 'queued')
+    
+    // Start the download
+    await startDownload(trackId.toString())
+    emit('download-complete', trackId.toString())
+  } catch (error) {
+    console.error('Failed to retry download:', error)
+  }
+}
+
 defineEmits<{
   (e: 'close'): void
   (e: 'download-complete', trackId: string): void
