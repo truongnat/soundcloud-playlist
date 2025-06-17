@@ -9,6 +9,29 @@ import type {
 
 const soundcloud = new Soundcloud()
 
+// Hàm lấy tất cả tracks với pagination
+async function getAllPlaylistTracks(playlist: SoundCloudPlaylist): Promise<SoundCloudTrack[]> {
+  const allTracks: SoundCloudTrack[] = [];
+  const limit = 100;
+  let offset = 0;
+  
+  while (offset < playlist.track_count) {
+    try {
+      const playlistData = await soundcloud.playlists.get(`${playlist.permalink_url}?limit=${limit}&offset=${offset}`) as SoundCloudPlaylist;
+      allTracks.push(...playlistData.tracks);
+      offset += limit;
+      
+      // Thêm delay để tránh rate limit
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    } catch (error) {
+      console.error(`Error fetching tracks at offset ${offset}:`, error);
+      break;
+    }
+  }
+  
+  return allTracks;
+}
+
 export default defineEventHandler(async (event) => {
   const query = getQuery(event)
   const url = query.url as string
@@ -23,13 +46,17 @@ export default defineEventHandler(async (event) => {
   try {
     console.log('Fetching playlist from URL:', url)
 
-    // Get playlist data
+    // Get initial playlist data
     const playlist = await soundcloud.playlists.get(url) as SoundCloudPlaylist
     console.log(`Found playlist: ${playlist.title} with ${playlist.track_count} tracks`)
 
+    // Lấy tất cả tracks với pagination
+    const allTracks = await getAllPlaylistTracks(playlist);
+    console.log(`Successfully fetched ${allTracks.length} tracks`)
+
     // Process tracks
     const tracks: ProcessedTrack[] = await Promise.all(
-      playlist.tracks.map(async (track: SoundCloudTrack) => {
+      allTracks.map(async (track: SoundCloudTrack) => {
         const trackInfo: ProcessedTrack = {
           id: track.id,
           title: track.title,
