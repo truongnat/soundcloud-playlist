@@ -219,9 +219,14 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
+    // Handle mobile URLs
+    if (url.includes('soundcloud.app.goo.gl')) {
+      url = await resolveMobileUrl(url);
+    }
+
     // Clean the URL before processing
     url = cleanUrl(url);
-    console.log('Cleaned playlist URL:', url)
+    console.log('Processing playlist URL:', url);
 
     // Get initial playlist data with retry logic
     let playlist: SoundCloudPlaylist | null = null;
@@ -233,6 +238,13 @@ export default defineEventHandler(async (event) => {
         playlist = await soundcloud.playlists.get(url) as SoundCloudPlaylist;
       } catch (error: any) {
         retryCount++;
+        
+        if (error.message.includes('client_id') || error.message.includes('Client ID')) {
+          console.log('Updating client ID for playlist fetch...');
+          const newClientId = await getNewClientId();
+          soundcloud.setClientId(newClientId);
+        }
+        
         console.error(`Attempt ${retryCount}/${maxRetries} failed:`, error);
         
         if (retryCount === maxRetries) {
@@ -248,94 +260,53 @@ export default defineEventHandler(async (event) => {
       throw new Error('Failed to fetch playlist after multiple attempts');
     }
 
-    console.log(`Found playlist: ${playlist.title} with ${playlist.track_count} tracks`)
+    console.log(`Found playlist: ${playlist.title} with ${playlist.track_count} tracks`);
 
-    // Lấy tất cả tracks với pagination
+    // Get all tracks with pagination
     const allTracks = await getAllPlaylistTracks(playlist);
-    console.log(`Successfully fetched ${allTracks.length} tracks of ${playlist.track_count} total`)
+    console.log(`Successfully fetched ${allTracks.length} of ${playlist.track_count} tracks`);
 
     if (allTracks.length === 0) {
       throw new Error('No tracks could be fetched from the playlist');
     }
 
-    // Process tracks
-    const tracks: ProcessedTrack[] = await Promise.all(
-      allTracks.map(async (track: SoundCloudTrack) => {
-        const trackInfo: ProcessedTrack = {
-          id: track.id,
-          title: track.title,
-          artist: track.user.username,
-          duration: track.duration,
-          artwork: track.artwork_url?.replace('-large', '-t500x500') || 
-                  track.user.avatar_url ||
-                  'https://secure.gravatar.com/avatar/?size=500&default=mm',
-          url: track.permalink_url,
-          streamUrl: null
-        }
+    // Process tracks in batches to avoid rate limiting
+    const batchSize = 5;
+    const tracks: ProcessedTrack[] = [];
+    
+    for (let i = 0; i < allTracks.length; i += batchSize) {
+      const batch = allTracks.slice(i, i + batchSize);
+      const batchResults = await Promise.all(
+        batch.map(async (track: SoundCloudTrack) => {
+          const trackInfo: ProcessedTrack = {
+            id: track.id,
+            title: track.title,
+            artist: track.user.username,
+            duration: track.duration,
+            artwork: track.artwork_url?.replace('-large', '-t500x500') || 
+                    track.user.avatar_url?.replace('-large', '-t500x500') ||
+                    'https://secure.gravatar.com/avatar/?size=500&default=mm',
+            url: track.permalink_url,
+            streamUrl: null
+          };
 
-        try {
-          // Try multiple methods to get the stream URL with retry logic
-          const methods = [
-            // Method 1: From track details
-            async () => {
-              const trackDetails = await soundcloud.tracks.get(track.permalink_url)
-              return await soundcloud.util.streamLink(trackDetails.permalink_url)
-            },
-            // Method 2: Directly from track ID
-            async () => {
-              return await soundcloud.util.streamLink(track.id.toString())
-            },
-            // Method 3: From track URL
-            async () => {
-              return await soundcloud.util.streamLink(track.permalink_url)
-            },
-            // Method 4: Alternative approach using track ID directly
-            async () => {
-              return await soundcloud.util.streamLink(`https://soundcloud.com/track/${track.id}`)
-            },
-            // Method 5: Try with different client approach
-            async () => {
-              const trackDetails = await soundcloud.tracks.get(track.id.toString())
-              return await soundcloud.util.streamLink(trackDetails.id.toString())
-            }
-          ]
-
-          let methodIndex = 0
-          for (const method of methods) {
-            methodIndex++
-            try {
-              const streamUrl = await method()
-              if (streamUrl) {
-                console.log(`Got stream URL for track ${track.id} using method ${methodIndex}`)
-                trackInfo.streamUrl = streamUrl
-                break
-              }
-            } catch (methodError: any) {
-              const errorMsg = methodError instanceof Error ? methodError.message : 'Unknown error'
-
-              // Check for rate limiting
-              if (errorMsg.includes('429') || errorMsg.includes('Too Many Requests')) {
-                console.log(`Method ${methodIndex} failed for track ${track.id}: Rate limited, waiting...`)
-                // Wait before trying next method
-                await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000))
-              } else {
-                console.log(`Method ${methodIndex} failed for track ${track.id}:`, errorMsg)
-              }
-            }
+          try {
+            trackInfo.streamUrl = await getStreamUrl(track);
+          } catch (error) {
+            console.error(`Error getting stream URL for track ${track.id}:`, error);
           }
 
-          if (!trackInfo.streamUrl) {
-            console.log(`Failed to get stream URL for track ${track.id} after trying all methods`)
-          }
+          return trackInfo;
+        })
+      );
 
-        } catch (trackError) {
-          console.error(`Error processing track ${track.id}:`, 
-            trackError instanceof Error ? trackError.message : 'Unknown error')
-        }
+      tracks.push(...batchResults);
 
-        return trackInfo
-      })
-    )
+      // Add delay between batches to avoid rate limiting
+      if (i + batchSize < allTracks.length) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+    }
 
     const response: PlaylistResponse = {
       id: playlist.id,
@@ -344,30 +315,30 @@ export default defineEventHandler(async (event) => {
       artwork: playlist.artwork_url?.replace('-large', '-t500x500') || null,
       tracksCount: playlist.track_count,
       tracks
-    }
+    };
 
-    return response
+    return response;
 
   } catch (error: any) {
-    console.error('Error fetching playlist:', error)
+    console.error('Error fetching playlist:', error);
     console.error('Error details:', {
       message: error.message,
       stack: error.stack,
       url: url
-    })
+    });
 
-    let errorMessage = 'Failed to fetch playlist. '
+    let errorMessage = 'Failed to fetch playlist. ';
     
     if (error.status === 404) {
-      errorMessage = 'The playlist could not be found. Please make sure the URL is correct.'
+      errorMessage = 'The playlist could not be found. Please make sure the URL is correct.';
     } else if (error.status === 403) {
-      errorMessage = 'Access to this playlist is restricted.'
+      errorMessage = 'Access to this playlist is restricted.';
     } else if (error.message.includes('not found')) {
-      errorMessage = 'Playlist not found. Please make sure the URL is correct.'
+      errorMessage = 'Playlist not found. Please make sure the URL is correct.';
     } else if (error.message.includes('rate limit') || error.status === 429) {
-      errorMessage = 'Too many requests. Please try again in a few minutes.'
+      errorMessage = 'Too many requests. Please try again in a few minutes.';
     } else {
-      errorMessage += 'Please make sure the URL is correct and the playlist is public.'
+      errorMessage += 'Please make sure the URL is correct and the playlist is public.';
     }
 
     throw createError({
@@ -377,6 +348,6 @@ export default defineEventHandler(async (event) => {
         originalError: error.message,
         url: url
       }
-    })
+    });
   }
-})
+});
