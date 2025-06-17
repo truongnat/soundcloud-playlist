@@ -144,27 +144,10 @@ async function getStreamUrl(track: SoundCloudTrack, retryCount = 0): Promise<str
   return null;
 }
 
-// Clean up the URL by removing tracking parameters
-function cleanUrl(url: string): string {
-  try {
-    const urlObj = new URL(url);
-    // Convert mobile URLs to web URLs
-    if (urlObj.hostname === 'soundcloud.app.goo.gl') {
-      return url; // We'll handle mobile URLs differently
-    }
-    // Remove known tracking parameters
-    ['si', 'utm_source', 'utm_medium', 'utm_campaign'].forEach(param => {
-      urlObj.searchParams.delete(param);
-    });
-    return urlObj.toString().split('?')[0]; // Remove all query parameters
-  } catch (e) {
-    console.error('Error cleaning URL:', e);
-    return url;
-  }
-}
+
 
 // Hàm lấy tất cả tracks với pagination và retry logic
-async function getAllPlaylistTracks(playlist: SoundCloudPlaylist): Promise<SoundCloudTrack[]> {
+async function getAllPlaylistTracks(playlist: SoundCloudPlaylist, playlistUrl: string): Promise<SoundCloudTrack[]> {
   const allTracks: SoundCloudTrack[] = [];
   const limit = 50; // Giảm limit xuống để tránh quá tải
   let offset = 0;
@@ -175,8 +158,8 @@ async function getAllPlaylistTracks(playlist: SoundCloudPlaylist): Promise<Sound
     try {
       console.log(`Fetching tracks ${offset} to ${offset + limit} of ${playlist.track_count}`);
       
-      // Use the original URL with pagination parameters
-      const playlistData = await soundcloud.playlists.get(url + `?limit=${limit}&offset=${offset}`) as SoundCloudPlaylist;
+      // Use the playlist URL with pagination parameters
+      const playlistData = await soundcloud.playlists.get(playlistUrl + `?limit=${limit}&offset=${offset}`) as SoundCloudPlaylist;
       
       if (!playlistData.tracks || playlistData.tracks.length === 0) {
         throw new Error('No tracks received in response');
@@ -261,10 +244,8 @@ export default defineEventHandler(async (event) => {
       throw new Error('Failed to fetch playlist after multiple attempts');
     }
 
-    console.log(`Found playlist: ${playlist.title} with ${playlist.track_count} tracks`);
-
-    // Get all tracks with pagination
-    const allTracks = await getAllPlaylistTracks(playlist);
+    console.log(`Found playlist: ${playlist.title} with ${playlist.track_count} tracks`);    // Get all tracks with pagination
+    const allTracks = await getAllPlaylistTracks(playlist, url);
     console.log(`Successfully fetched ${allTracks.length} of ${playlist.track_count} tracks`);
 
     if (allTracks.length === 0) {
