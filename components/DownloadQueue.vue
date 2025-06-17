@@ -310,6 +310,30 @@ const handleDiscardAll = () => {
   emit('discard-all')
 }
 
+// Handle retry all failed downloads
+const handleRetryAllFailed = async () => {
+  if (downloadStats.value.active > 0) return
+
+  const failedItems = storeQueueItems.value.filter(item => item.status === 'error')
+  
+  try {
+    // Reset status to queued for failed items
+    failedItems.forEach(item => {
+      downloadQueueStore.updateTrackStatus(item.track.id.toString(), 'queued')
+    })
+
+    // Start downloads for all queued items
+    await startAllDownloads()
+
+    // Emit download complete for any items that succeeded
+    storeQueueItems.value
+      .filter(item => item.status === 'completed')
+      .forEach(item => emit('download-complete', item.track.id.toString()))
+  } catch (error) {
+    console.error('Failed to retry downloads:', error)
+  }
+}
+
 defineEmits<{
   (e: 'close'): void
   (e: 'download-complete', trackId: string): void
