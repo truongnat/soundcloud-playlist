@@ -45,7 +45,8 @@
           <DownloadQueue 
             ref="downloadQueueRef" 
             @close="() => uiStore.showDownloadQueue = false"
-            @download-complete="handleDownloadComplete" />
+            @download-complete="handleDownloadComplete"
+            @discard-all="handleDiscardAll" />
         </aside>
       </Transition>
 
@@ -176,6 +177,13 @@ const handleDownloadComplete = (trackId: string) => {
   if (errorTracks.value[trackId]) {
     delete errorTracks.value[trackId]
   }
+}
+
+const handleDiscardAll = () => {
+  // Clear downloading tracks state
+  downloadingTracks.value = []
+  // Clear error tracks state
+  errorTracks.value = {}
 }
 
 const handleDownloadAll = async () => {
