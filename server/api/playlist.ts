@@ -29,11 +29,13 @@ export default defineEventHandler(async (event) => {
 
     // Process tracks
     const tracks: ProcessedTrack[] = await Promise.all(
-      playlist.tracks.map(async (track: SoundCloudTrack) => {        const trackInfo: ProcessedTrack = {
+      playlist.tracks.map(async (track: SoundCloudTrack) => {
+        const trackInfo: ProcessedTrack = {
           id: track.id,
           title: track.title,
           artist: track.user.username,
-          duration: track.duration,          artwork: track.artwork_url?.replace('-large', '-t500x500') || 
+          duration: track.duration,
+          artwork: track.artwork_url?.replace('-large', '-t500x500') || 
                   track.user.avatar_url ||
                   'https://secure.gravatar.com/avatar/?size=500&default=mm',
           url: track.permalink_url,
@@ -116,13 +118,13 @@ export default defineEventHandler(async (event) => {
     return response
 
   } catch (error: any) {
+    console.error('Error fetching playlist:', error)
     console.error('Error details:', {
       message: error.message,
       stack: error.stack
     })
 
     let errorMessage = 'Failed to fetch playlist. '
-    
     if (error.status === 404) {
       errorMessage = 'The playlist could not be found. Please make sure the URL is correct.'
     } else if (error.status === 403) {

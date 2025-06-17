@@ -28,15 +28,14 @@
       <div class="flex-1 min-w-0 py-6">
         <PlaylistInput @fetch-playlist="fetchPlaylist" :loading="loading" />
         <TrackList
-          ref="trackListRef"
           :tracks="tracks"
-          :loading="loading"
+          :is-loading="loading"
           :error="error"
           :playlist-title="playlistInfo.title"
-          :playlist-description="playlistInfo.description"
           :playlist-artwork="playlistInfo.artwork"
-          @download-track="handleDownloadTrack"
-          @download-all="handleDownloadAll"
+          :downloading-tracks="downloadingTracks"
+          :error-tracks="errorTracks"
+          @download="handleDownloadTrack"
         />
       </div>
 
@@ -107,6 +106,10 @@ const downloadQueueStore = useDownloadQueueStore()
 const downloadQueueRef = ref()
 const trackListRef = ref()
 
+// Track download state
+const downloadingTracks = ref<string[]>([])
+const errorTracks = ref<Record<string, string>>({})
+
 // Computed cho download statistics
 const downloadStats = computed(() => {
   const items = downloadQueueStore.queueItems
@@ -138,16 +141,14 @@ const downloadStats = computed(() => {
   return stats
 })
 
-// Khôi phục trạng thái queue khi mount
-onMounted(() => {
-  // Kiểm tra nếu có download đang chạy hoặc queued thì không mở panel tự động
-  // Chỉ hiển thị indicator
-})
-
 const handleDownloadTrack = async (track: Track) => {
   console.log('Adding track to queue:', track.title)
-
-  // Thêm track vào queue store (không tự động mở panel)
+  const trackId = String(track.id)
+  
+  // Add to downloading state
+  downloadingTracks.value.push(trackId)
+  
+  // Add to queue store
   downloadQueueStore.addToQueue(track)
 
   // Wait for the next tick to ensure the download queue component is mounted
@@ -160,29 +161,23 @@ const handleDownloadTrack = async (track: Track) => {
 }
 
 const handleDownloadComplete = (trackId: string) => {
-  if (trackListRef.value) {
-    trackListRef.value.handleDownloadComplete(trackId)
+  // Remove from downloading state
+  const index = downloadingTracks.value.indexOf(trackId)
+  if (index !== -1) {
+    downloadingTracks.value.splice(index, 1)
+  }
+  
+  // Remove from error state if exists
+  if (errorTracks.value[trackId]) {
+    delete errorTracks.value[trackId]
   }
 }
 
-const handleDownloadAll = async (tracks: Track[]) => {
-  console.log('Adding all tracks to queue:', tracks.length)
-
-  // Thêm tất cả tracks vào queue store (không tự động mở panel)
-  for (const track of tracks) {
-    downloadQueueStore.addToQueue(track)
-  }
-
-  // Wait for the next tick to ensure the download queue component is mounted
-  await nextTick()
-  if (downloadQueueRef.value) {
-    tracks.forEach(track => {
-      downloadQueueRef.value.addToQueue(track)
-    })
-  } else {
-    console.warn('downloadQueueRef is not available')
-  }
-}
+// Khôi phục trạng thái queue khi mount
+onMounted(() => {
+  // Kiểm tra nếu có download đang chạy hoặc queued thì không mở panel tự động
+  // Chỉ hiển thị indicator
+})
 </script>
 
 <style>

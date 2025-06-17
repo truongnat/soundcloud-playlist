@@ -83,16 +83,35 @@ export const usePlaylist = () => {
         query: { url }
       })
       
-      tracks.value = response.tracks
+      if (!response || !response.tracks) {
+        throw new Error('Invalid response from API')
+      }
+
+      console.log('Received tracks:', response.tracks.length)
+      
+      // Process and validate tracks
+      const validTracks = response.tracks.filter(track => {
+        if (!track || !track.id || !track.title) {
+          console.warn('Invalid track data:', track)
+          return false
+        }
+        return true
+      })
+
+      console.log('Valid tracks:', validTracks.length)
+
+      tracks.value = validTracks
       playlistInfo.value = {
-        title: response.title || '',
+        title: response.title || 'Untitled Playlist',
         description: response.description || '',
         artwork: response.artwork || ''
       }
 
       // Save the new data to cache
-      saveToCache(url, response.tracks, playlistInfo.value)
+      saveToCache(url, validTracks, playlistInfo.value)
     } catch (err: unknown) {
+      console.error('Error in fetchPlaylist:', err)
+      
       const errorMessage = err instanceof Error 
         ? err.message 
         : typeof err === 'object' && err && 'data' in err 
