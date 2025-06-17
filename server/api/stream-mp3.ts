@@ -131,11 +131,11 @@ export default defineEventHandler(async (event): Promise<StreamResponse> => {
         console.log(`Stream URL fetch retry ${attempt}/${maxRetries} after ${delay}ms`)
         await new Promise(resolve => setTimeout(resolve, delay))
       }
-    }
-
-    return {
+    }    return {
       streamUrl: streamData.url,
       isHLS,
+      duration: transcoding.duration,
+      format: transcoding.format,
       track: {
         id: trackDetails.id,
         title: trackDetails.title,
