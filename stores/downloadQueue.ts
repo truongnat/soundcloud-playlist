@@ -25,19 +25,10 @@ export const useDownloadQueueStore = defineStore('downloadQueue', {
   actions: {
     addToQueue(track: Track) {
       const trackId = track.id.toString()
-      console.log('Adding track to queue:', track.title)
 
-      if (this.queue[trackId]) {
-        if (this.queue[trackId].status === 'error') {
-          // If track failed, allow retry by adding it again
-          this.queue[trackId] = {
-            track,
-            status: 'queued',
-            progress: 0,
-            error: undefined
-          }
-        }
-        return // Skip if already in queue
+      // Allow retrying failed tracks
+      if (this.queue[trackId] && this.queue[trackId].status !== 'error') {
+        return // Skip if already in queue and not errored
       }
 
       this.queue[trackId] = {
@@ -46,8 +37,6 @@ export const useDownloadQueueStore = defineStore('downloadQueue', {
         progress: 0,
         error: undefined
       }
-
-
     },
 
     removeFromQueue(trackId: string) {
@@ -85,9 +74,9 @@ export const useDownloadQueueStore = defineStore('downloadQueue', {
       }
     },
 
-    // Dừng và xóa toàn bộ queue
+    // Cancel and clear all queued and active downloads
     discardAll() {
-      // Đánh dấu tất cả downloads đang chạy là cancelled
+      // Mark all active downloads as cancelled
       Object.keys(this.queue).forEach(trackId => {
         const item = this.queue[trackId]
         if (['downloading', 'converting'].includes(item.status)) {
@@ -100,10 +89,10 @@ export const useDownloadQueueStore = defineStore('downloadQueue', {
         }
       })
 
-      // Sau đó xóa toàn bộ queue
+      // Clear the queue after a short delay to allow UI updates
       setTimeout(() => {
         this.queue = {}
-      }, 100) // Delay nhỏ để UI có thể hiển thị trạng thái cancelled
+      }, 100)
     }
   }
 })
