@@ -175,7 +175,8 @@ async function getAllPlaylistTracks(playlist: SoundCloudPlaylist): Promise<Sound
     try {
       console.log(`Fetching tracks ${offset} to ${offset + limit} of ${playlist.track_count}`);
       
-      const playlistData = await soundcloud.playlists.get(`${playlist.permalink_url}?limit=${limit}&offset=${offset}`) as SoundCloudPlaylist;
+      // Use the original URL with pagination parameters
+      const playlistData = await soundcloud.playlists.get(url + `?limit=${limit}&offset=${offset}`) as SoundCloudPlaylist;
       
       if (!playlistData.tracks || playlistData.tracks.length === 0) {
         throw new Error('No tracks received in response');
@@ -242,7 +243,7 @@ export default defineEventHandler(async (event) => {
         if (error.message.includes('client_id') || error.message.includes('Client ID')) {
           console.log('Updating client ID for playlist fetch...');
           const newClientId = await getNewClientId();
-          soundcloud.setClientId(newClientId);
+          updateClientId(newClientId);
         }
         
         console.error(`Attempt ${retryCount}/${maxRetries} failed:`, error);
