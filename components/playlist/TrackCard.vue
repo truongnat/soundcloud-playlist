@@ -1,6 +1,5 @@
-<template>
-  <div class="bg-white rounded-lg border border-gray-100 p-3 hover:shadow transition-all duration-200 group">
-    <div class="flex gap-4">
+<template>  <div class="bg-white rounded-lg border border-gray-100 p-4 hover:shadow-md transition-all duration-200 group">
+    <div class="flex gap-5">
       <!-- Artwork -->
       <div class="relative flex-shrink-0">
         <!-- Track Image -->

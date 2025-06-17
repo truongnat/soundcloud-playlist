@@ -1,9 +1,8 @@
-<template>
-  <div class="space-y-8">
+<template>  <div class="space-y-10">
     <!-- Playlist Header -->
     <div v-if="playlistTitle || playlistArtwork" class="relative">
       <!-- Banner Image -->
-      <div class="relative h-48 md:h-64 lg:h-80 overflow-hidden rounded-lg">
+      <div class="relative h-52 md:h-64 lg:h-80 overflow-hidden rounded-xl shadow-lg">
         <img
           v-if="playlistArtwork"
           :src="playlistArtwork"

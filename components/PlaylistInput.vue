@@ -1,8 +1,7 @@
-<template>
-  <div class="max-w-3xl mx-auto mt-8 px-4">
-    <div class="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
-      <div class="mb-6">
-        <label for="playlist-url" class="block text-lg font-medium text-gray-900 mb-2">Enter your SoundCloud playlist</label>
+<template>  <div class="max-w-3xl mx-auto px-4">
+    <div class="bg-white rounded-2xl shadow-sm p-8 border border-gray-100">
+      <div class="mb-8">
+        <label for="playlist-url" class="block text-xl font-semibold text-gray-900 mb-3">Enter your SoundCloud playlist</label>
         <div class="relative">
           <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
             <svg class="h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
