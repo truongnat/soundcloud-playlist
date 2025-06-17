@@ -174,6 +174,26 @@ const handleDownloadComplete = (trackId: string) => {
   }
 }
 
+const handleDownloadAll = async () => {
+  if (!tracks.value) return;
+  
+  // Filter out tracks that are already being downloaded or have errors
+  const tracksToDownload = tracks.value.filter(track => {
+    const trackId = track.id.toString();
+    return !downloadingTracks.value.includes(trackId) && !errorTracks.value[trackId];
+  });
+
+  // Show the download queue
+  uiStore.showDownloadQueue = true;
+
+  // Add all tracks to the queue
+  for (const track of tracksToDownload) {
+    await handleDownloadTrack(track);
+    // Add a small delay between each track to prevent overwhelming the server
+    await new Promise(resolve => setTimeout(resolve, 500));
+  }
+}
+
 // Khôi phục trạng thái queue khi mount
 onMounted(() => {
   // Kiểm tra nếu có download đang chạy hoặc queued thì không mở panel tự động
