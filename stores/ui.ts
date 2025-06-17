@@ -6,15 +6,7 @@ export const useUIStore = defineStore('ui', {
     shouldKeepQueueOpen: false // Chỉ lưu khi có download đang chạy
   }),
 
-  persist: {
-    key: 'ui-state',
-    storage: typeof window !== 'undefined' ? localStorage : undefined,
-    paths: ['shouldKeepQueueOpen'], // Chỉ persist trạng thái cần thiết
-    serializer: {
-      serialize: JSON.stringify,
-      deserialize: JSON.parse,
-    }
-  },
+
 
   getters: {
     isQueueVisible: (state) => state.showDownloadQueue
