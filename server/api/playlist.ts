@@ -168,7 +168,7 @@ async function getStreamUrl(track: SoundCloudTrack, retryCount = 0): Promise<str
         if (retryCount < 1) {
           console.log('Updating client ID and retrying...');
           const newClientId = await getNewClientId();
-          updateClientId(newClientId);
+          soundcloud = new Soundcloud(newClientId);
           return getStreamUrl(track, retryCount + 1);
         }
       }
