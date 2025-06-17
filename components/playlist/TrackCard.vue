@@ -181,13 +181,16 @@
 </template>
 
 <script setup lang="ts">
-defineProps<{  track: Track
+import type { Track } from '@/types'
+
+defineProps<{
+  track: Track
   activeDownloads: string[]
   downloadErrors: Record<string, string>
 }>()
 
 const emit = defineEmits<{
-  (e: 'download', track: any): void
+  (e: 'download', track: Track): void
 }>()
 
 // Format duration from milliseconds to minutes:seconds
@@ -200,7 +203,7 @@ const formatDuration = (ms: number) => {
 // Convert track ID to string
 const getTrackId = (id: string | number): string => id.toString()
 
-const downloadTrack = (track: any) => {
+const downloadTrack = (track: Track) => {
   emit('download', track)
 }
 </script>
