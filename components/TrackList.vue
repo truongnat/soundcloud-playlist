@@ -13,13 +13,47 @@
         <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
         
         <!-- Playlist Info -->
-        <div class="absolute bottom-0 left-0 right-0 p-6 text-white">
-          <h1 class="text-2xl md:text-3xl lg:text-4xl font-bold mb-2">
-            {{ playlistTitle || 'Untitled Playlist' }}
-          </h1>
-          <p class="text-sm md:text-base text-gray-200">
-            {{ tracks?.length || 0 }} tracks
-          </p>
+        <div class="absolute bottom-0 left-0 right-0 p-6 flex justify-between items-end">
+          <div class="text-white">
+            <h1 class="text-2xl md:text-3xl lg:text-4xl font-bold mb-2">
+              {{ playlistTitle || 'Untitled Playlist' }}
+            </h1>
+            <p class="text-sm md:text-base text-gray-200">
+              {{ tracks?.length || 0 }} tracks
+            </p>
+          </div>
+          
+          <!-- Download All Button -->
+          <button
+            v-if="tracks && tracks.length > 0"
+            @click="$emit('downloadAll')"
+            :disabled="isDownloadingAll"
+            class="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg font-medium shadow-lg hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+          >
+            <svg
+              class="w-5 h-5"
+              :class="{ 'animate-spin': isDownloadingAll }"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                v-if="isDownloadingAll"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+              />
+              <path
+                v-else
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+              />
+            </svg>
+            <span>{{ isDownloadingAll ? 'Processing...' : 'Download All' }}</span>
+          </button>
         </div>
       </div>
     </div>
@@ -71,10 +105,12 @@ defineProps<{
   playlistArtwork?: string
   downloadingTracks?: string[]
   errorTracks?: Record<string, string>
+  isDownloadingAll?: boolean
 }>()
 
 defineEmits<{
   (e: 'download', track: Track): void
+  (e: 'downloadAll'): void
 }>()
 </script>
 

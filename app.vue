@@ -30,9 +30,17 @@
         <!-- Main Area -->
         <div class="flex-1 min-w-0 py-6">
           <PlaylistInput @fetch-playlist="fetchPlaylist" :loading="loading" />
-          <TrackList :tracks="tracks" :is-loading="loading" :error="error" :playlist-title="playlistInfo.title"
-            :playlist-artwork="playlistInfo.artwork" :downloading-tracks="downloadingTracks" :error-tracks="errorTracks"
-            @download="handleDownloadTrack" />
+          <TrackList 
+            :tracks="tracks" 
+            :is-loading="loading" 
+            :error="error" 
+            :playlist-title="playlistInfo.title"
+            :playlist-artwork="playlistInfo.artwork" 
+            :downloading-tracks="downloadingTracks" 
+            :error-tracks="errorTracks"
+            :is-downloading-all="downloadStats.active > 0"
+            @download="handleDownloadTrack"
+            @download-all="handleDownloadAll" />
         </div>
 
         <!-- Download Queue Sidebar -->
