@@ -1,10 +1,10 @@
 import { Soundcloud } from 'soundcloud.ts'
-import type { 
+import type {
   SoundCloudUser,
-  SoundCloudTrack, 
+  SoundCloudTrack,
   SoundCloudPlaylist,
   ProcessedTrack,
-  PlaylistResponse 
+  PlaylistResponse
 } from '@/types'
 
 // List of known working client IDs
@@ -33,18 +33,18 @@ async function getNewClientId(): Promise<string> {
     const headers = {
       'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36'
     }
-    
+
     const response = await fetch('https://soundcloud.com/', { headers });
     const html = await response.text();
-    
+
     // Find the app script
     const scriptMatch = html.match(/https:\/\/[^"]+app-[^"]+\.js/);
     if (!scriptMatch) return tryNextClientId();
-    
+
     const scriptUrl = scriptMatch[0];
     const scriptResponse = await fetch(scriptUrl, { headers });
     const scriptContent = await scriptResponse.text();
-    
+
     // Look for client_id in the script
     const clientIdMatch = scriptContent.match(/,client_id:"([^"]+)"/);
     if (clientIdMatch?.[1]) {
@@ -55,7 +55,7 @@ async function getNewClientId(): Promise<string> {
   } catch (error) {
     console.error('Error getting new client ID:', error);
   }
-  
+
   return tryNextClientId();
 }
 
@@ -114,7 +114,7 @@ async function initializeClient() {
       return;
     }
   }
-  
+
   // If no existing client IDs work, try to get a new one
   const newClientId = await getNewClientId();
   if (await verifyClientId(newClientId)) {
@@ -164,7 +164,7 @@ async function getStreamUrl(track: SoundCloudTrack, retryCount = 0): Promise<str
       }
     } catch (error: any) {
       console.log(`Method ${i + 1} failed for track ${track.id}:`, error.message);
-        if (error.message.includes('client_id') || error.message.includes('Client ID')) {
+      if (error.message.includes('client_id') || error.message.includes('Client ID')) {
         if (retryCount < 1) {
           console.log('Updating client ID and retrying...');
           const newClientId = await getNewClientId();
@@ -172,7 +172,7 @@ async function getStreamUrl(track: SoundCloudTrack, retryCount = 0): Promise<str
           return getStreamUrl(track, retryCount + 1);
         }
       }
-      
+
       // Handle rate limiting
       if (error.message.includes('429') || error.message.includes('Too Many Requests')) {
         const delay = Math.min(1000 * Math.pow(2, retryCount), 10000);
@@ -197,14 +197,14 @@ async function getAllPlaylistTracks(playlist: SoundCloudPlaylist, playlistUrl: s
   let offset = 0;
   let retryCount = 0;
   const maxRetries = 5;
-  
+
   while (offset < playlist.track_count) {
     try {
       console.log(`Fetching tracks ${offset} to ${offset + limit} of ${playlist.track_count}`);
-      
+
       let playlistData: SoundCloudPlaylist | null = null;
       let fetchRetries = 0;
-      
+
       while (fetchRetries < 3 && !playlistData) {
         try {
           playlistData = await soundcloud.playlists.get(playlistUrl + `?limit=${limit}&offset=${offset}`) as SoundCloudPlaylist;
@@ -219,33 +219,33 @@ async function getAllPlaylistTracks(playlist: SoundCloudPlaylist, playlistUrl: s
           }
         }
       }
-        if (!playlistData || !playlistData.tracks || playlistData.tracks.length === 0) {
+      if (!playlistData || !playlistData.tracks || playlistData.tracks.length === 0) {
         throw new Error('No tracks received in response');
       }
-      
+
       allTracks.push(...playlistData.tracks);
       offset += playlistData.tracks.length;
       retryCount = 0; // Reset retry count on successful fetch
-      
+
       // Thêm delay để tránh rate limit
       await new Promise(resolve => setTimeout(resolve, 1500));
-      
+
     } catch (error: any) {
       console.error(`Error fetching tracks at offset ${offset}:`, error);
-      
+
       retryCount++;
       if (retryCount >= maxRetries) {
         console.error(`Max retries (${maxRetries}) reached for offset ${offset}`);
         break;
       }
-      
+
       // Exponential backoff
       const delay = Math.min(1000 * Math.pow(2, retryCount), 10000);
       console.log(`Retrying in ${delay}ms... (Attempt ${retryCount}/${maxRetries})`);
       await new Promise(resolve => setTimeout(resolve, delay));
     }
   }
-  
+
   return allTracks;
 }
 
@@ -316,7 +316,7 @@ export default defineEventHandler(async (event) => {
     // Process tracks in batches to avoid rate limiting
     const batchSize = 5
     const tracks: ProcessedTrack[] = []
-    
+
     for (let i = 0; i < allTracks.length; i += batchSize) {
       const batch = allTracks.slice(i, i + batchSize)
       const batchResults = await Promise.all(
@@ -326,9 +326,9 @@ export default defineEventHandler(async (event) => {
             title: track.title,
             artist: track.user.username,
             duration: track.duration,
-            artwork: track.artwork_url?.replace('-large', '-t500x500') || 
-                    track.user.avatar_url?.replace('-large', '-t500x500') ||
-                    'https://secure.gravatar.com/avatar/?size=500&default=mm',
+            artwork: track.artwork_url?.replace('-large', '-t500x500') ||
+              track.user.avatar_url?.replace('-large', '-t500x500') ||
+              'https://secure.gravatar.com/avatar/?size=500&default=mm',
             url: track.permalink_url,
             streamUrl: null
           }
@@ -352,11 +352,13 @@ export default defineEventHandler(async (event) => {
     }
 
     const response: PlaylistResponse = {
-      id: playlist.id,
-      title: playlist.title,
-      description: playlist.description || '',
-      artwork: playlist.artwork_url?.replace('-large', '-t500x500') || null,
-      tracksCount: playlist.track_count,
+      info: {
+        id: playlist.id,
+        title: playlist.title,
+        description: playlist.description || '',
+        artwork: playlist.artwork_url?.replace('-large', '-t500x500') || 'https://secure.gravatar.com/avatar/?size=500&default=mm',
+        tracksCount: playlist.track_count,
+      },
       tracks
     }
 
@@ -371,7 +373,7 @@ export default defineEventHandler(async (event) => {
     })
 
     let errorMessage = 'Failed to fetch playlist. '
-    
+
     if (error.status === 404) {
       errorMessage = 'The playlist could not be found. Please make sure the URL is correct.'
     } else if (error.status === 403) {
