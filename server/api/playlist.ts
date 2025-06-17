@@ -7,41 +7,67 @@ import type {
   PlaylistResponse 
 } from '@/types'
 
-// Initialize with mobile client ID
-const MOBILE_CLIENT_ID = 'iZIs9mchVcX5lhVRyQGGAYlNPVldzAoX'
-let soundcloud = new Soundcloud(MOBILE_CLIENT_ID)
+// List of known working client IDs
+const CLIENT_IDS = [
+  '2t9loNQH90kzJcsFCODdigxfp325aq4z',
+  'iZIs9mchVcX5lhVRyQGGAYlNPVldzAoX',
+  'ccCB37jIWCBP7JB9SnUPPui8LzeaQT45',
+  '6ibGdGJqSm8F5DPvKPJMODIzhlvKbDks',
+]
 
-// Function to recreate the client with new client ID
-const updateClientId = (newClientId: string) => {
-  soundcloud = new Soundcloud(newClientId)
+let currentClientIdIndex = 0
+let soundcloud = new Soundcloud(CLIENT_IDS[currentClientIdIndex])
+
+// Function to try the next client ID
+const tryNextClientId = () => {
+  currentClientIdIndex = (currentClientIdIndex + 1) % CLIENT_IDS.length
+  const nextClientId = CLIENT_IDS[currentClientIdIndex]
+  console.log('Switching to next client ID:', nextClientId)
+  soundcloud = new Soundcloud(nextClientId)
+  return nextClientId
 }
 
-// Hàm để lấy client ID mới nếu cần
+// Hàm để lấy client ID mới từ SoundCloud web
 async function getNewClientId(): Promise<string> {
   try {
-    const response = await fetch('https://soundcloud.com/');
-    const html = await response.text();
-    const matches = html.match(/src="(.*?)">$/gm);
+    const headers = {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36'
+    }
     
-    if (!matches) return MOBILE_CLIENT_ID;
-
-    for (const match of matches) {
-      const jsPath = match.match(/src="(.*?)"/)?.[1];
-      if (!jsPath || !jsPath.includes('https')) continue;
-
-      const jsResponse = await fetch(jsPath);
-      const jsContent = await jsResponse.text();
-      const clientIdMatch = jsContent.match(/client_id:"([a-zA-Z0-9]+)"/);
-      
-      if (clientIdMatch?.[1]) {
-        return clientIdMatch[1];
-      }
+    const response = await fetch('https://soundcloud.com/', { headers });
+    const html = await response.text();
+    
+    // Find the app script
+    const scriptMatch = html.match(/https:\/\/[^"]+app-[^"]+\.js/);
+    if (!scriptMatch) return tryNextClientId();
+    
+    const scriptUrl = scriptMatch[0];
+    const scriptResponse = await fetch(scriptUrl, { headers });
+    const scriptContent = await scriptResponse.text();
+    
+    // Look for client_id in the script
+    const clientIdMatch = scriptContent.match(/,client_id:"([^"]+)"/);
+    if (clientIdMatch?.[1]) {
+      console.log('Found new client ID:', clientIdMatch[1]);
+      CLIENT_IDS.push(clientIdMatch[1]); // Add to our list
+      return clientIdMatch[1];
     }
   } catch (error) {
     console.error('Error getting new client ID:', error);
   }
   
-  return MOBILE_CLIENT_ID;
+  return tryNextClientId();
+}
+
+// Function to verify a client ID works
+async function verifyClientId(clientId: string): Promise<boolean> {
+  try {
+    const testUrl = 'https://api-v2.soundcloud.com/tracks/1234?client_id=' + clientId;
+    const response = await fetch(testUrl);
+    return response.status !== 401;
+  } catch {
+    return false;
+  }
 }
 
 // Clean up the URL by removing tracking parameters
@@ -76,6 +102,24 @@ async function resolveMobileUrl(url: string): Promise<string> {
   } catch (error) {
     console.error('Error resolving mobile URL:', error);
     throw error;
+  }
+}
+
+// Initialize with a working client ID
+async function initializeClient() {
+  for (const clientId of CLIENT_IDS) {
+    if (await verifyClientId(clientId)) {
+      soundcloud = new Soundcloud(clientId);
+      console.log('Using verified client ID:', clientId);
+      return;
+    }
+  }
+  
+  // If no existing client IDs work, try to get a new one
+  const newClientId = await getNewClientId();
+  if (await verifyClientId(newClientId)) {
+    soundcloud = new Soundcloud(newClientId);
+    console.log('Using new client ID:', newClientId);
   }
 }
 
