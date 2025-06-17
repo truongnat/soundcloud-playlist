@@ -1,13 +1,12 @@
 <template>
   <div class="space-y-6">
     <!-- Grid Container -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-      <TrackCard
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">      <TrackCard
         v-for="track in tracks"
         :key="getTrackId(track)"
         :track="track"
-        :is-downloading="downloadingTracks?.includes(getTrackId(track))"
-        :error="errorTracks?.[getTrackId(track)]"
+        :active-downloads="downloadingTracks || []"
+        :download-errors="errorTracks || {}"
         @download="$emit('download', track)"
       />
     </div>
