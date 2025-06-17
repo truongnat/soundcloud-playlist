@@ -223,6 +223,7 @@ import { useUIStore } from '@/stores/ui'
 const emit = defineEmits<{
   (e: 'close'): void
   (e: 'download-complete', trackId: string): void
+  (e: 'discard-all'): void
 }>()
 
 const downloadQueueStore = useDownloadQueueStore()
@@ -305,44 +306,15 @@ const handleDownloadAll = async () => {
 
 // Handle discard all
 const handleDiscardAll = () => {
-  if (confirm('Are you sure you want to stop all downloads and clear the queue? This action cannot be undone.')) {
-    console.log('Discarding all downloads...')
-    discardAll()
-  }
+  downloadQueueStore.discardAll()
+  emit('discard-all')
 }
 
-// Handle retry failed download
-const handleRetry = async (trackId: string | number) => {
-  try {
-    console.log('Retrying download for track:', trackId)
-    await retryDownload(trackId.toString())
-    emit('download-complete', trackId.toString())
-  } catch (error) {
-    console.error('Retry failed:', error)
-  }
-}
-
-// Handle retry all failed downloads
-const handleRetryAllFailed = async () => {
-  const failedItems = storeQueueItems.value.filter(item => item.status === 'error')
-  if (failedItems.length === 0) return
-
-  console.log(`Retrying ${failedItems.length} failed downloads...`)
-
-  for (const item of failedItems) {
-    try {
-      await retryDownload(item.track.id.toString())
-      // Small delay between retries to avoid overwhelming the API
-      await new Promise(resolve => setTimeout(resolve, 1000))
-    } catch (error) {
-      console.error(`Retry failed for track ${item.track.id}:`, error)
-    }
-  }
-}
-
-defineExpose({
-  addToQueue
-})
+defineEmits<{
+  (e: 'close'): void
+  (e: 'download-complete', trackId: string): void
+  (e: 'discard-all'): void
+}>()
 </script>
 
 <style>
