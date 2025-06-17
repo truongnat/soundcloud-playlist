@@ -7,12 +7,151 @@ import type {
   PlaylistResponse 
 } from '@/types'
 
-const soundcloud = new Soundcloud()
+// Initialize with mobile client ID
+const MOBILE_CLIENT_ID = 'iZIs9mchVcX5lhVRyQGGAYlNPVldzAoX'
+const soundcloud = new Soundcloud({
+  clientId: MOBILE_CLIENT_ID
+})
+
+// Hàm để lấy client ID mới nếu cần
+async function getNewClientId(): Promise<string> {
+  try {
+    const response = await fetch('https://soundcloud.com/');
+    const html = await response.text();
+    const matches = html.match(/src="(.*?)">$/gm);
+    
+    if (!matches) return MOBILE_CLIENT_ID;
+
+    for (const match of matches) {
+      const jsPath = match.match(/src="(.*?)"/)?.[1];
+      if (!jsPath || !jsPath.includes('https')) continue;
+
+      const jsResponse = await fetch(jsPath);
+      const jsContent = await jsResponse.text();
+      const clientIdMatch = jsContent.match(/client_id:"([a-zA-Z0-9]+)"/);
+      
+      if (clientIdMatch?.[1]) {
+        return clientIdMatch[1];
+      }
+    }
+  } catch (error) {
+    console.error('Error getting new client ID:', error);
+  }
+  
+  return MOBILE_CLIENT_ID;
+}
 
 // Clean up the URL by removing tracking parameters
 function cleanUrl(url: string): string {
   try {
     const urlObj = new URL(url);
+    // Convert mobile URLs to web URLs
+    if (urlObj.hostname === 'soundcloud.app.goo.gl') {
+      return url; // We'll handle mobile URLs differently
+    }
+    // Remove known tracking parameters
+    ['si', 'utm_source', 'utm_medium', 'utm_campaign'].forEach(param => {
+      urlObj.searchParams.delete(param);
+    });
+    return urlObj.toString().split('?')[0];
+  } catch (e) {
+    console.error('Error cleaning URL:', e);
+    return url;
+  }
+}
+
+// Hàm xử lý mobile URL
+async function resolveMobileUrl(url: string): Promise<string> {
+  try {
+    const response = await fetch(url, {
+      redirect: 'follow',
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.0 Mobile/15E148 Safari/604.1'
+      }
+    });
+    return response.url;
+  } catch (error) {
+    console.error('Error resolving mobile URL:', error);
+    throw error;
+  }
+}
+
+// Hàm lấy stream URL với nhiều phương thức và retry
+async function getStreamUrl(track: SoundCloudTrack, retryCount = 0): Promise<string | null> {
+  const methods = [
+    // Method 1: Direct media URL with current client ID
+    async () => {
+      if (track.media?.transcodings) {
+        const progressive = track.media.transcodings.find(t => t.format.protocol === 'progressive');
+        if (progressive?.url) {
+          return progressive.url;
+        }
+      }
+      return null;
+    },
+    // Method 2: Stream URL from track URL
+    async () => {
+      return await soundcloud.util.streamLink(track.permalink_url);
+    },
+    // Method 3: Stream URL from track ID
+    async () => {
+      return await soundcloud.util.streamLink(track.id.toString());
+    },
+    // Method 4: Fetch new track details and try again
+    async () => {
+      const trackDetails = await soundcloud.tracks.get(track.id.toString());
+      if (trackDetails.media?.transcodings) {
+        const progressive = trackDetails.media.transcodings.find(t => t.format.protocol === 'progressive');
+        if (progressive?.url) {
+          return progressive.url;
+        }
+      }
+      return null;
+    }
+  ];
+
+  for (let i = 0; i < methods.length; i++) {
+    try {
+      const streamUrl = await methods[i]();
+      if (streamUrl) {
+        console.log(`Got stream URL for track ${track.id} using method ${i + 1}`)
+        return streamUrl;
+      }
+    } catch (error: any) {
+      console.log(`Method ${i + 1} failed for track ${track.id}:`, error.message);
+      
+      if (error.message.includes('client_id') || error.message.includes('Client ID')) {
+        if (retryCount < 1) {
+          console.log('Updating client ID and retrying...');
+          const newClientId = await getNewClientId();
+          soundcloud.setClientId(newClientId);
+          return getStreamUrl(track, retryCount + 1);
+        }
+      }
+      
+      // Handle rate limiting
+      if (error.message.includes('429') || error.message.includes('Too Many Requests')) {
+        const delay = Math.min(1000 * Math.pow(2, retryCount), 10000);
+        console.log(`Rate limited, waiting ${delay}ms before retry...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+        if (retryCount < 3) {
+          return getStreamUrl(track, retryCount + 1);
+        }
+      }
+    }
+  }
+
+  return null;
+}
+
+// Clean up the URL by removing tracking parameters
+function cleanUrl(url: string): string {
+  try {
+    const urlObj = new URL(url);
+    // Convert mobile URLs to web URLs
+    if (urlObj.hostname === 'soundcloud.app.goo.gl') {
+      return url; // We'll handle mobile URLs differently
+    }
     // Remove known tracking parameters
     ['si', 'utm_source', 'utm_medium', 'utm_campaign'].forEach(param => {
       urlObj.searchParams.delete(param);
