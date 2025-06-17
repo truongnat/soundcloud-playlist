@@ -350,11 +350,6 @@ const handleRetry = async (trackId: string | number) => {
   }
 }
 
-defineEmits<{
-  (e: 'close'): void
-  (e: 'download-complete', trackId: string): void
-  (e: 'discard-all'): void
-}>()
 </script>
 
 <style>
