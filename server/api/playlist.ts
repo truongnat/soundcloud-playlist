@@ -196,16 +196,30 @@ async function getAllPlaylistTracks(playlist: SoundCloudPlaylist, playlistUrl: s
   const limit = 50; // Giảm limit xuống để tránh quá tải
   let offset = 0;
   let retryCount = 0;
-  const maxRetries = 3;
+  const maxRetries = 5;
   
   while (offset < playlist.track_count) {
     try {
       console.log(`Fetching tracks ${offset} to ${offset + limit} of ${playlist.track_count}`);
       
-      // Use the playlist URL with pagination parameters
-      const playlistData = await soundcloud.playlists.get(playlistUrl + `?limit=${limit}&offset=${offset}`) as SoundCloudPlaylist;
+      let playlistData: SoundCloudPlaylist | null = null;
+      let fetchRetries = 0;
       
-      if (!playlistData.tracks || playlistData.tracks.length === 0) {
+      while (fetchRetries < 3 && !playlistData) {
+        try {
+          playlistData = await soundcloud.playlists.get(playlistUrl + `?limit=${limit}&offset=${offset}`) as SoundCloudPlaylist;
+        } catch (error: any) {
+          fetchRetries++;
+          if (error.status === 401 || error.message.includes('client_id')) {
+            console.log('Client ID error, trying next one...');
+            tryNextClientId();
+            await new Promise(resolve => setTimeout(resolve, 1000));
+          } else {
+            throw error;
+          }
+        }
+      }
+        if (!playlistData || !playlistData.tracks || playlistData.tracks.length === 0) {
         throw new Error('No tracks received in response');
       }
       
@@ -246,62 +260,65 @@ export default defineEventHandler(async (event) => {
     })
   }
 
+  // Initialize the client with a working client ID
+  await initializeClient()
+
   try {
     // Handle mobile URLs
     if (url.includes('soundcloud.app.goo.gl')) {
-      url = await resolveMobileUrl(url);
+      url = await resolveMobileUrl(url)
     }
 
     // Clean the URL before processing
-    url = cleanUrl(url);
-    console.log('Processing playlist URL:', url);
+    url = cleanUrl(url)
+    console.log('Processing playlist URL:', url)
 
     // Get initial playlist data with retry logic
-    let playlist: SoundCloudPlaylist | null = null;
-    let retryCount = 0;
-    const maxRetries = 3;
+    let playlist: SoundCloudPlaylist | null = null
+    let retryCount = 0
+    const maxRetries = 5
 
     while (retryCount < maxRetries && !playlist) {
       try {
-        playlist = await soundcloud.playlists.get(url) as SoundCloudPlaylist;
+        playlist = await soundcloud.playlists.get(url) as SoundCloudPlaylist
       } catch (error: any) {
-        retryCount++;
-        
-        if (error.message.includes('client_id') || error.message.includes('Client ID')) {
-          console.log('Updating client ID for playlist fetch...');
-          const newClientId = await getNewClientId();
-          updateClientId(newClientId);
+        retryCount++
+        console.error(`Attempt ${retryCount}/${maxRetries} failed:`, error.message)
+
+        if (error.status === 401 || error.message.includes('client_id')) {
+          // Try next client ID if unauthorized
+          tryNextClientId()
+          // Wait before retry
+          await new Promise(resolve => setTimeout(resolve, 1000))
+        } else if (retryCount === maxRetries) {
+          throw error
+        } else {
+          // Wait before retrying with exponential backoff
+          await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, retryCount)))
         }
-        
-        console.error(`Attempt ${retryCount}/${maxRetries} failed:`, error);
-        
-        if (retryCount === maxRetries) {
-          throw error;
-        }
-        
-        // Wait before retrying
-        await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, retryCount)));
       }
     }
 
     if (!playlist) {
-      throw new Error('Failed to fetch playlist after multiple attempts');
+      throw new Error('Failed to fetch playlist after multiple attempts')
     }
 
-    console.log(`Found playlist: ${playlist.title} with ${playlist.track_count} tracks`);    // Get all tracks with pagination
-    const allTracks = await getAllPlaylistTracks(playlist, url);
-    console.log(`Successfully fetched ${allTracks.length} of ${playlist.track_count} tracks`);
+    console.log(`Found playlist: ${playlist.title} with ${playlist.track_count} tracks`)
+
+    // Get all tracks with pagination
+    const allTracks = await getAllPlaylistTracks(playlist, url)
+    console.log(`Successfully fetched ${allTracks.length} of ${playlist.track_count} tracks`)
 
     if (allTracks.length === 0) {
-      throw new Error('No tracks could be fetched from the playlist');
+      throw new Error('No tracks could be fetched from the playlist')
     }
 
     // Process tracks in batches to avoid rate limiting
-    const batchSize = 5;
-    const tracks: ProcessedTrack[] = [];
+    const batchSize = 5
+    const tracks: ProcessedTrack[] = []
     
     for (let i = 0; i < allTracks.length; i += batchSize) {
-      const batch = allTracks.slice(i, i + batchSize);
+      const batch = allTracks.slice(i, i + batchSize)
       const batchResults = await Promise.all(
         batch.map(async (track: SoundCloudTrack) => {
           const trackInfo: ProcessedTrack = {
@@ -314,23 +331,23 @@ export default defineEventHandler(async (event) => {
                     'https://secure.gravatar.com/avatar/?size=500&default=mm',
             url: track.permalink_url,
             streamUrl: null
-          };
-
-          try {
-            trackInfo.streamUrl = await getStreamUrl(track);
-          } catch (error) {
-            console.error(`Error getting stream URL for track ${track.id}:`, error);
           }
 
-          return trackInfo;
-        })
-      );
+          try {
+            trackInfo.streamUrl = await getStreamUrl(track)
+          } catch (error) {
+            console.error(`Error getting stream URL for track ${track.id}:`, error)
+          }
 
-      tracks.push(...batchResults);
+          return trackInfo
+        })
+      )
+
+      tracks.push(...batchResults)
 
       // Add delay between batches to avoid rate limiting
       if (i + batchSize < allTracks.length) {
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise(resolve => setTimeout(resolve, 1000))
       }
     }
 
@@ -341,30 +358,32 @@ export default defineEventHandler(async (event) => {
       artwork: playlist.artwork_url?.replace('-large', '-t500x500') || null,
       tracksCount: playlist.track_count,
       tracks
-    };
+    }
 
-    return response;
+    return response
 
   } catch (error: any) {
-    console.error('Error fetching playlist:', error);
+    console.error('Error fetching playlist:', error)
     console.error('Error details:', {
       message: error.message,
-      stack: error.stack,
+      status: error.status,
       url: url
-    });
+    })
 
-    let errorMessage = 'Failed to fetch playlist. ';
+    let errorMessage = 'Failed to fetch playlist. '
     
     if (error.status === 404) {
-      errorMessage = 'The playlist could not be found. Please make sure the URL is correct.';
+      errorMessage = 'The playlist could not be found. Please make sure the URL is correct.'
     } else if (error.status === 403) {
-      errorMessage = 'Access to this playlist is restricted.';
+      errorMessage = 'Access to this playlist is restricted.'
+    } else if (error.status === 401) {
+      errorMessage = 'Authentication failed. Please try again.'
     } else if (error.message.includes('not found')) {
-      errorMessage = 'Playlist not found. Please make sure the URL is correct.';
+      errorMessage = 'Playlist not found. Please make sure the URL is correct.'
     } else if (error.message.includes('rate limit') || error.status === 429) {
-      errorMessage = 'Too many requests. Please try again in a few minutes.';
+      errorMessage = 'Too many requests. Please try again in a few minutes.'
     } else {
-      errorMessage += 'Please make sure the URL is correct and the playlist is public.';
+      errorMessage += 'Please make sure the URL is correct and the playlist is public.'
     }
 
     throw createError({
@@ -374,6 +393,6 @@ export default defineEventHandler(async (event) => {
         originalError: error.message,
         url: url
       }
-    });
+    })
   }
-});
+})
