@@ -9,23 +9,59 @@ import type {
 
 const soundcloud = new Soundcloud()
 
-// Hàm lấy tất cả tracks với pagination
+// Clean up the URL by removing tracking parameters
+function cleanUrl(url: string): string {
+  try {
+    const urlObj = new URL(url);
+    // Remove known tracking parameters
+    ['si', 'utm_source', 'utm_medium', 'utm_campaign'].forEach(param => {
+      urlObj.searchParams.delete(param);
+    });
+    return urlObj.toString().split('?')[0]; // Remove all query parameters
+  } catch (e) {
+    console.error('Error cleaning URL:', e);
+    return url;
+  }
+}
+
+// Hàm lấy tất cả tracks với pagination và retry logic
 async function getAllPlaylistTracks(playlist: SoundCloudPlaylist): Promise<SoundCloudTrack[]> {
   const allTracks: SoundCloudTrack[] = [];
-  const limit = 100;
+  const limit = 50; // Giảm limit xuống để tránh quá tải
   let offset = 0;
+  let retryCount = 0;
+  const maxRetries = 3;
   
   while (offset < playlist.track_count) {
     try {
+      console.log(`Fetching tracks ${offset} to ${offset + limit} of ${playlist.track_count}`);
+      
       const playlistData = await soundcloud.playlists.get(`${playlist.permalink_url}?limit=${limit}&offset=${offset}`) as SoundCloudPlaylist;
+      
+      if (!playlistData.tracks || playlistData.tracks.length === 0) {
+        throw new Error('No tracks received in response');
+      }
+      
       allTracks.push(...playlistData.tracks);
-      offset += limit;
+      offset += playlistData.tracks.length;
+      retryCount = 0; // Reset retry count on successful fetch
       
       // Thêm delay để tránh rate limit
-      await new Promise(resolve => setTimeout(resolve, 1000));
-    } catch (error) {
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+    } catch (error: any) {
       console.error(`Error fetching tracks at offset ${offset}:`, error);
-      break;
+      
+      retryCount++;
+      if (retryCount >= maxRetries) {
+        console.error(`Max retries (${maxRetries}) reached for offset ${offset}`);
+        break;
+      }
+      
+      // Exponential backoff
+      const delay = Math.min(1000 * Math.pow(2, retryCount), 10000);
+      console.log(`Retrying in ${delay}ms... (Attempt ${retryCount}/${maxRetries})`);
+      await new Promise(resolve => setTimeout(resolve, delay));
     }
   }
   
@@ -34,7 +70,7 @@ async function getAllPlaylistTracks(playlist: SoundCloudPlaylist): Promise<Sound
 
 export default defineEventHandler(async (event) => {
   const query = getQuery(event)
-  const url = query.url as string
+  let url = query.url as string
 
   if (!url) {
     throw createError({
@@ -44,15 +80,44 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
-    console.log('Fetching playlist from URL:', url)
+    // Clean the URL before processing
+    url = cleanUrl(url);
+    console.log('Cleaned playlist URL:', url)
 
-    // Get initial playlist data
-    const playlist = await soundcloud.playlists.get(url) as SoundCloudPlaylist
+    // Get initial playlist data with retry logic
+    let playlist: SoundCloudPlaylist | null = null;
+    let retryCount = 0;
+    const maxRetries = 3;
+
+    while (retryCount < maxRetries && !playlist) {
+      try {
+        playlist = await soundcloud.playlists.get(url) as SoundCloudPlaylist;
+      } catch (error: any) {
+        retryCount++;
+        console.error(`Attempt ${retryCount}/${maxRetries} failed:`, error);
+        
+        if (retryCount === maxRetries) {
+          throw error;
+        }
+        
+        // Wait before retrying
+        await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, retryCount)));
+      }
+    }
+
+    if (!playlist) {
+      throw new Error('Failed to fetch playlist after multiple attempts');
+    }
+
     console.log(`Found playlist: ${playlist.title} with ${playlist.track_count} tracks`)
 
     // Lấy tất cả tracks với pagination
     const allTracks = await getAllPlaylistTracks(playlist);
-    console.log(`Successfully fetched ${allTracks.length} tracks`)
+    console.log(`Successfully fetched ${allTracks.length} tracks of ${playlist.track_count} total`)
+
+    if (allTracks.length === 0) {
+      throw new Error('No tracks could be fetched from the playlist');
+    }
 
     // Process tracks
     const tracks: ProcessedTrack[] = await Promise.all(
@@ -148,16 +213,20 @@ export default defineEventHandler(async (event) => {
     console.error('Error fetching playlist:', error)
     console.error('Error details:', {
       message: error.message,
-      stack: error.stack
+      stack: error.stack,
+      url: url
     })
 
     let errorMessage = 'Failed to fetch playlist. '
+    
     if (error.status === 404) {
       errorMessage = 'The playlist could not be found. Please make sure the URL is correct.'
     } else if (error.status === 403) {
       errorMessage = 'Access to this playlist is restricted.'
     } else if (error.message.includes('not found')) {
       errorMessage = 'Playlist not found. Please make sure the URL is correct.'
+    } else if (error.message.includes('rate limit') || error.status === 429) {
+      errorMessage = 'Too many requests. Please try again in a few minutes.'
     } else {
       errorMessage += 'Please make sure the URL is correct and the playlist is public.'
     }
@@ -165,7 +234,10 @@ export default defineEventHandler(async (event) => {
     throw createError({
       statusCode: error.status || 500,
       message: errorMessage,
-      data: error
+      data: {
+        originalError: error.message,
+        url: url
+      }
     })
   }
 })
