@@ -63,6 +63,11 @@ export interface StreamResponse {
   streamUrl: string
   isHLS: boolean
   track: Track
+  duration: number
+  format: {
+    protocol: 'progressive' | 'hls'
+    mimeType: string
+  }
 }
 
 // Download Queue Instance Type

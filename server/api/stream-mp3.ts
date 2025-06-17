@@ -1,12 +1,12 @@
 import { Soundcloud } from 'soundcloud.ts'
-import { Track, StreamResponse } from '~/types'
+import { Track, StreamResponse, SoundCloudAPITrack } from '~/types'
 
 const clientId = process.env.NUXT_SOUNDCLOUD_CLIENT_ID as string
 const soundcloud = new Soundcloud(clientId)
 
-function getTranscoding(trackDetails: any) {
+function getTranscoding(trackDetails: SoundCloudAPITrack) {
   // Find MP3 transcoding
-  const mp3Transcoding = trackDetails.media.transcodings.find((t: any) => 
+  const mp3Transcoding = trackDetails.media.transcodings.find(t => 
     t.format.protocol === 'progressive' && 
     t.format.mime_type === 'audio/mpeg'
   )
@@ -14,12 +14,17 @@ function getTranscoding(trackDetails: any) {
   if (mp3Transcoding) {
     return {
       url: mp3Transcoding.url,
-      isHLS: false
+      isHLS: false,
+      duration: mp3Transcoding.duration,
+      format: {
+        protocol: 'progressive' as const,
+        mimeType: mp3Transcoding.format.mime_type
+      }
     }
   }
 
   // Try to find HLS stream instead
-  const hlsTranscoding = trackDetails.media.transcodings.find((t: any) =>
+  const hlsTranscoding = trackDetails.media.transcodings.find(t =>
     t.format.protocol === 'hls' &&
     t.format.mime_type === 'audio/mpeg'
   )
@@ -33,7 +38,12 @@ function getTranscoding(trackDetails: any) {
 
   return {
     url: hlsTranscoding.url,
-    isHLS: true
+    isHLS: true,
+    duration: hlsTranscoding.duration,
+    format: {
+      protocol: 'hls' as const,
+      mimeType: hlsTranscoding.format.mime_type
+    }
   }
 }
 
