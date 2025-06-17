@@ -181,16 +181,7 @@
 </template>
 
 <script setup lang="ts">
-defineProps<{
-  track: {
-    id: string | number
-    title: string
-    artist: string
-    artwork?: string
-    url: string
-    streamUrl?: string
-    duration: number
-  }
+defineProps<{  track: Track
   activeDownloads: string[]
   downloadErrors: Record<string, string>
 }>()
