@@ -72,27 +72,10 @@ export const useDownloadQueueStore = defineStore('downloadQueue', {
           error
         }
       }
-    },
-
-    // Cancel and clear all queued and active downloads
+    },    // Cancel and clear all queued and active downloads
     discardAll() {
-      // Mark all active downloads as cancelled
-      Object.keys(this.queue).forEach(trackId => {
-        const item = this.queue[trackId]
-        if (['downloading', 'converting'].includes(item.status)) {
-          this.queue[trackId] = {
-            ...item,
-            status: 'error',
-            error: 'Cancelled by user',
-            progress: 0
-          }
-        }
-      })
-
-      // Clear the queue after a short delay to allow UI updates
-      setTimeout(() => {
-        this.queue = {}
-      }, 100)
+      // Clear the queue immediately
+      this.queue = {}
     }
   }
 })
