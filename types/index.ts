@@ -97,3 +97,22 @@ export interface RootState {
   ui: UIState
   downloadQueue: DownloadQueueState
 }
+
+// SoundCloud API Response Types
+export interface SoundCloudMedia {
+  transcodings: Array<{
+    url: string
+    duration: number
+    format: {
+      protocol: 'progressive' | 'hls'
+      mime_type: string
+    }
+    quality: string
+  }>
+}
+
+export interface SoundCloudAPITrack extends SoundCloudTrack {
+  media: SoundCloudMedia
+  stream_url?: string
+  kind: 'track'
+}
