@@ -1,7 +1,8 @@
 import { defineStore } from 'pinia'
+import type { UIState } from '@/types'
 
 export const useUIStore = defineStore('ui', {
-  state: () => ({
+  state: (): UIState => ({
     showDownloadQueue: false,
     shouldKeepQueueOpen: false
   }),

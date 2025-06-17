@@ -1,8 +1,8 @@
 import { defineStore } from 'pinia'
-import type { Track, QueueItem } from '@/types'
+import type { Track, QueueItem, DownloadQueueState } from '@/types'
 
 export const useDownloadQueueStore = defineStore('downloadQueue', {
-  state: () => ({
+  state: (): DownloadQueueState => ({
     queue: {} as Record<string, QueueItem>
   }),
 
