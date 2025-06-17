@@ -1,24 +1,24 @@
 <template>
-  <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 hover:shadow-md hover:border-blue-100 transition-all duration-200 group">
+  <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 hover:shadow-lg hover:border-blue-200 transition-all duration-300 group">
     <div class="flex space-x-5">
       <!-- Artwork Section -->
-      <div class="relative flex-shrink-0">
+      <div class="relative flex-shrink-0 group/artwork">
         <!-- Track Artwork -->
         <img
           v-if="track.artwork"
           :src="track.artwork"
           :alt="track.title"
-          class="w-28 h-28 object-cover rounded-lg shadow-sm group-hover:shadow transition-shadow"
+          class="w-32 h-32 object-cover rounded-lg shadow-sm group-hover/artwork:shadow-md transition-all duration-300 transform group-hover/artwork:scale-[1.02]"
           loading="lazy"
         />
 
         <!-- Placeholder for Missing Artwork -->
         <div
           v-else
-          class="w-28 h-28 bg-gradient-to-br from-gray-100 to-gray-50 rounded-lg flex items-center justify-center"
+          class="w-32 h-32 bg-gradient-to-br from-gray-100 to-gray-50 rounded-lg flex items-center justify-center shadow-sm group-hover/artwork:shadow-md transition-all duration-300"
         >
           <svg
-            class="w-12 h-12 text-gray-400"
+            class="w-14 h-14 text-gray-300"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -32,10 +32,19 @@
           </svg>
         </div>
 
+        <!-- Play Button Overlay -->
+        <div class="absolute inset-0 bg-black/0 group-hover/artwork:bg-black/20 transition-all duration-300 rounded-lg flex items-center justify-center">
+          <div class="opacity-0 group-hover/artwork:opacity-100 transform group-hover/artwork:scale-100 scale-90 transition-all duration-300">
+            <svg class="w-12 h-12 text-white drop-shadow-lg" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M8 5v14l11-7z"/>
+            </svg>
+          </div>
+        </div>
+
         <!-- Download Status Badge -->
         <div
           v-if="activeDownloads.includes(getTrackId(track.id))"
-          class="absolute -top-2 -right-2 bg-blue-500 text-white p-1.5 rounded-full shadow-sm animate-pulse"
+          class="absolute -top-2 -right-2 bg-blue-500 text-white p-1.5 rounded-full shadow-md animate-pulse"
         >
           <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
             <circle
@@ -56,19 +65,39 @@
       </div>
 
       <!-- Track Info Section -->
-      <div class="flex-1 min-w-0">
-        <!-- Track Title and Artist -->
-        <div class="flex justify-between items-start space-x-4 mb-2">
-          <div>
-            <h3
-              class="font-medium text-gray-900 text-lg leading-tight line-clamp-2 group-hover:text-blue-600 transition-colors"
-            >
-              {{ track.title }}
-            </h3>
-            <p class="text-sm text-gray-600 mt-1 flex items-center">
-              <!-- Artist Icon -->
+      <div class="flex-1 min-w-0 flex flex-col justify-between py-1">
+        <div>
+          <!-- Track Title and Artist -->
+          <div class="flex justify-between items-start space-x-4">
+            <div>
+              <h3
+                class="font-medium text-gray-900 text-lg leading-tight line-clamp-2 group-hover:text-blue-600 transition-colors duration-300"
+              >
+                {{ track.title }}
+              </h3>
+              <p class="text-sm text-gray-500 mt-1.5 flex items-center">
+                <!-- Artist Icon -->
+                <svg
+                  class="w-4 h-4 mr-1.5 text-gray-400"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                  />
+                </svg>
+                {{ track.artist }}
+              </p>
+            </div>
+
+            <!-- Track Duration -->
+            <span class="text-sm text-gray-500 whitespace-nowrap flex items-center bg-gray-50 px-2.5 py-1 rounded-full">
               <svg
-                class="w-4 h-4 mr-1 text-gray-400"
+                class="w-3.5 h-3.5 mr-1 text-gray-400"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -77,18 +106,82 @@
                   stroke-linecap="round"
                   stroke-linejoin="round"
                   stroke-width="2"
-                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
                 />
               </svg>
-              {{ track.artist }}
-            </p>
+              {{ formatDuration(track.duration) }}
+            </span>
+          </div>
+        </div>
+
+        <div class="mt-auto">
+          <!-- Action Buttons -->
+          <div class="flex items-center space-x-3 mt-4">
+            <!-- Download Button -->
+            <button
+              @click="downloadTrack(track)"
+              :disabled="!track.streamUrl || activeDownloads.includes(getTrackId(track.id))"
+              class="relative flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-1 overflow-hidden"
+              :class="!track.streamUrl || activeDownloads.includes(getTrackId(track.id))
+                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                : 'bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 focus:ring-blue-500 hover:shadow-md'"
+            >
+              <!-- Download Icon -->
+              <svg
+                class="w-4 h-4 mr-1.5 flex-shrink-0"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                />
+              </svg>
+              <span class="relative z-10">
+                {{ !track.streamUrl
+                  ? 'Unavailable'
+                  : activeDownloads.includes(getTrackId(track.id))
+                    ? 'Processing...'
+                    : 'Download' }}
+              </span>
+            </button>
+
+            <!-- Open in SoundCloud Link -->
+            <a
+              class="p-2.5 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-50 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-gray-200"
+              :href="track.url"
+              target="_blank"
+              rel="noopener noreferrer"
+              title="Open in SoundCloud"
+            >
+              <!-- SoundCloud Icon -->
+              <svg
+                class="w-5 h-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                />
+              </svg>
+            </a>
           </div>
 
-          <!-- Track Duration -->
-          <span class="text-sm text-gray-500 whitespace-nowrap flex items-center">
-            <!-- Duration Icon -->
+          <!-- Download Error Message -->
+          <p
+            v-if="downloadErrors[track.id]"
+            class="mt-3 text-sm text-red-600 bg-red-50 px-3.5 py-2 rounded-lg flex items-center border border-red-100"
+          >
+            <!-- Error Icon -->
             <svg
-              class="w-4 h-4 mr-1 text-gray-400"
+              class="w-4 h-4 mr-2 flex-shrink-0 text-red-500"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -97,91 +190,12 @@
                 stroke-linecap="round"
                 stroke-linejoin="round"
                 stroke-width="2"
-                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
               />
             </svg>
-            {{ formatDuration(track.duration) }}
-          </span>
+            <span class="line-clamp-2">{{ downloadErrors[track.id] }}</span>
+          </p>
         </div>
-
-        <!-- Action Buttons -->
-        <div class="flex items-center space-x-3 mt-4">
-          <!-- Download Button -->
-          <button
-            @click="downloadTrack(track)"
-            :disabled="!track.streamUrl || activeDownloads.includes(getTrackId(track.id))"
-            class="flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-1"
-            :class="!track.streamUrl || activeDownloads.includes(getTrackId(track.id))
-              ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-              : 'bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 focus:ring-blue-500'"
-          >
-            <!-- Download Icon -->
-            <svg
-              class="w-4 h-4 mr-1.5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-              />
-            </svg>
-            {{ !track.streamUrl
-              ? 'Unavailable'
-              : activeDownloads.includes(getTrackId(track.id))
-                ? 'Processing...'
-                : 'Download' }}
-          </button>
-
-          <!-- Open in SoundCloud Link -->
-          <a
-            class="p-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors"
-            :href="track.url"
-            target="_blank"
-            rel="noopener noreferrer"
-            title="Open in SoundCloud"
-          >
-            <!-- SoundCloud Icon -->
-            <svg
-              class="w-5 h-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-              />
-            </svg>
-          </a>
-        </div>
-
-        <!-- Download Error Message -->
-        <p
-          v-if="downloadErrors[track.id]"
-          class="mt-3 text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg flex items-center"
-        >
-          <!-- Error Icon -->
-          <svg
-            class="w-4 h-4 mr-1.5 flex-shrink-0"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
-          {{ downloadErrors[track.id] }}
-        </p>
       </div>
     </div>
   </div>
@@ -222,9 +236,10 @@ const downloadTrack = (track: any) => {
 </script>
 
 <style scoped>
-.line-clamp-1 {
+.line-clamp-2 {
   display: -webkit-box;
-  -webkit-line-clamp: 1;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
