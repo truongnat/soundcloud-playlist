@@ -1,14 +1,8 @@
 import { Soundcloud } from 'soundcloud.ts'
-import { Track } from '~/types'
+import { Track, StreamResponse } from '~/types'
 
 const clientId = process.env.NUXT_SOUNDCLOUD_CLIENT_ID as string
 const soundcloud = new Soundcloud(clientId)
-
-interface StreamResponse {
-  streamUrl: string
-  isHLS: boolean
-  track: Track
-}
 
 function getTranscoding(trackDetails: any) {
   // Find MP3 transcoding
