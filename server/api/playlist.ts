@@ -9,7 +9,7 @@ import type {
 
 // List of known working client IDs
 const CLIENT_IDS = [
-  '2t9loNQH90kzJcsFCODdigxfp325aq4z',
+  '1JEFtFgP4Mocy0oEGJj2zZ0il9pEpBrM',
   'iZIs9mchVcX5lhVRyQGGAYlNPVldzAoX',
   'ccCB37jIWCBP7JB9SnUPPui8LzeaQT45',
   '6ibGdGJqSm8F5DPvKPJMODIzhlvKbDks',
