@@ -17,7 +17,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import type { Track, PlaylistInfo } from '~/types'
+import type { Track, PlaylistInfo, PlaylistResponse } from '~/types'
 import { usePlaylist } from '~/composables/usePlaylist'
 import { useTrackDownloader } from '~/composables/useTrackDownloader'
 
@@ -43,12 +43,13 @@ async function fetchPlaylist(url: string) {
   tracks.value = []
   playlistInfo.value = null
   
-  try {
-    const response = await getPlaylist(url)
-    tracks.value = response.tracks
-    playlistInfo.value = response.info
+  try {    const response = await getPlaylist(url)
+    if (response) {
+      tracks.value = response.tracks
+      playlistInfo.value = response.info
+    }
   } catch (e: any) {
-    error.value = e.data?.message || 'Failed to fetch playlist'
+    error.value = playlistError.value || 'Failed to fetch playlist'
   } finally {
     loading.value = false
   }
