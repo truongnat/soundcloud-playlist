@@ -102,7 +102,7 @@ defineProps<{
   error?: string
   playlistTitle?: string
   playlistArtwork?: string
-  downloadingTracks?: string[]
+  downloadingTracks?: Set<string | number>
   errorTracks?: Record<string, string>
   isDownloadingAll?: boolean
 }>()
