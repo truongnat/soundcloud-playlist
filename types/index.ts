@@ -37,9 +37,11 @@ export interface Track {
 export interface ProcessedTrack extends Track {}
 
 export interface PlaylistInfo {
+  id: number
   title: string
   description: string
   artwork: string
+  tracksCount: number
 }
 
 export interface PlaylistResponse {
