@@ -1,14 +1,14 @@
 import { ref } from 'vue'
 import type { Track } from '~/types'
 import { useDownloadQueue } from './useDownloadQueue'
-import { useUiStore } from '~/stores/ui'
+import { useUIStore } from '~/stores/ui'
 
 export function useTrackDownloader() {
   const { addToQueue } = useDownloadQueue()
-  const uiStore = useUiStore()
+  const uiStore = useUIStore()
   
-  const downloadingTracks = ref&lt;Set&lt;string | number>>(new Set())
-  const errorTracks = ref&lt;Set&lt;string | number>>(new Set())
+  const downloadingTracks = ref<Set<string | number>>(new Set())
+  const errorTracks = ref<Set<string | number>>(new Set())
   const downloadStats = ref({
     active: 0,
     total: 0
