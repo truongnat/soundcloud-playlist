@@ -1,5 +1,6 @@
 import { getClientId } from '~/server/utils/soundcloud'
 import type { Track, SoundCloudTrack } from '~/types'
+import type { H3Error } from 'h3'
 
 export default defineEventHandler(async (event) => {
   const { url } = getQuery(event)
@@ -16,7 +17,7 @@ export default defineEventHandler(async (event) => {
 
   // Maximum retries for the whole process
   const MAX_RETRIES = 3
-  let lastError: any = null
+  let lastError: Error | H3Error | null = null
 
   for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
     try {
@@ -116,15 +117,20 @@ export default defineEventHandler(async (event) => {
 
       return { track }
     } catch (error) {
-      lastError = error
+      if (error instanceof Error || 'data' in (error as any)) {
+        lastError = error as Error | H3Error
+      } else {
+        lastError = new Error('Unknown error occurred')
+      }
+
       if (attempt === MAX_RETRIES - 1) {
         // If this was our last attempt, throw the error
-        if (error.data) {
-          throw error // If it's already a H3Error, throw it as is
+        if (lastError && 'data' in lastError) {
+          throw lastError // If it's already a H3Error, throw it as is
         }
         throw createError({
           statusCode: 500,
-          message: `Failed after ${MAX_RETRIES} attempts: ${error.message || 'Unknown error'}`
+          message: `Failed after ${MAX_RETRIES} attempts: ${lastError?.message || 'Unknown error'}`
         })
       }
       // Wait before next attempt
