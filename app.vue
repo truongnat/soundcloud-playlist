@@ -11,7 +11,7 @@
             <h1 class="text-lg font-semibold text-gray-900">Soundcloud DL</h1>
           </div>
           
-          <a href="https://github.com/your-username/playlist-soundcloud" 
+          <a href="https://github.com/truongnat/playlist-soundcloud" 
              target="_blank" 
              rel="noopener noreferrer"
              class="text-gray-400 hover:text-gray-600 transition-colors">
