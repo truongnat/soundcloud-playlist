@@ -4,11 +4,30 @@
       <!-- Header -->
       <header class="bg-white border-b">
         <div class="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
-          <div class="flex items-center gap-2">
-            <svg class="w-6 h-6 text-orange-500" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M11.5 0c-6.347 0-11.5 5.153-11.5 11.5 0 6.346 5.153 11.5 11.5 11.5 6.346 0 11.5-5.154 11.5-11.5 0-6.347-5.154-11.5-11.5-11.5zm0 21c-5.243 0-9.5-4.257-9.5-9.5s4.257-9.5 9.5-9.5 9.5 4.257 9.5 9.5-4.257 9.5-9.5 9.5z" />
-            </svg>
-            <h1 class="text-lg font-semibold text-gray-900">Soundcloud DL</h1>
+          <div class="flex items-center gap-6">
+            <div class="flex items-center gap-2">
+              <svg class="w-6 h-6 text-orange-500" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M11.5 0c-6.347 0-11.5 5.153-11.5 11.5 0 6.346 5.153 11.5 11.5 11.5 6.346 0 11.5-5.154 11.5-11.5 0-6.347-5.154-11.5-11.5-11.5zm0 21c-5.243 0-9.5-4.257-9.5-9.5s4.257-9.5 9.5-9.5 9.5 4.257 9.5 9.5-4.257 9.5-9.5 9.5z" />
+              </svg>
+              <h1 class="text-lg font-semibold text-gray-900">Soundcloud DL</h1>
+            </div>
+            
+            <nav class="flex items-center gap-4">
+              <NuxtLink 
+                to="/" 
+                class="text-gray-600 hover:text-gray-900 transition-colors"
+                active-class="text-gray-900 font-medium"
+              >
+                Playlist
+              </NuxtLink>
+              <NuxtLink 
+                to="/track" 
+                class="text-gray-600 hover:text-gray-900 transition-colors"
+                active-class="text-gray-900 font-medium"
+              >
+                Single Track
+              </NuxtLink>
+            </nav>
           </div>
           
           <a href="https://github.com/truongnat/playlist-soundcloud" 
