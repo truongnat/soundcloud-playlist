@@ -52,12 +52,12 @@
   </div>
 </template>
 
-&lt;script setup lang="ts">
+<script setup lang="ts">
 import { ref, computed } from 'vue'
-import { Track } from '~/types'
+import type { Track } from '~/types'
 
 const trackUrl = ref('')
-const track = ref&lt;Track | null>(null)
+const track = ref<Track | null>(null)
 const error = ref('')
 const isLoading = ref(false)
 const isDownloading = ref(false)
@@ -79,7 +79,7 @@ async function fetchTrack() {
   track.value = null
 
   try {
-    const response = await $fetch&lt;{ track: Track }>('/api/track-download', {
+    const response = await $fetch<{ track: Track }>('/api/track-download', {
       query: { url: trackUrl.value }
     })
     track.value = response.track
@@ -116,4 +116,4 @@ async function downloadTrack() {
     isDownloading.value = false
   }
 }
-&lt;/script>
+</script>
