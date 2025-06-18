@@ -22,6 +22,26 @@ const tryNextClientId = () => {
   return nextClientId
 }
 
+// Function to get stream URL
+async function getStreamUrl(trackId: string, clientId: string): Promise<string> {
+  const response = await fetch(
+    `https://api-v2.soundcloud.com/tracks/${trackId}/streams?client_id=${clientId}`,
+    {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+      }
+    }
+  )
+  if (!response.ok) {
+    throw new Error(`Failed to get stream URL: ${response.status} ${response.statusText}`)
+  }
+  const data = await response.json()
+  if (!data.http_mp3_128_url) {
+    throw new Error('No MP3 stream URL found')
+  }
+  return data.http_mp3_128_url
+}
+
 // Clean up the URL by removing tracking parameters
 function cleanUrl(url: string): string {
   try {
@@ -82,18 +102,33 @@ export default defineEventHandler(async (event) => {
   // Try with each client ID until success or all fail
   for (let attempt = 0; attempt < CLIENT_IDS.length; attempt++) {
     try {
-      // Get track info
-      console.log('Attempting to fetch track with client ID:', soundcloud.clientId)
-      const trackRes = await soundcloud.resolve(url)
+      const currentClientId = CLIENT_IDS[currentClientIdIndex]
+      console.log('Attempting to fetch track with client ID:', currentClientId)
 
-      if (!trackRes || !('id' in trackRes)) {
+      // Get track info
+      const response = await fetch(
+        `https://api.soundcloud.com/resolve?url=${encodeURIComponent(url)}&client_id=${currentClientId}`,
+        {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+          }
+        }
+      )
+
+      if (!response.ok) {
+        throw new Error(`Failed to resolve track: ${response.status} ${response.statusText}`)
+      }
+
+      const trackRes = await response.json() as SoundCloudTrack
+
+      if (!trackRes || !trackRes.id) {
         console.error('Invalid track response:', trackRes)
         throw new Error('Invalid track data received')
       }
 
       // Get stream URL
       console.log('Getting stream URL for track:', trackRes.id)
-      const streamUrl = await soundcloud.getStreamUrl(trackRes.id.toString())
+      const streamUrl = await getStreamUrl(trackRes.id.toString(), currentClientId)
       console.log('Got stream URL:', streamUrl)
 
       // Format the response
@@ -114,7 +149,8 @@ export default defineEventHandler(async (event) => {
       console.error('Error with current client ID:', error)
       
       // If this is a 401/403 error, try the next client ID
-      if (error?.response?.status === 401 || error?.response?.status === 403) {
+      if (error?.response?.status === 401 || error?.response?.status === 403 || 
+          error.message?.includes('401') || error.message?.includes('403')) {
         if (attempt < CLIENT_IDS.length - 1) {
           tryNextClientId()
           continue
