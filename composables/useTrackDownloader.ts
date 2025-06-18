@@ -26,9 +26,11 @@ export function useTrackDownloader() {
     const availableTracks = tracks.filter(track => !downloadingTracks.value.has(track.id))
     if (availableTracks.length === 0) return
     
-    addToQueue(availableTracks)
-    downloadStats.value.total += availableTracks.length
-    availableTracks.forEach(track => downloadingTracks.value.add(track.id))
+    availableTracks.forEach(track => {
+      addToQueue(track)
+      downloadStats.value.total++
+      downloadingTracks.value.add(track.id)
+    })
     // Show download queue
     uiStore.showDownloadQueue = true
   }
