@@ -42,19 +42,8 @@
       </header>
 
       <!-- Main Content -->
-      <main class="max-w-5xl mx-auto px-4 py-8 space-y-10">
-        <PlaylistInput @fetch-playlist="fetchPlaylist" :loading="loading" />
-        <TrackList 
-          :tracks="tracks" 
-          :is-loading="loading" 
-          :error="error" 
-          :playlist-title="playlistInfo?.title"
-          :playlist-artwork="playlistInfo?.artwork" 
-          :downloading-tracks="downloadingTracks" 
-          :error-tracks="errorTracks"
-          :is-downloading-all="downloadStats.active > 0"
-          @download="handleDownloadTrack"
-          @download-all="handleDownloadAll" />
+      <main class="max-w-5xl mx-auto px-4 py-8">
+        <NuxtPage />
       </main>
 
       <!-- Download Queue Sidebar -->
