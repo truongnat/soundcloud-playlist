@@ -10,6 +10,7 @@ export default defineEventHandler(async (event) => {
       message: 'Missing or invalid track URL'
     })
   }
+
   let clientId: string | null = null
   try {
     clientId = await getClientId()
@@ -28,17 +29,28 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  // Get track info from SoundCloud API  // Get track info from SoundCloud API
+  let trackRes: SoundCloudTrack
   try {
-    const trackRes = await $fetch<SoundCloudTrack>(`https://api.soundcloud.com/resolve?url=${encodeURIComponent(url)}&client_id=${clientId}`, {
-      retry: 3,
-      retryDelay: 1000
+    // Get track info from SoundCloud API
+    trackRes = await $fetch<SoundCloudTrack>(
+      `https://api.soundcloud.com/resolve?url=${encodeURIComponent(url)}&client_id=${clientId}`,
+      {
+        retry: 3,
+        retryDelay: 1000
+      }
+    )
+  } catch (error: any) {
+    console.error('Error fetching track:', error)
+    throw createError({
+      statusCode: error.response?.status || 500,
+      message: 'Failed to fetch track information'
     })
-  
+  }
+
   if (!trackRes || !trackRes.id) {
     throw createError({
       statusCode: 404,
-      message: 'Track not found'
+      message: 'Track not found or invalid track data received'
     })
   }
 
@@ -46,12 +58,28 @@ export default defineEventHandler(async (event) => {
     http_mp3_128_url: string
   }
 
-  // Get the track streaming URL
-  const streamData = await $fetch<StreamResponse>(`https://api.soundcloud.com/tracks/${trackRes.id}/streams?client_id=${clientId}`)
+  let streamData: StreamResponse
+  try {
+    // Get the track streaming URL
+    streamData = await $fetch<StreamResponse>(
+      `https://api.soundcloud.com/tracks/${trackRes.id}/streams?client_id=${clientId}`,
+      {
+        retry: 2,
+        retryDelay: 1000
+      }
+    )
+  } catch (error: any) {
+    console.error('Error fetching stream URL:', error)
+    throw createError({
+      statusCode: error.response?.status || 500,
+      message: 'Failed to get track streaming URL'
+    })
+  }
+
   if (!streamData || !streamData.http_mp3_128_url) {
     throw createError({
       statusCode: 404,
-      message: 'Track stream not found'
+      message: 'Track stream URL not found or unavailable'
     })
   }
 
