@@ -16,24 +16,24 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import type { Track, PlaylistInfo } from '~/types'
-import { useDownloadQueue } from '~/composables/useDownloadQueue'
 import { usePlaylist } from '~/composables/usePlaylist'
+import { useTrackDownloader } from '~/composables/useTrackDownloader'
 
 const { fetchPlaylist: getPlaylist, error: playlistError } = usePlaylist()
-const { addToQueue } = useDownloadQueue()
+const {
+  downloadingTracks,
+  errorTracks,
+  downloadStats,
+  handleDownloadTrack: downloadSingleTrack,
+  handleDownloadAll: downloadMultipleTracks
+} = useTrackDownloader()
 
 const loading = ref(false)
 const error = ref('')
 const tracks = ref<Track[]>([])
 const playlistInfo = ref<PlaylistInfo | null>(null)
-const downloadingTracks = ref<Set<string | number>>(new Set())
-const errorTracks = ref<Set<string | number>>(new Set())
-const downloadStats = ref({
-  active: 0,
-  total: 0
-})
 
 async function fetchPlaylist(url: string) {
   if (!url) return
@@ -42,8 +42,6 @@ async function fetchPlaylist(url: string) {
   error.value = ''
   tracks.value = []
   playlistInfo.value = null
-  downloadingTracks.value = new Set()
-  errorTracks.value = new Set()
   
   try {
     const response = await getPlaylist(url)
@@ -57,17 +55,11 @@ async function fetchPlaylist(url: string) {
 }
 
 function handleDownloadTrack(track: Track) {
-  addToQueue([track])
-  downloadStats.value.total++
-  downloadingTracks.value.add(track.id)
+  downloadSingleTrack(track)
 }
 
 function handleDownloadAll() {
-  const availableTracks = tracks.value.filter(track => !downloadingTracks.value.has(track.id))
-  if (availableTracks.length === 0) return
-  
-  addToQueue(availableTracks)
-  downloadStats.value.total += availableTracks.length
-  availableTracks.forEach(track => downloadingTracks.value.add(track.id))
+  if (tracks.value.length === 0) return
+  downloadMultipleTracks(tracks.value)
 }
 </script>

@@ -55,12 +55,18 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import type { Track } from '~/types'
+import { useTrackDownloader } from '~/composables/useTrackDownloader'
+
+const {
+  downloadingTracks,
+  errorTracks,
+  handleDownloadTrack
+} = useTrackDownloader()
 
 const trackUrl = ref('')
 const track = ref<Track | null>(null)
 const error = ref('')
 const isLoading = ref(false)
-const isDownloading = ref(false)
 
 const isValidUrl = computed(() => {
   try {
@@ -69,6 +75,10 @@ const isValidUrl = computed(() => {
   } catch {
     return false
   }
+})
+
+const isDownloading = computed(() => {
+  return track.value ? downloadingTracks.value.has(track.value.id) : false
 })
 
 async function fetchTrack() {
@@ -90,30 +100,8 @@ async function fetchTrack() {
   }
 }
 
-async function downloadTrack() {
-  if (!track.value?.streamUrl) return
-
-  isDownloading.value = true
-  error.value = ''
-
-  try {
-    // Create a blob from the stream
-    const response = await fetch(track.value.streamUrl)
-    const blob = await response.blob()
-    
-    // Create a download link and trigger it
-    const url = window.URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `${track.value.artist} - ${track.value.title}.mp3`
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    window.URL.revokeObjectURL(url)
-  } catch (e) {
-    error.value = 'Failed to download track'
-  } finally {
-    isDownloading.value = false
-  }
+function downloadTrack() {
+  if (!track.value) return
+  handleDownloadTrack(track.value)
 }
 </script>
