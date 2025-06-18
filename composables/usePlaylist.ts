@@ -18,16 +18,15 @@ export const usePlaylist = () => {
     } catch (err) {
       console.error('Error fetching playlist:', err)
       error.value = err instanceof Error ? err.message : 'Failed to load playlist'
-    } finally {
-      loading.value = false
+    } finally {    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to load playlist'
+      error.value = message
+      throw err
     }
   }
 
   return {
-    tracks,
-    loading,
-    error,
-    playlistInfo,
-    fetchPlaylist
+    fetchPlaylist,
+    error
   }
 }
