@@ -1,23 +1,23 @@
-<template>  <div class="space-y-10">
+<template>  <div class="space-y-12">
     <!-- Playlist Header -->
     <div v-if="playlistTitle || playlistArtwork" class="relative">
       <!-- Banner Image -->
-      <div class="relative h-52 md:h-64 lg:h-80 overflow-hidden rounded-xl shadow-lg">
+      <div class="relative h-60 md:h-72 lg:h-96 overflow-hidden rounded-2xl shadow-2xl">
         <img
           v-if="playlistArtwork"
           :src="playlistArtwork"
           :alt="playlistTitle"
           class="w-full h-full object-cover"
         />
-        <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
+        <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent"></div>
         
         <!-- Playlist Info -->
-        <div class="absolute bottom-0 left-0 right-0 p-6 flex justify-between items-end">
+        <div class="absolute bottom-0 left-0 right-0 p-8 flex justify-between items-end">
           <div class="text-white">
-            <h1 class="text-2xl md:text-3xl lg:text-4xl font-bold mb-2">
+            <h1 class="text-3xl md:text-4xl lg:text-5xl font-bold mb-3 text-shadow-lg">
               {{ playlistTitle || 'Untitled Playlist' }}
             </h1>
-            <p class="text-sm md:text-base text-gray-200">
+            <p class="text-base md:text-lg text-gray-200 text-shadow">
               {{ tracks?.length || 0 }} tracks
             </p>
           </div>
@@ -27,7 +27,7 @@
             v-if="tracks && tracks.length > 0"
             @click="$emit('downloadAll')"
             :disabled="isDownloadingAll"
-            class="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg font-medium shadow-lg hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+            class="px-6 py-3.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl font-medium shadow-lg hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
             <svg
               class="w-5 h-5"
@@ -58,17 +58,18 @@
     </div>
 
     <!-- Loading State -->
-    <div v-if="isLoading" class="space-y-4">
-      <USkeleton v-for="i in 6" :key="i" class="h-24 w-full" />
+    <div v-if="isLoading" class="space-y-6">
+      <USkeleton v-for="i in 6" :key="i" class="h-28 w-full" />
     </div>
 
     <!-- Error State -->
     <UAlert
       v-else-if="error"
       :title="error"
-      color="error"
+      color="red"
       variant="soft"
       icon="i-heroicons-exclamation-triangle"
+      class="bg-red-900/20 text-red-100 border-red-900"
     />
 
     <!-- Tracks Grid -->
@@ -81,14 +82,12 @@
     />
 
     <!-- Empty State -->
-    <UCard v-else class="text-center py-12">
-      <template #header>
-        <div class="flex items-center justify-center">
-          <UIcon name="i-heroicons-musical-note" class="w-12 h-12 text-gray-400" />
-        </div>
-      </template>
-      <p class="text-gray-500">No tracks found in this playlist</p>
-    </UCard>
+    <div v-else class="bg-gray-800/50 border border-gray-700 rounded-2xl p-12 text-center">
+      <div class="flex justify-center mb-4">
+        <UIcon name="i-heroicons-musical-note" class="w-14 h-14 text-gray-600" />
+      </div>
+      <p class="text-gray-400 text-lg">No tracks found in this playlist</p>
+    </div>
   </div>
 </template>
 
@@ -120,5 +119,12 @@ defineEmits<{
 
 .space-y-4 > :not([hidden]) ~ :not([hidden]) {
   margin-top: 1rem;
+}
+
+.text-shadow {
+  text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+}
+.text-shadow-lg {
+  text-shadow: 0 2px 4px rgba(0,0,0,0.5);
 }
 </style>
