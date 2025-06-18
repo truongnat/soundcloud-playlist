@@ -97,14 +97,14 @@ import type { Track } from '@/types'
 import TrackGrid from './playlist/TrackGrid.vue'
 
 defineProps<{
-  tracks?: Track[]
-  isLoading?: boolean
+  tracks: Track[]
+  isLoading: boolean
   error?: string
   playlistTitle?: string
   playlistArtwork?: string
-  downloadingTracks?: Set<string | number>
-  errorTracks?: Record<string, string>
-  isDownloadingAll?: boolean
+  downloadingTracks: string[]
+  errorTracks: Record<string, string>
+  isDownloadingAll: boolean
 }>()
 
 defineEmits<{
