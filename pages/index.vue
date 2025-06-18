@@ -6,9 +6,8 @@
       :is-loading="loading" 
       :error="error" 
       :playlist-title="playlistInfo?.title"
-      :playlist-artwork="playlistInfo?.artwork" 
-      :downloading-tracks="downloadingTracks" 
-      :error-tracks="errorTracks"
+      :playlist-artwork="playlistInfo?.artwork"      :downloading-tracks="Array.from(downloadingTracks.value).map(String)" 
+      :error-tracks="Object.fromEntries(Array.from(errorTracks.value).map(id => [String(id), 'Failed']))"
       :is-downloading-all="downloadStats.active > 0"
       @download="handleDownloadTrack"
       @download-all="handleDownloadAll" />
