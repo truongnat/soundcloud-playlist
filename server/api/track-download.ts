@@ -1,6 +1,7 @@
 import { getClientId } from '~/server/utils/soundcloud'
 import type { Track, SoundCloudTrack } from '~/types'
 import type { H3Error } from 'h3'
+import { $fetch } from 'ofetch'
 
 export default defineEventHandler(async (event) => {
   const { url } = getQuery(event)
@@ -41,7 +42,10 @@ export default defineEventHandler(async (event) => {
           `https://api.soundcloud.com/resolve?url=${encodeURIComponent(cleanUrl)}&client_id=${clientId}`,
           {
             retry: 2,
-            retryDelay: 1000
+            retryDelay: 1000,
+            headers: {
+              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+            }
           }
         )
         console.log('Track info fetched successfully')
@@ -78,7 +82,10 @@ export default defineEventHandler(async (event) => {
           `https://api.soundcloud.com/tracks/${trackRes.id}/streams?client_id=${clientId}`,
           {
             retry: 2,
-            retryDelay: 1000
+            retryDelay: 1000,
+            headers: {
+              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+            }
           }
         )
         console.log('Stream URL fetched successfully')
