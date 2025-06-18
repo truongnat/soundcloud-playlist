@@ -10,17 +10,30 @@ export default defineEventHandler(async (event) => {
       message: 'Missing or invalid track URL'
     })
   }
-
-  const clientId = await getClientId()
-  if (!clientId) {
+  let clientId: string | null = null
+  try {
+    clientId = await getClientId()
+  } catch (error: any) {
+    console.error('Error getting client ID:', error)
     throw createError({
       statusCode: 500,
-      message: 'Failed to get SoundCloud client ID'
+      message: `Failed to get SoundCloud client ID: ${error.message || 'Unknown error'}`
     })
   }
 
-  // Get track info from SoundCloud API
-  const trackRes = await $fetch<SoundCloudTrack>(`https://api.soundcloud.com/resolve?url=${encodeURIComponent(url)}&client_id=${clientId}`)
+  if (!clientId) {
+    throw createError({
+      statusCode: 500,
+      message: 'Could not obtain SoundCloud client ID'
+    })
+  }
+
+  // Get track info from SoundCloud API  // Get track info from SoundCloud API
+  try {
+    const trackRes = await $fetch<SoundCloudTrack>(`https://api.soundcloud.com/resolve?url=${encodeURIComponent(url)}&client_id=${clientId}`, {
+      retry: 3,
+      retryDelay: 1000
+    })
   
   if (!trackRes || !trackRes.id) {
     throw createError({
