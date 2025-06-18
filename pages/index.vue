@@ -36,23 +36,35 @@ const tracks = ref<Track[]>([])
 const playlistInfo = ref<PlaylistInfo | null>(null)
 
 async function fetchPlaylist(url: string) {
-  if (!url) return
+  if (!url) {
+    error.value = 'Please enter a valid SoundCloud playlist URL'
+    return
+  }
   
   loading.value = true
   error.value = ''
   tracks.value = []
   playlistInfo.value = null
-    try {
+  
+  try {
     const response = await getPlaylist(url)
     console.log('Playlist response:', response)
-    if (response) {
+    
+    if (response && response.tracks && Array.isArray(response.tracks)) {
       tracks.value = response.tracks
       playlistInfo.value = response.info
       console.log('Updated tracks:', tracks.value)
       console.log('Updated playlistInfo:', playlistInfo.value)
+      
+      if (tracks.value.length === 0) {
+        error.value = 'No tracks found in this playlist'
+      }
+    } else {
+      error.value = 'Invalid response format from server'
     }
   } catch (e: any) {
-    error.value = playlistError.value || 'Failed to fetch playlist'
+    error.value = e?.message || playlistError.value || 'Failed to fetch playlist'
+    console.error('Fetch playlist error:', e)
   } finally {
     loading.value = false
   }
