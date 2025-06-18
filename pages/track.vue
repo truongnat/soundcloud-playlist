@@ -1,16 +1,16 @@
-&lt;template>
-  &lt;div class="container mx-auto p-4">
-    &lt;div v-if="error" class="bg-red-50 text-red-500 p-4 rounded mb-4">
+<template>
+  <div class="container mx-auto p-4">
+    <div v-if="error" class="bg-red-50 text-red-500 p-4 rounded mb-4">
       {{ error }}
-    &lt;/div>
+    </div>
 
-    &lt;div class="max-w-2xl mx-auto">
-      &lt;h1 class="text-2xl font-bold mb-6">Download Single Track&lt;/h1>
+    <div class="max-w-2xl mx-auto">
+      <h1 class="text-2xl font-bold mb-6">Download Single Track</h1>
       
-      &lt;div class="bg-gray-50 p-6 rounded-lg shadow-sm mb-6">
-        &lt;div class="mb-4">
-          &lt;label for="trackUrl" class="block text-sm font-medium text-gray-700 mb-2">SoundCloud Track URL&lt;/label>
-          &lt;input
+      <div class="bg-gray-50 p-6 rounded-lg shadow-sm mb-6">
+        <div class="mb-4">
+          <label for="trackUrl" class="block text-sm font-medium text-gray-700 mb-2">SoundCloud Track URL</label>
+          <input
             id="trackUrl"
             v-model="trackUrl"
             type="text"
@@ -18,39 +18,39 @@
             class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             :disabled="isLoading"
           />
-        &lt;/div>
-        &lt;button
+        </div>
+        <button
           @click="fetchTrack"
           class="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50"
           :disabled="isLoading || !isValidUrl"
         >
           {{ isLoading ? 'Loading...' : 'Get Track' }}
-        &lt;/button>
-      &lt;/div>
+        </button>
+      </div>
 
-      &lt;div v-if="track" class="bg-white p-6 rounded-lg shadow-sm">
-        &lt;div class="flex gap-4">
-          &lt;img
+      <div v-if="track" class="bg-white p-6 rounded-lg shadow-sm">
+        <div class="flex gap-4">
+          <img
             :src="track.artwork"
             :alt="track.title"
             class="w-24 h-24 rounded object-cover"
           />
-          &lt;div class="flex-1">
-            &lt;h2 class="text-xl font-semibold mb-1">{{ track.title }}&lt;/h2>
-            &lt;p class="text-gray-600 mb-4">{{ track.artist }}&lt;/p>
-            &lt;button
+          <div class="flex-1">
+            <h2 class="text-xl font-semibold mb-1">{{ track.title }}</h2>
+            <p class="text-gray-600 mb-4">{{ track.artist }}</p>
+            <button
               @click="downloadTrack"
               class="bg-green-600 text-white py-2 px-4 rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50"
               :disabled="isDownloading"
             >
               {{ isDownloading ? 'Downloading...' : 'Download Track' }}
-            &lt;/button>
-          &lt;/div>
-        &lt;/div>
-      &lt;/div>
-    &lt;/div>
-  &lt;/div>
-&lt;/template>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
 
 &lt;script setup lang="ts">
 import { ref, computed } from 'vue'
