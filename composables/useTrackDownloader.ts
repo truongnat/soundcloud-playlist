@@ -15,7 +15,7 @@ export function useTrackDownloader() {
   })
 
   function handleDownloadTrack(track: Track) {
-    addToQueue([track])
+    addToQueue(track)
     downloadStats.value.total++
     downloadingTracks.value.add(track.id)
     // Show download queue if it's not visible
