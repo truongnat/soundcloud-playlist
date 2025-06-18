@@ -16,7 +16,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import type { Track, PlaylistInfo } from '~/types'
 import { usePlaylist } from '~/composables/usePlaylist'
 import { useTrackDownloader } from '~/composables/useTrackDownloader'
