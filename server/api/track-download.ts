@@ -22,24 +22,27 @@ const tryNextClientId = () => {
   return nextClientId
 }
 
-// Function to get stream URL
-async function getStreamUrl(trackId: string, clientId: string): Promise<string> {
-  const response = await fetch(
-    `https://api-v2.soundcloud.com/tracks/${trackId}/streams?client_id=${clientId}`,
-    {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-      }
+// Function to verify a client ID works
+async function verifyClientId(clientId: string): Promise<boolean> {
+  try {
+    const testUrl = 'https://api-v2.soundcloud.com/tracks/1234?client_id=' + clientId
+    const response = await fetch(testUrl)
+    return response.status !== 401
+  } catch {
+    return false
+  }
+}
+
+// Initialize with a working client ID
+async function initializeClient() {
+  for (const clientId of CLIENT_IDS) {
+    if (await verifyClientId(clientId)) {
+      soundcloud = new Soundcloud(clientId)
+      console.log('Using verified client ID:', clientId)
+      return
     }
-  )
-  if (!response.ok) {
-    throw new Error(`Failed to get stream URL: ${response.status} ${response.statusText}`)
   }
-  const data = await response.json()
-  if (!data.http_mp3_128_url) {
-    throw new Error('No MP3 stream URL found')
-  }
-  return data.http_mp3_128_url
+  throw new Error('No working client IDs found')
 }
 
 // Clean up the URL by removing tracking parameters
@@ -70,106 +73,179 @@ async function resolveMobileUrl(url: string): Promise<string> {
         'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.0 Mobile/15E148 Safari/604.1'
       }
     })
-    if (response.ok) {
-      return response.url
-    }
-  } catch (e) {
-    console.error('Error resolving mobile URL:', e)
+    return response.url
+  } catch (error) {
+    console.error('Error resolving mobile URL:', error)
+    throw error
   }
-  return url
+}
+
+// Get stream URL with multiple methods and retry
+async function getStreamUrl(track: SoundCloudTrack, retryCount = 0): Promise<string | null> {
+  const methods = [
+    async () => {
+      try {
+        return await soundcloud.util.streamLink(track.id.toString())
+      } catch {
+        return null
+      }
+    },
+    async () => {
+      return await soundcloud.util.streamLink(track.permalink_url)
+    },
+    async () => {
+      return await soundcloud.util.streamLink(track.id.toString())
+    },
+    async () => {
+      const trackDetails = await soundcloud.tracks.get(track.id.toString())
+      if (trackDetails.media?.transcodings) {
+        const progressive = trackDetails.media.transcodings.find(t => t.format.protocol === 'progressive')
+        if (progressive?.url) {
+          return progressive.url
+        }
+      }
+      return null
+    }
+  ]
+
+  for (let i = 0; i < methods.length; i++) {
+    try {
+      const streamUrl = await methods[i]()
+      if (streamUrl) {
+        console.log(`Got stream URL for track ${track.id} using method ${i + 1}`)
+        return streamUrl
+      }
+    } catch (error: any) {
+      console.log(`Method ${i + 1} failed for track ${track.id}:`, error.message)
+      if (error.message.includes('client_id') || error.message.includes('Client ID')) {
+        if (retryCount < 1) {
+          console.log('Client ID invalid, trying next one...')
+          tryNextClientId()
+          return getStreamUrl(track, retryCount + 1)
+        }
+      }
+
+      // Handle rate limiting
+      if (error.message.includes('429') || error.message.includes('Too Many Requests')) {
+        const delay = Math.min(1000 * Math.pow(2, retryCount), 10000)
+        console.log(`Rate limited, waiting ${delay}ms before retry...`)
+        await new Promise(resolve => setTimeout(resolve, delay))
+        if (retryCount < 3) {
+          return getStreamUrl(track, retryCount + 1)
+        }
+      }
+    }
+  }
+
+  return null
 }
 
 export default defineEventHandler(async (event) => {
   const query = getQuery(event)
   let { url } = query
-  
+
   if (!url || typeof url !== 'string') {
     throw createError({
       statusCode: 400,
-      message: 'Missing or invalid track URL'
+      message: 'Track URL is required'
     })
   }
 
-  // Handle mobile URLs
-  if (url.includes('soundcloud.app.goo.gl')) {
-    url = await resolveMobileUrl(url)
-  }
+  // Initialize the client with a working client ID
+  await initializeClient()
 
-  // Clean the URL
-  url = cleanUrl(url)
-  console.log('Processing URL:', url)
+  try {
+    // Handle mobile URLs
+    if (url.includes('soundcloud.app.goo.gl')) {
+      url = await resolveMobileUrl(url)
+    }
 
-  // Try with each client ID until success or all fail
-  for (let attempt = 0; attempt < CLIENT_IDS.length; attempt++) {
-    try {
-      const currentClientId = CLIENT_IDS[currentClientIdIndex]
-      console.log('Attempting to fetch track with client ID:', currentClientId)
+    // Clean the URL
+    url = cleanUrl(url)
+    console.log('Processing track URL:', url)
 
-      // Get track info
-      const response = await fetch(
-        `https://api.soundcloud.com/resolve?url=${encodeURIComponent(url)}&client_id=${currentClientId}`,
-        {
-          headers: {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-          }
-        }
-      )
+    // Get track data with retry logic
+    let trackRes: SoundCloudTrack | null = null
+    let retryCount = 0
+    const maxRetries = 5
 
-      if (!response.ok) {
-        throw new Error(`Failed to resolve track: ${response.status} ${response.statusText}`)
-      }
+    while (retryCount < maxRetries && !trackRes) {
+      try {
+        trackRes = await soundcloud.tracks.get(url) as SoundCloudTrack
+      } catch (error: any) {
+        retryCount++
+        console.error(`Attempt ${retryCount}/${maxRetries} failed:`, error.message)
 
-      const trackRes = await response.json() as SoundCloudTrack
-
-      if (!trackRes || !trackRes.id) {
-        console.error('Invalid track response:', trackRes)
-        throw new Error('Invalid track data received')
-      }
-
-      // Get stream URL
-      console.log('Getting stream URL for track:', trackRes.id)
-      const streamUrl = await getStreamUrl(trackRes.id.toString(), currentClientId)
-      console.log('Got stream URL:', streamUrl)
-
-      // Format the response
-      const track: Track = {
-        id: trackRes.id,
-        title: trackRes.title,
-        artist: trackRes.user.username,
-        duration: trackRes.duration,
-        artwork: trackRes.artwork_url?.replace('-large', '-t500x500') || 'https://api.soundcloud.com/img/default_avatar_500x500.jpg',
-        artwork_url: trackRes.artwork_url,
-        url: trackRes.permalink_url,
-        streamUrl
-      }
-
-      return { track }
-
-    } catch (error: any) {
-      console.error('Error with current client ID:', error)
-      
-      // If this is a 401/403 error, try the next client ID
-      if (error?.response?.status === 401 || error?.response?.status === 403 || 
-          error.message?.includes('401') || error.message?.includes('403')) {
-        if (attempt < CLIENT_IDS.length - 1) {
+        if (error.status === 401 || error.message.includes('client_id')) {
           tryNextClientId()
-          continue
+          await new Promise(resolve => setTimeout(resolve, 1000))
+        } else if (retryCount === maxRetries) {
+          throw error
+        } else {
+          await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, retryCount)))
         }
-      }
-      
-      // If this was our last attempt, throw the error
-      if (attempt === CLIENT_IDS.length - 1) {
-        throw createError({
-          statusCode: 500,
-          message: 'Failed to fetch track after trying all available client IDs'
-        })
       }
     }
-  }
 
-  // This should never be reached
-  throw createError({
-    statusCode: 500,
-    message: 'Unexpected error occurred'
-  })
+    if (!trackRes) {
+      throw new Error('Failed to fetch track after multiple attempts')
+    }
+
+    console.log(`Found track: ${trackRes.title}`)
+
+    // Get stream URL using the same logic as playlist
+    const streamUrl = await getStreamUrl(trackRes)
+    if (!streamUrl) {
+      throw new Error('Could not get stream URL for track')
+    }
+
+    // Format track response
+    const track: Track = {
+      id: trackRes.id,
+      title: trackRes.title,
+      artist: trackRes.user.username,
+      duration: trackRes.duration,
+      artwork: trackRes.artwork_url?.replace('-large', '-t500x500') || 
+        trackRes.user.avatar_url?.replace('-large', '-t500x500') ||
+        'https://secure.gravatar.com/avatar/?size=500&default=mm',
+      artwork_url: trackRes.artwork_url,
+      url: trackRes.permalink_url,
+      streamUrl
+    }
+
+    return { track }
+
+  } catch (error: any) {
+    console.error('Error fetching track:', error)
+    console.error('Error details:', {
+      message: error.message,
+      status: error.status,
+      url: url
+    })
+
+    let errorMessage = 'Failed to fetch track. '
+
+    if (error.status === 404) {
+      errorMessage = 'The track could not be found. Please make sure the URL is correct.'
+    } else if (error.status === 403) {
+      errorMessage = 'Access to this track is restricted.'
+    } else if (error.status === 401) {
+      errorMessage = 'Authentication failed. Please try again.'
+    } else if (error.message.includes('not found')) {
+      errorMessage = 'Track not found. Please make sure the URL is correct.'
+    } else if (error.message.includes('rate limit') || error.status === 429) {
+      errorMessage = 'Too many requests. Please try again in a few minutes.'
+    } else {
+      errorMessage += 'Please make sure the URL is correct and the track is public.'
+    }
+
+    throw createError({
+      statusCode: error.status || 500,
+      message: errorMessage,
+      data: {
+        originalError: error.message,
+        url: url
+      }
+    })
+  }
 })
