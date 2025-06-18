@@ -1,5 +1,5 @@
 import { getClientId } from '~/server/utils/soundcloud'
-import { Track } from '~/types'
+import { Track, SoundCloudTrack } from '~/types'
 
 export default defineEventHandler(async (event) => {
   const { url } = getQuery(event)
@@ -20,7 +20,7 @@ export default defineEventHandler(async (event) => {
   }
 
   // Get track info from SoundCloud API
-  const trackRes = await $fetch(`https://api.soundcloud.com/resolve?url=${encodeURIComponent(url)}&client_id=${clientId}`)
+  const trackRes = await $fetch<SoundCloudTrack>(`https://api.soundcloud.com/resolve?url=${encodeURIComponent(url)}&client_id=${clientId}`)
   
   if (!trackRes || !trackRes.id) {
     throw createError({
@@ -29,8 +29,12 @@ export default defineEventHandler(async (event) => {
     })
   }
 
+  interface StreamResponse {
+    http_mp3_128_url: string
+  }
+
   // Get the track streaming URL
-  const streamData = await $fetch(`https://api.soundcloud.com/tracks/${trackRes.id}/streams?client_id=${clientId}`)
+  const streamData = await $fetch<StreamResponse>(`https://api.soundcloud.com/tracks/${trackRes.id}/streams?client_id=${clientId}`)
   if (!streamData || !streamData.http_mp3_128_url) {
     throw createError({
       statusCode: 404,

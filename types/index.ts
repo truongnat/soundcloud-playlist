@@ -29,7 +29,7 @@ export interface Track {
   artist: string
   duration: number
   artwork: string
-  artwork_url?: string
+  artwork_url?: string | null
   url: string
   streamUrl: string | null
 }
