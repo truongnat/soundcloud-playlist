@@ -1,4 +1,4 @@
-<template>  <div class="space-y-12">
+<template>  <div class="space-y-8">
     <!-- Playlist Header -->
     <div v-if="playlistTitle || playlistArtwork" class="relative">
       <!-- Banner Image -->
@@ -9,15 +9,16 @@
           :alt="playlistTitle"
           class="w-full h-full object-cover"
         />
-        <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent"></div>
+        <div class="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-black/80"></div>
         
         <!-- Playlist Info -->
         <div class="absolute bottom-0 left-0 right-0 p-8 flex justify-between items-end">
           <div class="text-white">
-            <h1 class="text-3xl md:text-4xl lg:text-5xl font-bold mb-3 text-shadow-lg">
+            <h1 class="text-3xl md:text-4xl lg:text-5xl font-bold mb-3 text-shadow-lg 
+                       bg-gradient-to-r from-white via-orange-100 to-orange-200 bg-clip-text text-transparent">
               {{ playlistTitle || 'Untitled Playlist' }}
             </h1>
-            <p class="text-base md:text-lg text-gray-200 text-shadow">
+            <p class="text-base md:text-lg text-orange-200/90 text-shadow">
               {{ tracks?.length || 0 }} tracks
             </p>
           </div>
@@ -27,7 +28,12 @@
             v-if="tracks && tracks.length > 0"
             @click="$emit('downloadAll')"
             :disabled="isDownloadingAll"
-            class="px-6 py-3.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl font-medium shadow-lg hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            class="px-6 py-3.5 bg-gradient-to-r from-orange-500 to-orange-600 text-white 
+                   rounded-xl font-medium shadow-lg hover:from-orange-600 hover:to-orange-700 
+                   focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 
+                   focus:ring-offset-gray-900 transition-all duration-200 
+                   disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2
+                   hover:shadow-orange-500/20 hover:shadow-xl"
           >
             <svg
               class="w-5 h-5"
@@ -58,8 +64,18 @@
     </div>
 
     <!-- Loading State -->
-    <div v-if="isLoading" class="space-y-6">
-      <USkeleton v-for="i in 6" :key="i" class="h-28 w-full" />
+    <div v-if="isLoading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div v-for="i in 6" :key="i" 
+           class="bg-gray-800/30 backdrop-blur-lg rounded-xl border border-gray-700/30 p-5 animate-pulse">
+        <div class="flex gap-6">
+          <div class="w-28 h-28 bg-gray-700/50 rounded-lg"></div>
+          <div class="flex-1">
+            <div class="h-6 bg-gray-700/50 rounded w-3/4 mb-2"></div>
+            <div class="h-4 bg-gray-700/50 rounded w-1/2 mb-4"></div>
+            <div class="h-8 bg-gray-700/50 rounded w-1/3"></div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Error State -->
@@ -84,9 +100,12 @@
     <!-- Empty State -->
     <div v-else class="bg-gray-800/50 border border-gray-700 rounded-2xl p-12 text-center">
       <div class="flex justify-center mb-4">
-        <UIcon name="i-heroicons-musical-note" class="w-14 h-14 text-gray-600" />
+        <div class="p-4 rounded-full bg-gray-700/50">
+          <UIcon name="i-heroicons-musical-note" class="w-12 h-12 text-orange-500/70" />
+        </div>
       </div>
-      <p class="text-gray-400 text-lg">No tracks found in this playlist</p>
+      <h3 class="text-xl font-semibold text-gray-200 mb-2">No tracks found</h3>
+      <p class="text-gray-400">Enter a SoundCloud playlist URL to start downloading tracks</p>
     </div>
   </div>
 </template>
@@ -101,9 +120,9 @@ defineProps<{
   error?: string
   playlistTitle?: string
   playlistArtwork?: string
-  downloadingTracks: string[]
-  errorTracks: Record<string, string>
   isDownloadingAll: boolean
+  downloadingTracks?: string[]
+  errorTracks?: Record<string, string>
 }>()
 
 defineEmits<{
@@ -113,18 +132,10 @@ defineEmits<{
 </script>
 
 <style scoped>
-.space-y-8 > :not([hidden]) ~ :not([hidden]) {
-  margin-top: 2rem;
-}
-
-.space-y-4 > :not([hidden]) ~ :not([hidden]) {
-  margin-top: 1rem;
-}
-
 .text-shadow {
-  text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 .text-shadow-lg {
-  text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 </style>
