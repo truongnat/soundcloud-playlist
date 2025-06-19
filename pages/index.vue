@@ -1,23 +1,36 @@
 <template>
-  <div>
-    <PlaylistInput @fetch-playlist="fetchPlaylist" :loading="loading" />
-    <TrackList 
-      :tracks="tracks" 
-      :is-loading="loading" 
-      :error="error" 
-      :playlist-title="playlistInfo?.title"
-      :playlist-artwork="playlistInfo?.artwork"
-      :downloading-tracks="Array.from(downloadingTracks || new Set()).map(String)"
-      :error-tracks="Object.fromEntries(Array.from(errorTracks || new Set()).map(id => [String(id), 'Failed']))"
-      :is-downloading-all="downloadStats?.active > 0"
-      @download="handleDownloadTrack"
-      @download-all="handleDownloadAll" />
+  <div class="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+    <div class="max-w-7xl mx-auto p-6">
+      <!-- Header -->
+      <div class="mb-8 text-center">
+        <h1 class="text-3xl md:text-4xl font-bold bg-gradient-to-r from-orange-400 to-pink-500 bg-clip-text text-transparent mb-4">
+          Download SoundCloud Playlist
+        </h1>
+        <p class="text-gray-400">Enter a SoundCloud playlist URL to download all tracks at once</p>
+      </div>
+
+      <PlaylistInput @fetch-playlist="fetchPlaylist" :loading="loading" />
+
+      <div class="mt-12">
+        <TrackList 
+          :tracks="tracks" 
+          :is-loading="loading" 
+          :error="error" 
+          :playlist-title="playlistInfo?.title"
+          :playlist-artwork="playlistInfo?.artwork"
+          :downloading-tracks="Array.from(downloadingTracks || new Set()).map(String)"
+          :error-tracks="Object.fromEntries(Array.from(errorTracks || new Set()).map(id => [String(id), 'Failed']))"
+          :is-downloading-all="downloadStats?.active > 0"
+          @download="handleDownloadTrack"
+          @download-all="handleDownloadAll" />
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import type { Track, PlaylistInfo, PlaylistResponse } from '~/types'
+import { ref, onUnmounted } from 'vue'
+import type { Track, PlaylistInfo } from '~/types'
 import { usePlaylist } from '~/composables/usePlaylist'
 import { useTrackDownloader } from '~/composables/useTrackDownloader'
 
@@ -53,8 +66,6 @@ async function fetchPlaylist(url: string) {
     if (response && response.tracks && Array.isArray(response.tracks)) {
       tracks.value = response.tracks
       playlistInfo.value = response.info
-      console.log('Updated tracks:', tracks.value)
-      console.log('Updated playlistInfo:', playlistInfo.value)
       
       if (tracks.value.length === 0) {
         error.value = 'No tracks found in this playlist'
@@ -78,4 +89,11 @@ function handleDownloadAll() {
   if (tracks.value.length === 0) return
   downloadMultipleTracks(tracks.value)
 }
+
+// Reset data when component is destroyed
+onUnmounted(() => {
+  tracks.value = []
+  playlistInfo.value = null
+  error.value = ''
+})
 </script>
