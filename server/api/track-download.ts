@@ -1,6 +1,5 @@
 import { Soundcloud } from 'soundcloud.ts'
 import type { Track, SoundCloudTrack } from '@/types'
-import type { H3Error } from 'h3'
 
 // List of known working client IDs
 const CLIENT_IDS = [
