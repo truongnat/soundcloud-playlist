@@ -1,10 +1,17 @@
 import { Soundcloud } from 'soundcloud.ts'
-import { Track, StreamResponse, SoundCloudAPITrack } from '~/types'
+import type { Track, StreamResponse, SoundCloudAPITrack } from '~/types'
+import { getClientId } from '../utils/soundcloud'
 
-const clientId = process.env.NUXT_SOUNDCLOUD_CLIENT_ID as string
-const soundcloud = new Soundcloud(clientId)
+let soundcloud: Soundcloud
 
 function getTranscoding(trackDetails: SoundCloudAPITrack) {
+  if (!trackDetails.media?.transcodings) {
+    throw createError({
+      statusCode: 404,
+      message: 'No transcoding data available for this track'
+    })
+  }
+
   // Find MP3 transcoding
   const mp3Transcoding = trackDetails.media.transcodings.find(t => 
     t.format.protocol === 'progressive' && 
@@ -59,98 +66,126 @@ export default defineEventHandler(async (event): Promise<StreamResponse> => {
       })
     }
 
+    // Initialize SoundCloud client
+    const clientId = await getClientId()
+    soundcloud = new Soundcloud(clientId)
+
     // Get track details with retry logic
-    let trackDetails
+    let trackDetails: SoundCloudAPITrack | null = null
     const maxRetries = 3
     let attempt = 0
 
-    while (attempt < maxRetries) {
+    while (attempt < maxRetries && !trackDetails) {
       try {
-        trackDetails = await soundcloud.tracks.get(url)
-        break
+        trackDetails = await soundcloud.tracks.get(url) as SoundCloudAPITrack
       } catch (error: any) {
         attempt++
-        if (attempt === maxRetries) {
+        console.error(`Attempt ${attempt}/${maxRetries} failed:`, error.message)
+
+        if (error.status === 401 || error.message.includes('client_id')) {
+          // Try to get a new client ID if the current one is invalid
+          const newClientId = await getClientId()
+          soundcloud = new Soundcloud(newClientId)
+          await new Promise(resolve => setTimeout(resolve, 1000))
+        } else if (attempt === maxRetries) {
           throw createError({
             statusCode: 404,
             message: 'Could not get track details: ' + (error.message || 'Unknown error')
           })
+        } else {
+          // Wait before retry with exponential backoff
+          const delay = 1000 * Math.pow(2, attempt) + Math.random() * 1000
+          console.log(`Retrying in ${delay}ms...`)
+          await new Promise(resolve => setTimeout(resolve, delay))
         }
-
-        // Wait before retry, especially for rate limiting
-        const delay = 1000 * attempt + Math.random() * 1000
-        console.log(`Retry ${attempt}/${maxRetries} for track details after ${delay}ms`)
-        await new Promise(resolve => setTimeout(resolve, delay))
       }
     }
 
+    if (!trackDetails) {
+      throw createError({
+        statusCode: 404,
+        message: 'Could not get track details after multiple attempts'
+      })
+    }
+
     // Get transcoding URL and type
-    const { url: transcodingUrl, isHLS } = getTranscoding(trackDetails)
+    const transcoding = getTranscoding(trackDetails)
 
     // Get stream URL with retry logic
-    let streamData
+    let streamUrl: string | null = null
     attempt = 0
 
-    while (attempt < maxRetries) {
+    while (attempt < maxRetries && !streamUrl) {
       try {
-        const response = await fetch(transcodingUrl + '?client_id=' + clientId)
+        const response = await fetch(`${transcoding.url}?client_id=${clientId}`)
 
         if (!response.ok) {
           if (response.status === 429) {
             // Rate limited, wait longer
-            const delay = 2000 * (attempt + 1) + Math.random() * 2000
-            console.log(`Rate limited, waiting ${delay}ms before retry ${attempt + 1}/${maxRetries}`)
+            const delay = 5000 * Math.pow(2, attempt)
+            console.log(`Rate limited, waiting ${delay}ms...`)
             await new Promise(resolve => setTimeout(resolve, delay))
             attempt++
             continue
           }
 
-          throw createError({
-            statusCode: response.status,
-            message: `Failed to get ${isHLS ? 'HLS' : 'MP3'} stream: ${response.statusText}`
-          })
+          throw new Error(`Failed to get stream URL: ${response.status} ${response.statusText}`)
         }
 
-        streamData = await response.json()
-        if (!streamData?.url) {
-          throw createError({
-            statusCode: 500,
-            message: `Invalid ${isHLS ? 'HLS' : 'MP3'} stream response`
-          })
-        }
-
-        break // Success, exit retry loop
-
+        const data = await response.json()
+        streamUrl = data.url
       } catch (error: any) {
         attempt++
-        if (attempt === maxRetries) {
-          throw error
-        }
+        console.error(`Stream URL attempt ${attempt}/${maxRetries} failed:`, error.message)
 
-        const delay = 1000 * attempt + Math.random() * 1000
-        console.log(`Stream URL fetch retry ${attempt}/${maxRetries} after ${delay}ms`)
-        await new Promise(resolve => setTimeout(resolve, delay))
-      }
-    }    return {
-      streamUrl: streamData.url,
-      isHLS,
-      duration: transcoding.duration,
-      format: transcoding.format,
-      track: {
-        id: trackDetails.id,
-        title: trackDetails.title,
-        artist: trackDetails.user.username,
-        duration: trackDetails.duration,
-        artwork: trackDetails.artwork_url || '',
-        url: trackDetails.permalink_url,
-        streamUrl: streamData.url
+        if (error.status === 401 || error.message.includes('client_id')) {
+          // Try to get a new client ID if the current one is invalid
+          const newClientId = await getClientId()
+          soundcloud = new Soundcloud(newClientId)
+          await new Promise(resolve => setTimeout(resolve, 1000))
+        } else if (attempt === maxRetries) {
+          throw createError({
+            statusCode: 500,
+            message: 'Failed to get stream URL after multiple attempts'
+          })
+        }
       }
     }
 
+    if (!streamUrl) {
+      throw createError({
+        statusCode: 404,
+        message: 'Could not get stream URL'
+      })
+    }
+
+    // Format response
+    const track: Track = {
+      id: trackDetails.id,
+      title: trackDetails.title,
+      artist: trackDetails.user.username,
+      duration: trackDetails.duration,
+      artwork: trackDetails.artwork_url?.replace('-large', '-t500x500') || 
+        trackDetails.user.avatar_url?.replace('-large', '-t500x500') ||
+        'https://secure.gravatar.com/avatar/?size=500&default=mm',
+      artwork_url: trackDetails.artwork_url,
+      url: trackDetails.permalink_url,
+      streamUrl
+    }
+
+    return {
+      streamUrl,
+      isHLS: transcoding.isHLS,
+      track,
+      duration: transcoding.duration,
+      format: transcoding.format
+    }
+
   } catch (error: any) {
+    console.error('Error in stream-mp3:', error)
     throw createError({
       statusCode: error.statusCode || 500,
-      message: error.message || 'Failed to get audio stream'
+      message: error.message || 'Failed to process track'
     })
   }
 })
