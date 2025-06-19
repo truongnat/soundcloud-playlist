@@ -5,24 +5,25 @@ import { getClientId } from '../utils/soundcloud'
 let soundcloud: Soundcloud
 
 function getTranscoding(trackDetails: SoundCloudAPITrack) {
-  if (!trackDetails.media?.transcodings) {
+  if (!trackDetails.media || !Array.isArray(trackDetails.media.transcodings) || trackDetails.media.transcodings.length === 0) {
     throw createError({
       statusCode: 404,
-      message: 'No transcoding data available for this track'
+      message: 'No transcoding data available for this track. The track may be unavailable or restricted.'
     })
   }
 
   // Find MP3 transcoding
   const mp3Transcoding = trackDetails.media.transcodings.find(t => 
-    t.format.protocol === 'progressive' && 
-    t.format.mime_type === 'audio/mpeg'
+    t.format?.protocol === 'progressive' && 
+    t.format?.mime_type === 'audio/mpeg' &&
+    t.url
   )
   
   if (mp3Transcoding) {
     return {
       url: mp3Transcoding.url,
       isHLS: false,
-      duration: mp3Transcoding.duration,
+      duration: mp3Transcoding.duration || trackDetails.duration,
       format: {
         protocol: 'progressive' as const,
         mimeType: mp3Transcoding.format.mime_type
@@ -32,21 +33,26 @@ function getTranscoding(trackDetails: SoundCloudAPITrack) {
 
   // Try to find HLS stream instead
   const hlsTranscoding = trackDetails.media.transcodings.find(t =>
-    t.format.protocol === 'hls' &&
-    t.format.mime_type === 'audio/mpeg'
+    t.format?.protocol === 'hls' &&
+    t.format?.mime_type === 'audio/mpeg' &&
+    t.url
   )
 
   if (!hlsTranscoding) {
+    const availableFormats = trackDetails.media.transcodings
+      .map(t => `${t.format?.protocol || 'unknown'} (${t.format?.mime_type || 'unknown'})`)
+      .join(', ')
+    
     throw createError({
       statusCode: 404,
-      message: 'No suitable audio stream found for this track'
+      message: `No suitable audio stream found for this track. Available formats: ${availableFormats}`
     })
   }
 
   return {
     url: hlsTranscoding.url,
     isHLS: true,
-    duration: hlsTranscoding.duration,
+    duration: hlsTranscoding.duration || trackDetails.duration,
     format: {
       protocol: 'hls' as const,
       mimeType: hlsTranscoding.format.mime_type
