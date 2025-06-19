@@ -1,10 +1,12 @@
 <template>  <div class="max-w-4xl mx-auto px-4">
-    <div class="bg-gray-800/50 rounded-2xl shadow-xl p-8 border border-gray-700/50">
+    <div class="bg-gray-800/30 backdrop-blur-lg rounded-2xl shadow-2xl p-8 border border-gray-700/30 hover:border-orange-500/30 transition-colors">
       <div class="mb-8">
-        <label for="playlist-url" class="block text-2xl font-semibold text-gray-100 mb-4">Enter your SoundCloud playlist</label>
-        <div class="relative">
+        <label for="playlist-url" class="block text-2xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 bg-clip-text text-transparent mb-4">
+          Enter your SoundCloud playlist
+        </label>
+        <div class="relative group">
           <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-            <svg class="h-5 w-5 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+            <svg class="h-5 w-5 text-gray-500 group-hover:text-orange-500 transition-colors" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
             </svg>
           </div>
@@ -13,13 +15,16 @@
             v-model="playlistUrl"
             type="text"
             placeholder="https://soundcloud.com/user/sets/playlist-name"
-            class="block w-full pl-11 pr-14 py-4 text-gray-100 placeholder-gray-500 bg-gray-900/50 border-gray-700 rounded-xl focus:border-blue-500 focus:ring-blue-500 transition-colors"
+            class="block w-full pl-11 pr-14 py-4 text-gray-100 placeholder-gray-500 bg-gray-900/50 border border-gray-700/50 rounded-xl 
+                   focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all duration-300
+                   hover:border-gray-600/50"
             :class="{'border-red-500 focus:border-red-500 focus:ring-red-500': error}"
             :disabled="loading"
             @keyup.enter="handleFetchPlaylist"
           >
           <div class="absolute inset-y-0 right-0 flex py-2 pr-3">
-            <kbd class="inline-flex items-center border border-gray-700 rounded-lg px-3 py-1.5 text-sm font-medium text-gray-400 tracking-wide bg-gray-800/50">
+            <kbd class="inline-flex items-center border border-gray-700/50 rounded-lg px-3 py-1.5 text-sm font-medium text-gray-400 
+                       tracking-wide bg-gray-800/30 backdrop-blur-sm group-hover:border-orange-500/30 transition-colors">
               Enter ↵
             </kbd>
           </div>
@@ -33,7 +38,7 @@
             Paste any public SoundCloud playlist URL
           </p>
           <p v-else class="text-sm text-red-400 flex items-center">
-            <svg class="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg class="w-4 h-4 mr-1.5 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             {{ error }}
@@ -45,7 +50,10 @@
         <button
           @click="handleFetchPlaylist"
           :disabled="loading || !isValidUrl"
-          class="flex-1 inline-flex items-center justify-center px-6 py-4 border border-transparent text-base font-medium rounded-xl text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg"
+          class="flex-1 inline-flex items-center justify-center px-6 py-4 border border-transparent text-base font-medium rounded-xl 
+                 text-white bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 
+                 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 focus:ring-offset-gray-900 
+                 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 shadow-lg hover:shadow-orange-500/25"
         >
           <template v-if="loading">
             <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
