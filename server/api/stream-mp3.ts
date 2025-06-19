@@ -77,12 +77,16 @@ export default defineEventHandler(async (event): Promise<StreamResponse> => {
 
     while (attempt < maxRetries && !trackDetails) {
       try {
-        trackDetails = await soundcloud.tracks.get(url) as SoundCloudAPITrack
+        const response = await soundcloud.tracks.get(url)
+        if (!response || !('media' in response)) {
+          throw new Error('Invalid track response')
+        }
+        trackDetails = response as SoundCloudAPITrack
       } catch (error: any) {
         attempt++
         console.error(`Attempt ${attempt}/${maxRetries} failed:`, error.message)
 
-        if (error.status === 401 || error.message.includes('client_id')) {
+        if (error.status === 401 || error.message?.includes('client_id')) {
           // Try to get a new client ID if the current one is invalid
           const newClientId = await getClientId()
           soundcloud = new Soundcloud(newClientId)
@@ -138,7 +142,7 @@ export default defineEventHandler(async (event): Promise<StreamResponse> => {
         attempt++
         console.error(`Stream URL attempt ${attempt}/${maxRetries} failed:`, error.message)
 
-        if (error.status === 401 || error.message.includes('client_id')) {
+        if (error.status === 401 || error.message?.includes('client_id')) {
           // Try to get a new client ID if the current one is invalid
           const newClientId = await getClientId()
           soundcloud = new Soundcloud(newClientId)
@@ -148,6 +152,10 @@ export default defineEventHandler(async (event): Promise<StreamResponse> => {
             statusCode: 500,
             message: 'Failed to get stream URL after multiple attempts'
           })
+        } else {
+          const delay = 1000 * Math.pow(2, attempt) + Math.random() * 1000
+          console.log(`Retrying in ${delay}ms...`)
+          await new Promise(resolve => setTimeout(resolve, delay))
         }
       }
     }
