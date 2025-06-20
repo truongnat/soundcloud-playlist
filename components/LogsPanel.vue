@@ -3,11 +3,28 @@
     <!-- Header -->
     <div class="p-4 border-b border-gray-700/50">
       <div class="flex items-center justify-between mb-3">
-        <h2 class="text-lg font-semibold text-gray-300">Activity Logs</h2>
         <div class="flex items-center gap-2">
+          <svg class="w-5 h-5 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          <h2 class="text-lg font-semibold text-gray-200">Activity Monitor</h2>
+        </div>
+        <div class="flex items-center gap-2">
+          <!-- Auto-scroll Toggle -->
+          <button
+            @click="autoScroll = !autoScroll"
+            class="p-1.5 text-gray-400 hover:text-gray-200 hover:bg-gray-800/50 rounded transition-colors"
+            :class="{ 'text-green-400': autoScroll }"
+            title="Toggle auto-scroll"
+          >
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+            </svg>
+          </button>
+          
           <!-- Export Button -->
           <button
-            @click="logsStore.exportLogs()"
+            @click="exportLogs"
             class="p-1.5 text-gray-400 hover:text-gray-200 hover:bg-gray-800/50 rounded transition-colors"
             title="Export logs"
           >
@@ -18,7 +35,7 @@
           
           <!-- Clear Button -->
           <button
-            @click="logsStore.clearLogs()"
+            @click="clearLogs"
             class="p-1.5 text-gray-400 hover:text-red-400 hover:bg-red-900/20 rounded transition-colors"
             title="Clear all logs"
           >
@@ -29,29 +46,38 @@
         </div>
       </div>
 
-      <!-- Stats -->
+      <!-- Enhanced Stats Grid -->
       <div class="grid grid-cols-2 gap-2 mb-3">
         <div class="bg-gray-800/30 rounded-lg p-2">
-          <div class="text-xs text-gray-400">Total</div>
+          <div class="text-xs text-gray-400">Total Logs</div>
           <div class="text-sm font-medium text-gray-200">{{ logStats.total }}</div>
         </div>
         <div class="bg-red-900/20 rounded-lg p-2">
           <div class="text-xs text-red-400">Errors</div>
           <div class="text-sm font-medium text-red-300">{{ logStats.error }}</div>
         </div>
+        <div class="bg-blue-900/20 rounded-lg p-2">
+          <div class="text-xs text-blue-400">Downloads</div>
+          <div class="text-sm font-medium text-blue-300">{{ logStats.download }}</div>
+        </div>
+        <div class="bg-green-900/20 rounded-lg p-2">
+          <div class="text-xs text-green-400">API Calls</div>
+          <div class="text-sm font-medium text-green-300">{{ logStats.api }}</div>
+        </div>
       </div>
 
-      <!-- Filters -->
+      <!-- Enhanced Filters -->
       <div class="flex flex-wrap gap-1">
         <button
           v-for="(enabled, type) in logsStore.filters"
           :key="type"
           @click="logsStore.toggleFilter(type as any)"
-          class="px-2 py-1 text-xs rounded-full transition-colors capitalize"
+          class="px-2 py-1 text-xs rounded-full transition-all duration-200 capitalize flex items-center gap-1"
           :class="enabled 
             ? getFilterActiveClass(type) 
             : 'bg-gray-700/50 text-gray-400 hover:bg-gray-700'"
         >
+          <component :is="getFilterIcon(type)" class="w-3 h-3" />
           {{ type }} ({{ logStats[type as keyof typeof logStats] }})
         </button>
       </div>
