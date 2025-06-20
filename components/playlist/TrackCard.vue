@@ -111,113 +111,119 @@
     </div>
 
     <!-- Desktop Layout (horizontal) -->
-    <div class="hidden sm:flex gap-3 lg:gap-4 xl:gap-6">
-      <!-- Artwork -->
-      <div class="relative flex-shrink-0 rounded-lg overflow-hidden">
-        <!-- Track Image -->
-        <img
-          v-if="track.artwork"
-          :src="track.artwork"
-          :alt="track.title"
-          class="w-16 h-16 lg:w-20 lg:h-20 xl:w-24 xl:h-24 object-cover shadow-lg transition-all duration-300
-                 group-hover:scale-105 group-hover:brightness-110"
-          loading="lazy"
-        />
+    <div class="hidden sm:block">
+      <!-- Responsive layout: horizontal when space available, vertical when constrained -->
+      <div class="flex flex-col xl:flex-row gap-3 lg:gap-4 xl:gap-6" :class="{ 'xl:flex-col 2xl:flex-row': isDownloadQueueOpen }">
+        <!-- Artwork -->
+        <div class="relative flex-shrink-0 rounded-lg overflow-hidden" :class="isDownloadQueueOpen ? 'xl:w-full xl:h-32 2xl:w-16 2xl:h-16' : 'w-16 h-16 lg:w-20 lg:h-20 xl:w-24 xl:h-24'">
+          <!-- Track Image -->
+          <img
+            v-if="track.artwork"
+            :src="track.artwork"
+            :alt="track.title"
+            class="object-cover shadow-lg transition-all duration-300 group-hover:scale-105 group-hover:brightness-110"
+            :class="isDownloadQueueOpen ? 'xl:w-full xl:h-32 2xl:w-16 2xl:h-16 lg:2xl:w-20 lg:2xl:h-20' : 'w-16 h-16 lg:w-20 lg:h-20 xl:w-24 xl:h-24'"
+            loading="lazy"
+          />
 
-        <!-- Placeholder -->
-        <div
-          v-else
-          class="w-16 h-16 lg:w-20 lg:h-20 xl:w-24 xl:h-24 bg-gradient-to-br from-gray-800 to-gray-700 rounded-lg 
-                 flex items-center justify-center ring-1 ring-white/5"
-        >
-          <svg
-            class="w-6 h-6 lg:w-8 lg:h-8 xl:w-10 xl:h-10 text-gray-600 group-hover:text-orange-500 transition-colors duration-300"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
+          <!-- Placeholder -->
+          <div
+            v-else
+            class="bg-gradient-to-br from-gray-800 to-gray-700 rounded-lg flex items-center justify-center ring-1 ring-white/5"
+            :class="isDownloadQueueOpen ? 'xl:w-full xl:h-32 2xl:w-16 2xl:h-16 lg:2xl:w-20 lg:2xl:h-20' : 'w-16 h-16 lg:w-20 lg:h-20 xl:w-24 xl:h-24'"
           >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="1.5"
-              d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"
-            />
-          </svg>
-        </div>
-
-        <!-- Download Status -->
-        <div
-          v-if="activeDownloads.includes(getTrackId(track.id))"
-          class="absolute -top-1 -right-1 bg-gradient-to-r from-orange-500 to-pink-500 
-                 text-white p-1 lg:p-1.5 rounded-full shadow-lg animate-bounce"
-        >
-          <svg class="w-2.5 h-2.5 lg:w-3 lg:h-3 animate-spin" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-          </svg>
-        </div>
-
-        <!-- Download Complete Status -->
-        <div
-          v-else-if="completedDownloads.includes(getTrackId(track.id))"
-          class="absolute -top-1 -right-1 bg-gradient-to-r from-green-500 to-emerald-500 
-                 text-white p-1 lg:p-1.5 rounded-full shadow-lg"
-        >
-          <svg class="w-2.5 h-2.5 lg:w-3 lg:h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-          </svg>
-        </div>
-      </div>
-
-      <!-- Info -->
-      <div class="flex-1 min-w-0 flex flex-col justify-between py-0.5">
-        <div class="min-w-0">
-          <h3 class="font-semibold text-gray-100 truncate group-hover:text-orange-400 transition-colors text-xs lg:text-sm xl:text-base">
-            {{ track.title }}
-          </h3>
-          <p class="text-xs lg:text-sm text-gray-400 truncate mt-0.5 lg:mt-1 group-hover:text-gray-300 transition-colors">
-            {{ track.artist }}
-          </p>
-          <p class="text-xs text-gray-500 mt-0.5 lg:mt-1 group-hover:text-gray-400 transition-colors">
-            {{ formatDuration(track.duration) }}
-          </p>
-        </div>
-
-        <!-- Actions -->
-        <div class="flex items-center gap-1.5 lg:gap-2 mt-2 lg:mt-3">
-          <!-- Original Link -->
-          <a
-            :href="track.url"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="text-gray-400 hover:text-orange-500 transition-colors 
-                   hover:scale-110 transform duration-200 flex-shrink-0 p-1"
-            :title="'Open in SoundCloud'"
-          >
-            <svg class="w-3.5 h-3.5 lg:w-4 lg:h-4" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm0 21.75c-5.385 0-9.75-4.365-9.75-9.75S6.615 2.25 12 2.25s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75z"/>
+            <svg
+              class="text-gray-600 group-hover:text-orange-500 transition-colors duration-300"
+              :class="isDownloadQueueOpen ? 'xl:w-12 xl:h-12 2xl:w-6 2xl:h-6 lg:2xl:w-8 lg:2xl:h-8' : 'w-6 h-6 lg:w-8 lg:h-8 xl:w-10 xl:h-10'"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="1.5"
+                d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"
+              />
             </svg>
-          </a>
+          </div>
 
-          <!-- Download Button -->
-          <button
-            @click="$emit('download', track)"
-            :disabled="isDownloading || isCompleted || hasError"
-            class="flex-1 py-1 lg:py-1.5 px-2 lg:px-3 rounded-md lg:rounded-lg font-medium transition-all duration-200
-                   disabled:opacity-50 disabled:cursor-not-allowed min-w-0
-                   bg-gradient-to-r from-orange-500/20 to-orange-600/20 
-                   hover:from-orange-500 hover:to-orange-600
-                   text-orange-500 hover:text-white
-                   border border-orange-500/30 hover:border-orange-500
-                   focus:outline-none focus:ring-2 focus:ring-orange-500/50
-                   group-hover:shadow-lg group-hover:shadow-orange-500/10
-                   text-xs lg:text-sm"
+          <!-- Download Status -->
+          <div
+            v-if="activeDownloads.includes(getTrackId(track.id))"
+            class="absolute -top-1 -right-1 bg-gradient-to-r from-orange-500 to-pink-500 
+                   text-white p-1 lg:p-1.5 rounded-full shadow-lg animate-bounce"
           >
-            <span v-if="isDownloading" class="truncate">Downloading...</span>
-            <span v-else-if="isCompleted" class="truncate">Downloaded</span>
-            <span v-else-if="hasError" class="truncate">Error</span>
-            <span v-else class="truncate">Download</span>
-          </button>
+            <svg class="w-2.5 h-2.5 lg:w-3 lg:h-3 animate-spin" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+            </svg>
+          </div>
+
+          <!-- Download Complete Status -->
+          <div
+            v-else-if="completedDownloads.includes(getTrackId(track.id))"
+            class="absolute -top-1 -right-1 bg-gradient-to-r from-green-500 to-emerald-500 
+                   text-white p-1 lg:p-1.5 rounded-full shadow-lg"
+          >
+            <svg class="w-2.5 h-2.5 lg:w-3 lg:h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+        </div>
+
+        <!-- Info and Actions Container -->
+        <div class="flex-1 min-w-0 flex flex-col justify-between py-0.5">
+          <!-- Track Info -->
+          <div class="min-w-0" :class="isDownloadQueueOpen ? 'xl:mb-3 2xl:mb-0' : ''">
+            <h3 class="font-semibold text-gray-100 truncate group-hover:text-orange-400 transition-colors text-xs lg:text-sm xl:text-base">
+              {{ track.title }}
+            </h3>
+            <p class="text-xs lg:text-sm text-gray-400 truncate mt-0.5 lg:mt-1 group-hover:text-gray-300 transition-colors">
+              {{ track.artist }}
+            </p>
+            <p class="text-xs text-gray-500 mt-0.5 lg:mt-1 group-hover:text-gray-400 transition-colors">
+              {{ formatDuration(track.duration) }}
+            </p>
+          </div>
+
+          <!-- Actions -->
+          <div class="flex items-center gap-1.5 lg:gap-2 mt-2 lg:mt-3" :class="isDownloadQueueOpen ? 'xl:justify-center 2xl:justify-start' : ''">
+            <!-- Original Link -->
+            <a
+              :href="track.url"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="text-gray-400 hover:text-orange-500 transition-colors 
+                     hover:scale-110 transform duration-200 flex-shrink-0 p-1"
+              :title="'Open in SoundCloud'"
+            >
+              <svg class="w-3.5 h-3.5 lg:w-4 lg:h-4" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm0 21.75c-5.385 0-9.75-4.365-9.75-9.75S6.615 2.25 12 2.25s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75z"/>
+              </svg>
+            </a>
+
+            <!-- Download Button -->
+            <button
+              @click="$emit('download', track)"
+              :disabled="isDownloading || isCompleted || hasError"
+              class="py-1 lg:py-1.5 px-2 lg:px-3 rounded-md lg:rounded-lg font-medium transition-all duration-200
+                     disabled:opacity-50 disabled:cursor-not-allowed min-w-0
+                     bg-gradient-to-r from-orange-500/20 to-orange-600/20 
+                     hover:from-orange-500 hover:to-orange-600
+                     text-orange-500 hover:text-white
+                     border border-orange-500/30 hover:border-orange-500
+                     focus:outline-none focus:ring-2 focus:ring-orange-500/50
+                     group-hover:shadow-lg group-hover:shadow-orange-500/10
+                     text-xs lg:text-sm"
+              :class="isDownloadQueueOpen ? 'xl:flex-1 2xl:flex-1' : 'flex-1'"
+            >
+              <span v-if="isDownloading" class="truncate">Downloading...</span>
+              <span v-else-if="isCompleted" class="truncate">Downloaded</span>
+              <span v-else-if="hasError" class="truncate">Error</span>
+              <span v-else class="truncate">Download</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>
