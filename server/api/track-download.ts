@@ -1,47 +1,19 @@
 import { Soundcloud } from 'soundcloud.ts'
+import { getClientId } from '@/server/utils/soundcloud'
 import type { Track, SoundCloudTrack } from '@/types'
 
-// List of known working client IDs
-const CLIENT_IDS = [
-  '1JEFtFgP4Mocy0oEGJj2zZ0il9pEpBrM',
-  'iZIs9mchVcX5lhVRyQGGAYlNPVldzAoX',
-  'ccCB37jIWCBP7JB9SnUPPui8LzeaQT45',
-  '6ibGdGJqSm8F5DPvKPJMODIzhlvKbDks',
-]
+let soundcloud: Soundcloud
 
-let currentClientIdIndex = 0
-let soundcloud = new Soundcloud(CLIENT_IDS[currentClientIdIndex])
-
-// Function to try the next client ID
-const tryNextClientId = () => {
-  currentClientIdIndex = (currentClientIdIndex + 1) % CLIENT_IDS.length
-  const nextClientId = CLIENT_IDS[currentClientIdIndex]
-  console.log('Switching to next client ID:', nextClientId)
-  soundcloud = new Soundcloud(nextClientId)
-  return nextClientId
-}
-
-// Function to verify a client ID works
-async function verifyClientId(clientId: string): Promise<boolean> {
+// Initialize soundcloud client with a valid client ID
+async function initializeSoundcloud() {
   try {
-    const testUrl = 'https://api-v2.soundcloud.com/tracks/1234?client_id=' + clientId
-    const response = await fetch(testUrl)
-    return response.status !== 401
-  } catch {
-    return false
+    const clientId = await getClientId()
+    soundcloud = new Soundcloud(clientId)
+    console.log('Initialized SoundCloud client with client ID:', clientId)
+  } catch (error) {
+    console.error('Failed to initialize SoundCloud client:', error)
+    throw error
   }
-}
-
-// Initialize with a working client ID
-async function initializeClient() {
-  for (const clientId of CLIENT_IDS) {
-    if (await verifyClientId(clientId)) {
-      soundcloud = new Soundcloud(clientId)
-      console.log('Using verified client ID:', clientId)
-      return
-    }
-  }
-  throw new Error('No working client IDs found')
 }
 
 // Clean up the URL by removing tracking parameters
@@ -116,10 +88,11 @@ async function getStreamUrl(track: SoundCloudTrack, retryCount = 0): Promise<str
       }
     } catch (error: any) {
       console.log(`Method ${i + 1} failed for track ${track.id}:`, error.message)
-      if (error.message.includes('client_id') || error.message.includes('Client ID')) {
+      
+      if (error.message.includes('client_id') || error.message.includes('Client ID') || error.status === 401) {
         if (retryCount < 1) {
-          console.log('Client ID invalid, trying next one...')
-          tryNextClientId()
+          console.log('Client ID error, reinitializing SoundCloud client...')
+          await initializeSoundcloud()
           return getStreamUrl(track, retryCount + 1)
         }
       }
@@ -150,8 +123,8 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  // Initialize the client with a working client ID
-  await initializeClient()
+  // Initialize the SoundCloud client
+  await initializeSoundcloud()
 
   try {
     // Handle mobile URLs
@@ -176,7 +149,7 @@ export default defineEventHandler(async (event) => {
         console.error(`Attempt ${retryCount}/${maxRetries} failed:`, error.message)
 
         if (error.status === 401 || error.message.includes('client_id')) {
-          tryNextClientId()
+          await initializeSoundcloud()
           await new Promise(resolve => setTimeout(resolve, 1000))
         } else if (retryCount === maxRetries) {
           throw error
@@ -231,6 +204,8 @@ export default defineEventHandler(async (event) => {
       errorMessage = 'Track not found. Please make sure the URL is correct.'
     } else if (error.message.includes('rate limit') || error.status === 429) {
       errorMessage = 'Too many requests. Please try again in a few minutes.'
+    } else if (error.message.includes('Could not obtain a valid client ID')) {
+      errorMessage = 'SoundCloud API is temporarily unavailable. Please try again later.'
     } else {
       errorMessage += 'Please make sure the URL is correct and the track is public.'
     }
