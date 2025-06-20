@@ -113,7 +113,7 @@
             </div>
           </div>
         </div>
-      </TransitionFade>
+      </TransitionRoot>
   </div>
 </template>
 
