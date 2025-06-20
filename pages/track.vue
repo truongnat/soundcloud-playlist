@@ -119,9 +119,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, inject, type Ref } from 'vue'
+import { ref, computed, inject, type Ref, onMounted, onUnmounted } from 'vue'
 import { TransitionRoot } from '@headlessui/vue'
 import { useTrack } from '@/composables/useTrack'
+import { useLogger } from '@/composables/useLogger'
 import type { Track } from '~/types'
 
 // Inject download functionality from layout
@@ -130,6 +131,7 @@ const downloadingTracks = inject('downloadingTracks') as Ref<string[]>
 const errorTracks = inject('errorTracks') as Ref<Record<string, string>>
 
 const { fetchTrack: fetchTrackData } = useTrack()
+const logger = useLogger()
 
 const trackUrl = ref('')
 const track = ref<Track | null>(null)
@@ -157,16 +159,35 @@ function formatDuration(ms: number) {
 }
 
 async function fetchTrack() {
-  if (!isValidUrl.value) return
+  if (!isValidUrl.value) {
+    logger.logValidationError('URL', trackUrl.value, 'Invalid SoundCloud track URL')
+    return
+  }
 
   error.value = ''
   isLoading.value = true
   track.value = null
 
+  // Log API request start
+  logger.logApiRequest('GET', trackUrl.value)
+  logger.logUserAction(`Fetching track: ${trackUrl.value}`)
+
   try {
     track.value = await fetchTrackData(trackUrl.value)
+    
+    // Log successful track fetch
+    logger.logApiRequest('GET', trackUrl.value, 200)
+    logger.logSystem('Track Loaded', `Successfully loaded track: ${track.value.title}`, 'success')
+    logger.logUserAction(`Loaded track: ${track.value.title} by ${track.value.artist}`)
+    
   } catch (e: any) {
-    error.value = e.message || 'Failed to fetch track'
+    const errorMessage = e.message || 'Failed to fetch track'
+    error.value = errorMessage
+    
+    // Log API error
+    logger.logApiError('GET', trackUrl.value, errorMessage, 400)
+    logger.logError('Track Fetch Failed', errorMessage, { url: trackUrl.value })
+    
   } finally {
     isLoading.value = false
   }
@@ -174,11 +195,25 @@ async function fetchTrack() {
 
 function downloadTrack() {
   if (!track.value) return
+  
+  // Log download initiation
+  logger.logUserAction(`Initiated download: ${track.value.title}`)
+  logger.logDownloadStart(track.value.title, track.value.id.toString())
+  
   handleDownloadTrack(track.value)
 }
 
+// Log page visit
+onMounted(() => {
+  logger.logUserAction('Visited single track page')
+  logger.logSystemStatus('Track Page', 'online', 'Single track downloader ready')
+})
+
 // Reset data when component is destroyed
 onUnmounted(() => {
+  if (track.value) {
+    logger.logUserAction('Left single track page')
+  }
   track.value = null
   trackUrl.value = ''
   error.value = ''
