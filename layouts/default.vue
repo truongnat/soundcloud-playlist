@@ -158,9 +158,9 @@ const uiStore = useUIStore()
 const downloadQueueStore = useDownloadQueueStore()
 const downloadQueueRef = ref()
 
-// Track download state with better typing
-const downloadingTracks = ref<Set<string>>(new Set())
-const errorTracks = ref<Map<string, string>>(new Map())
+// Track download state
+const downloadingTracks = ref<string[]>([])
+const errorTracks = ref<Record<string, string>>({})
 
 // Enhanced computed for download statistics with better performance
 const downloadStats = computed(() => {
@@ -205,8 +205,10 @@ const handleDownloadTrack = async (track: Track) => {
     console.log('Adding track to queue:', track.title)
     const trackId = String(track.id)
 
-    // Add to downloading state using Set for better performance
-    downloadingTracks.value.add(trackId)
+    // Add to downloading state
+    if (!downloadingTracks.value.includes(trackId)) {
+      downloadingTracks.value.push(trackId)
+    }
 
     // Add to queue store
     downloadQueueStore.addToQueue(track)
@@ -220,29 +222,32 @@ const handleDownloadTrack = async (track: Track) => {
     }
   } catch (error) {
     console.error('Error handling download track:', error)
-    errorTracks.value.set(String(track.id), 'Failed to add to download queue')
+    errorTracks.value[String(track.id)] = 'Failed to add to download queue'
   }
 }
 
 const handleDownloadComplete = (trackId: string) => {
   // Remove from downloading state
-  downloadingTracks.value.delete(trackId)
+  const index = downloadingTracks.value.indexOf(trackId)
+  if (index > -1) {
+    downloadingTracks.value.splice(index, 1)
+  }
   
   // Remove from error state if exists
-  errorTracks.value.delete(trackId)
+  delete errorTracks.value[trackId]
 }
 
 const handleDiscardAll = () => {
   // Clear downloading tracks state
-  downloadingTracks.value.clear()
+  downloadingTracks.value.length = 0
   // Clear error tracks state
-  errorTracks.value.clear()
+  Object.keys(errorTracks.value).forEach(key => delete errorTracks.value[key])
 }
 
-// Provide enhanced functionality to child components
+// Provide functionality to child components
 provide('handleDownloadTrack', handleDownloadTrack)
-provide('downloadingTracks', readonly(downloadingTracks))
-provide('errorTracks', readonly(errorTracks))
+provide('downloadingTracks', downloadingTracks)
+provide('errorTracks', errorTracks)
 
 // Enhanced lifecycle management
 onMounted(() => {
