@@ -85,10 +85,6 @@ const error = ref('')
 const isDownloadingAll = ref(false)
 
 async function handlePlaylistLoaded(data: PlaylistResponse) {
-  console.log('Received playlist data:', data)
-  console.log('Tracks count:', data.tracks?.length)
-  console.log('Playlist info:', data.playlistInfo)
-  
   tracks.value = data.tracks
   playlistInfo.value = data.playlistInfo
   error.value = ''
