@@ -103,7 +103,7 @@ import { useDownloadQueueStore } from '@/stores/downloadQueue'
 import type { Track } from '@/types'
 import { usePlaylist } from "@/composables/usePlaylist"
 
-const { tracks} = usePlaylist()
+const { tracks, loading, error, playlistInfo, fetchPlaylist } = usePlaylist()
 const uiStore = useUIStore()
 const downloadQueueStore = useDownloadQueueStore()
 const downloadQueueRef = ref()
