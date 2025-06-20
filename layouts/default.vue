@@ -93,7 +93,9 @@
           </div>
         </header>
 
-        <!-- Main Content --<main class="flex-1 p-4 lg:p-6 overflow-y-auto min-w-0"<div class="w-full">
+        <!-- Main Content -->
+        <main class="flex-1 p-4 lg:p-6 overflow-y-auto min-w-0">
+          <div class="w-full">
             <slot />
           </div>
         </main>
