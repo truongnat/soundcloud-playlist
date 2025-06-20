@@ -24,7 +24,7 @@
                 <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-orange-500 group-hover:w-full transition-all duration-300"></span>
               </NuxtLink>
               <NuxtLink 
-                to="/track" 
+                to="/track"
                 class="text-gray-400 hover:text-orange-500 transition-all text-sm font-medium relative group"
                 active-class="text-orange-500"
               >
