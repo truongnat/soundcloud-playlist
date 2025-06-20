@@ -1,86 +1,153 @@
 <template>
   <UApp class="dark">
-    <div class="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 text-gray-100">
-      <!-- Header -->
-      <header class="backdrop-blur-md bg-gray-900/80 border-b border-gray-700/50 sticky top-0 z-50">
-        <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-          <div class="flex items-center gap-8">
-            <NuxtLink to="/" class="flex items-center gap-3 hover:scale-105 transition-transform">
-              <svg class="w-7 h-7 text-orange-500" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M11.5 0c-6.347 0-11.5 5.153-11.5 11.5 0 6.346 5.153 11.5 11.5 11.5 6.346 0 11.5-5.154 11.5-11.5 0-6.347-5.154-11.5-11.5-11.5zm0 21c-5.243 0-9.5-4.257-9.5-9.5s4.257-9.5 9.5-9.5 9.5 4.257 9.5 9.5-4.257 9.5-9.5 9.5z" />
-              </svg>
-              <h1 class="text-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 bg-clip-text text-transparent">
-                SoundCloud DL
-              </h1>
-            </NuxtLink>
-            
-            <nav class="flex items-center gap-6" role="navigation" aria-label="Main navigation">
-              <NuxtLink 
-                to="/" 
-                class="text-gray-400 hover:text-orange-500 transition-all text-sm font-medium relative group"
-                active-class="text-orange-500"
-                aria-label="Go to playlist page"
-              >
-                <span>Playlist</span>
-                <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-orange-500 group-hover:w-full transition-all duration-300"></span>
-              </NuxtLink>
-              <NuxtLink 
-                to="/track" 
-                class="text-gray-400 hover:text-orange-500 transition-all text-sm font-medium relative group"
-                active-class="text-orange-500"
-                aria-label="Go to single track page"
-              >
-                <span>Single Track</span>
-                <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-orange-500 group-hover:w-full transition-all duration-300"></span>
-              </NuxtLink>
-            </nav>
-          </div>
-          
-          <a href="https://github.com/truongnat/playlist-soundcloud" 
-             target="_blank" 
-             rel="noopener noreferrer"
-             class="text-gray-400 hover:text-orange-500 transition-all hover:scale-110"
-             aria-label="View source code on GitHub">
-            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
-            </svg>
-          </a>
+    <div class="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 text-gray-100 flex">
+      <!-- Left Sidebar - Logging (placeholder for future) -->
+      <aside class="w-80 bg-gray-900/50 border-r border-gray-700/50 flex-shrink-0">
+        <div class="p-4 border-b border-gray-700/50">
+          <h2 class="text-lg font-semibold text-gray-300">Activity Logs</h2>
+          <p class="text-sm text-gray-500">Coming soon...</p>
         </div>
-      </header>
+        <div class="p-4 space-y-2">
+          <!-- Placeholder for logging content -->
+          <div class="text-sm text-gray-500 italic">
+            This panel will show:
+            <ul class="mt-2 space-y-1 ml-4">
+              <li>• Download progress</li>
+              <li>• API requests</li>
+              <li>• Error logs</li>
+              <li>• System status</li>
+            </ul>
+          </div>
+        </div>
+      </aside>
 
-      <!-- Main Content -->
-      <main class="max-w-6xl mx-auto px-4 py-10 space-y-8">
-        <slot />
-      </main>
+      <!-- Main Content Area -->
+      <div class="flex-1 flex flex-col min-w-0">
+        <!-- Header -->
+        <header class="backdrop-blur-md bg-gray-900/80 border-b border-gray-700/50 sticky top-0 z-40">
+          <div class="px-6 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-8">
+              <NuxtLink to="/" class="flex items-center gap-3 hover:scale-105 transition-transform">
+                <svg class="w-7 h-7 text-orange-500" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M11.5 0c-6.347 0-11.5 5.153-11.5 11.5 0 6.346 5.153 11.5 11.5 11.5 6.346 0 11.5-5.154 11.5-11.5 0-6.347-5.154-11.5-11.5-11.5zm0 21c-5.243 0-9.5-4.257-9.5-9.5s4.257-9.5 9.5-9.5 9.5 4.257 9.5 9.5-4.257 9.5-9.5 9.5z" />
+                </svg>
+                <h1 class="text-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 bg-clip-text text-transparent">
+                  SoundCloud DL
+                </h1>
+              </NuxtLink>
+              
+              <nav class="flex items-center gap-6" role="navigation" aria-label="Main navigation">
+                <NuxtLink 
+                  to="/" 
+                  class="text-gray-400 hover:text-orange-500 transition-all text-sm font-medium relative group"
+                  active-class="text-orange-500"
+                  aria-label="Go to playlist page"
+                >
+                  <span>Playlist</span>
+                  <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-orange-500 group-hover:w-full transition-all duration-300"></span>
+                </NuxtLink>
+                <NuxtLink 
+                  to="/track" 
+                  class="text-gray-400 hover:text-orange-500 transition-all text-sm font-medium relative group"
+                  active-class="text-orange-500"
+                  aria-label="Go to single track page"
+                >
+                  <span>Single Track</span>
+                  <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-orange-500 group-hover:w-full transition-all duration-300"></span>
+                </NuxtLink>
+              </nav>
+            </div>
+            
+            <div class="flex items-center gap-4">
+              <!-- Download Queue Toggle Button -->
+              <button
+                @click="toggleDownloadQueue"
+                class="relative p-2 text-gray-400 hover:text-orange-500 transition-all hover:scale-110 rounded-lg hover:bg-gray-800/50"
+                :class="{ 'text-orange-500': uiStore.showDownloadQueue }"
+                aria-label="Toggle download queue"
+              >
+                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                
+                <!-- Download Count Badge -->
+                <span v-if="downloadStats.total > 0"
+                  class="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-medium rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1"
+                  aria-hidden="true">
+                  {{ downloadStats.total }}
+                </span>
+              </button>
 
-      <!-- Download Queue Sidebar -->
-      <Transition name="slide">
+              <!-- GitHub Link -->
+              <a href="https://github.com/truongnat/playlist-soundcloud" 
+                 target="_blank" 
+                 rel="noopener noreferrer"
+                 class="text-gray-400 hover:text-orange-500 transition-all hover:scale-110 p-2 rounded-lg hover:bg-gray-800/50"
+                 aria-label="View source code on GitHub">
+                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
+                </svg>
+              </a>
+            </div>
+          </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="flex-1 p-6 overflow-y-auto">
+          <div class="max-w-6xl mx-auto">
+            <slot />
+          </div>
+        </main>
+      </div>
+
+      <!-- Right Sidebar - Download Queue -->
+      <Transition name="slide-right">
         <aside v-if="uiStore.showDownloadQueue"
-          class="w-[420px] border-l border-gray-700 bg-gray-800 fixed right-0 top-0 bottom-0 z-50"
+          class="w-[420px] bg-gray-900/50 border-l border-gray-700/50 flex-shrink-0 flex flex-col"
           role="complementary"
           aria-label="Download queue">
-          <DownloadQueue 
-            ref="downloadQueueRef" 
-            @close="() => uiStore.showDownloadQueue = false"
-            @download-complete="handleDownloadComplete"
-            @discard-all="handleDiscardAll" />
+          
+          <!-- Download Queue Header -->
+          <div class="p-4 border-b border-gray-700/50 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <svg class="w-5 h-5 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+              <h2 class="text-lg font-semibold text-gray-200">Download Queue</h2>
+              <span v-if="downloadStats.total > 0" 
+                class="bg-orange-500/20 text-orange-400 text-xs px-2 py-1 rounded-full">
+                {{ downloadStats.total }}
+              </span>
+            </div>
+            
+            <button
+              @click="toggleDownloadQueue"
+              class="p-1.5 text-gray-400 hover:text-gray-200 transition-colors rounded-lg hover:bg-gray-800/50"
+              aria-label="Close download queue">
+              <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          <!-- Download Queue Content -->
+          <div class="flex-1 overflow-hidden">
+            <DownloadQueue 
+              ref="downloadQueueRef" 
+              @close="toggleDownloadQueue"
+              @download-complete="handleDownloadComplete"
+              @discard-all="handleDiscardAll" />
+          </div>
         </aside>
       </Transition>
 
-      <!-- Backdrop -->
-      <Transition name="fade">
-        <div v-if="uiStore.showDownloadQueue" 
-          class="fixed inset-0 bg-black/40 backdrop-blur-sm z-40"
-          @click="() => uiStore.showDownloadQueue = false"
-          aria-hidden="true">
-        </div>
-      </Transition>
-
-      <!-- Download Indicator -->
+      <!-- Download Status Indicator (when queue is hidden) -->
       <Transition name="bounce">
         <button v-if="downloadStats.total > 0 && !uiStore.showDownloadQueue"
-          @click="() => uiStore.showDownloadQueue = true"
-          class="fixed bottom-8 right-8 bg-blue-600 hover:bg-blue-700 text-white rounded-full p-4 shadow-lg transition-transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900 z-30"
+          @click="toggleDownloadQueue"
+          class="fixed bottom-8 right-8 bg-orange-600 hover:bg-orange-700 text-white rounded-full p-4 shadow-lg transition-all hover:scale-105 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 focus:ring-offset-gray-900 z-30"
           :aria-label="`${downloadStats.total} downloads in queue. Click to open download queue.`">
           <div class="relative">
             <!-- Download Icon -->
@@ -200,6 +267,10 @@ const downloadStats = computed(() => {
   return stats
 })
 
+const toggleDownloadQueue = () => {
+  uiStore.showDownloadQueue = !uiStore.showDownloadQueue
+}
+
 const handleDownloadTrack = async (track: Track) => {
   try {
     console.log('Adding track to queue:', track.title)
@@ -219,6 +290,11 @@ const handleDownloadTrack = async (track: Track) => {
       downloadQueueRef.value.addToQueue(track)
     } else {
       console.warn('downloadQueueRef is not available')
+    }
+
+    // Auto-open download queue if it's closed
+    if (!uiStore.showDownloadQueue) {
+      uiStore.showDownloadQueue = true
     }
   } catch (error) {
     console.error('Error handling download track:', error)
@@ -267,35 +343,20 @@ useHead({
 </script>
 
 <style>
-.slide-enter-active,
-.slide-leave-active {
+.slide-right-enter-active,
+.slide-right-leave-active {
   transition: all 0.3s ease;
 }
 
-.slide-enter-from,
-.slide-leave-to {
+.slide-right-enter-from,
+.slide-right-leave-to {
   transform: translateX(100%);
   opacity: 0;
 }
 
-.slide-enter-to,
-.slide-leave-from {
+.slide-right-enter-to,
+.slide-right-leave-from {
   transform: translateX(0);
-  opacity: 1;
-}
-
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.3s ease;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
-
-.fade-enter-to,
-.fade-leave-from {
   opacity: 1;
 }
 
@@ -319,5 +380,23 @@ useHead({
   100% {
     transform: scale(1);
   }
+}
+
+/* Custom scrollbar for better UX */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(55, 65, 81, 0.3);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(156, 163, 175, 0.5);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(156, 163, 175, 0.7);
 }
 </style>
