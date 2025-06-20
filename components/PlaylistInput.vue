@@ -121,6 +121,7 @@ const handleFetchPlaylist = async () => {
   
   try {
     const data = await fetchPlaylist(playlistUrl.value.trim())
+    console.log('PlaylistInput: Fetched data:', data)
     emit('playlist-loaded', data)
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Failed to load playlist'
