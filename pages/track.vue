@@ -52,8 +52,16 @@
       </div>
 
       <!-- Track Display -->
-      <TransitionFade>
-        <div v-if="track" class="bg-gray-800/50 backdrop-blur-sm rounded-2xl border border-gray-700/50 overflow-hidden">
+      <TransitionRoot
+        :show="!!track"
+        enter="transition-opacity duration-300"
+        enter-from="opacity-0"
+        enter-to="opacity-100"
+        leave="transition-opacity duration-200"
+        leave-from="opacity-100"
+        leave-to="opacity-0"
+      >
+        <div class="bg-gray-800/50 backdrop-blur-sm rounded-2xl border border-gray-700/50 overflow-hidden">
           <!-- Track Banner -->
           <div class="relative h-48 md:h-64">
             <img
@@ -111,7 +119,7 @@
 
 <script setup lang="ts">
 import { ref, computed, inject, type Ref } from 'vue'
-import { TransitionFade } from '@headlessui/vue'
+import { TransitionRoot } from '@headlessui/vue'
 import type { Track } from '~/types'
 
 // Inject download functionality from layout
