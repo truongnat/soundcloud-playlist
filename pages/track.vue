@@ -121,12 +121,15 @@
 <script setup lang="ts">
 import { ref, computed, inject, type Ref } from 'vue'
 import { TransitionRoot } from '@headlessui/vue'
+import { useTrack } from '@/composables/useTrack'
 import type { Track } from '~/types'
 
 // Inject download functionality from layout
 const handleDownloadTrack = inject('handleDownloadTrack') as (track: Track) => Promise<void>
 const downloadingTracks = inject('downloadingTracks') as Ref<string[]>
 const errorTracks = inject('errorTracks') as Ref<Record<string, string>>
+
+const { fetchTrack: fetchTrackData } = useTrack()
 
 const trackUrl = ref('')
 const track = ref<Track | null>(null)
@@ -161,12 +164,9 @@ async function fetchTrack() {
   track.value = null
 
   try {
-    const response = await $fetch<{ track: Track }>('/api/track-download', {
-      query: { url: trackUrl.value }
-    })
-    track.value = response.track
+    track.value = await fetchTrackData(trackUrl.value)
   } catch (e: any) {
-    error.value = e.data?.message || 'Failed to fetch track'
+    error.value = e.message || 'Failed to fetch track'
   } finally {
     isLoading.value = false
   }
