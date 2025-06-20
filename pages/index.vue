@@ -28,7 +28,6 @@
       </div>
     </div>
 
-    <!-- Debug Info --
     <!-- Track List -->
     <TrackList 
       v-if="playlistInfo && tracks && tracks.length > 0"
