@@ -233,6 +233,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { Track } from '@/types'
+import { useUIStore } from '@/stores/ui'
 
 const props = defineProps<{
   track: Track
@@ -244,7 +245,11 @@ defineEmits<{
   (e: 'download', track: Track): void
 }>()
 
+const uiStore = useUIStore()
+
 const getTrackId = (id: number | string): string => String(id)
+
+const isDownloadQueueOpen = computed(() => uiStore.showDownloadQueue)
 
 const isDownloading = computed(() => 
   props.activeDownloads?.includes(getTrackId(props.track.id)) ?? false
