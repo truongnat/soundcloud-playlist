@@ -70,7 +70,6 @@ export const useDownloadQueue = () => {
   const discardAll = (): void => {
     // Cancel tất cả active downloads
     activeDownloads.forEach((controller, trackId) => {
-      console.log('Cancelling download for track:', trackId)
       controller.abort()
     })
     activeDownloads.clear()
