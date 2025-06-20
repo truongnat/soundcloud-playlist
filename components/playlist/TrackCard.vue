@@ -110,31 +110,32 @@
       </div>
     </div>
 
-    <!-- Desktop Layout (horizontal) -->
+    <!-- Desktop Layout -->
     <div class="hidden sm:block">
-      <!-- Responsive layout: horizontal when space available, vertical when constrained -->
-      <div class="flex flex-col xl:flex-row gap-3 lg:gap-4 xl:gap-6" :class="{ 'xl:flex-col 2xl:flex-row': isDownloadQueueOpen }">
+      <!-- Layout thay đổi: ngang khi panel đóng, dọc khi panel mở -->
+      <div class="flex gap-3 lg:gap-4 transition-all duration-300" :class="isDownloadQueueOpen ? 'flex-col' : 'flex-row'">
         <!-- Artwork -->
-        <div class="relative flex-shrink-0 rounded-lg overflow-hidden" :class="isDownloadQueueOpen ? 'xl:w-full xl:h-32 2xl:w-16 2xl:h-16' : 'w-16 h-16 lg:w-20 lg:h-20 xl:w-24 xl:h-24'">
+        <div class="relative flex-shrink-0 rounded-lg overflow-hidden transition-all duration-300" 
+             :class="isDownloadQueueOpen ? 'w-full h-40' : 'w-16 h-16 lg:w-20 lg:h-20 xl:w-24 xl:h-24'">
           <!-- Track Image -->
           <img
             v-if="track.artwork"
             :src="track.artwork"
             :alt="track.title"
-            class="object-cover shadow-lg transition-all duration-300 group-hover:scale-105 group-hover:brightness-110"
-            :class="isDownloadQueueOpen ? 'xl:w-full xl:h-32 2xl:w-16 2xl:h-16 lg:2xl:w-20 lg:2xl:h-20' : 'w-16 h-16 lg:w-20 lg:h-20 xl:w-24 xl:h-24'"
+            class="w-full h-full object-cover shadow-lg transition-all duration-300
+                   group-hover:scale-105 group-hover:brightness-110"
             loading="lazy"
           />
 
           <!-- Placeholder -->
           <div
             v-else
-            class="bg-gradient-to-br from-gray-800 to-gray-700 rounded-lg flex items-center justify-center ring-1 ring-white/5"
-            :class="isDownloadQueueOpen ? 'xl:w-full xl:h-32 2xl:w-16 2xl:h-16 lg:2xl:w-20 lg:2xl:h-20' : 'w-16 h-16 lg:w-20 lg:h-20 xl:w-24 xl:h-24'"
+            class="w-full h-full bg-gradient-to-br from-gray-800 to-gray-700 rounded-lg 
+                   flex items-center justify-center ring-1 ring-white/5"
           >
             <svg
               class="text-gray-600 group-hover:text-orange-500 transition-colors duration-300"
-              :class="isDownloadQueueOpen ? 'xl:w-12 xl:h-12 2xl:w-6 2xl:h-6 lg:2xl:w-8 lg:2xl:h-8' : 'w-6 h-6 lg:w-8 lg:h-8 xl:w-10 xl:h-10'"
+              :class="isDownloadQueueOpen ? 'w-16 h-16' : 'w-6 h-6 lg:w-8 lg:h-8 xl:w-10 xl:h-10'"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -175,7 +176,7 @@
         <!-- Info and Actions Container -->
         <div class="flex-1 min-w-0 flex flex-col justify-between py-0.5">
           <!-- Track Info -->
-          <div class="min-w-0" :class="isDownloadQueueOpen ? 'xl:mb-3 2xl:mb-0' : ''">
+          <div class="min-w-0" :class="isDownloadQueueOpen ? 'mb-3' : ''">
             <h3 class="font-semibold text-gray-100 truncate group-hover:text-orange-400 transition-colors text-xs lg:text-sm xl:text-base">
               {{ track.title }}
             </h3>
@@ -188,7 +189,7 @@
           </div>
 
           <!-- Actions -->
-          <div class="flex items-center gap-1.5 lg:gap-2 mt-2 lg:mt-3" :class="isDownloadQueueOpen ? 'xl:justify-center 2xl:justify-start' : ''">
+          <div class="flex items-center gap-2 mt-2 lg:mt-3">
             <!-- Original Link -->
             <a
               :href="track.url"
@@ -207,16 +208,15 @@
             <button
               @click="$emit('download', track)"
               :disabled="isDownloading || isCompleted || hasError"
-              class="py-1 lg:py-1.5 px-2 lg:px-3 rounded-md lg:rounded-lg font-medium transition-all duration-200
-                     disabled:opacity-50 disabled:cursor-not-allowed min-w-0
+              class="flex-1 py-2 px-3 rounded-lg font-medium transition-all duration-200
+                     disabled:opacity-50 disabled:cursor-not-allowed
                      bg-gradient-to-r from-orange-500/20 to-orange-600/20 
                      hover:from-orange-500 hover:to-orange-600
                      text-orange-500 hover:text-white
                      border border-orange-500/30 hover:border-orange-500
                      focus:outline-none focus:ring-2 focus:ring-orange-500/50
                      group-hover:shadow-lg group-hover:shadow-orange-500/10
-                     text-xs lg:text-sm"
-              :class="isDownloadQueueOpen ? 'xl:flex-1 2xl:flex-1' : 'flex-1'"
+                     text-sm"
             >
               <span v-if="isDownloading" class="truncate">Downloading...</span>
               <span v-else-if="isCompleted" class="truncate">Downloaded</span>
