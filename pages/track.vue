@@ -20,6 +20,7 @@
                      focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-500
                      transition-all duration-200"
               :disabled="isLoading"
+              @keyup.enter="fetchTrack"
             />
           </div>
           <button
@@ -133,16 +134,17 @@ const error = ref('')
 const isLoading = ref(false)
 
 const isValidUrl = computed(() => {
+  if (!trackUrl.value) return false
   try {
     const url = new URL(trackUrl.value)
-    return url.hostname === 'soundcloud.com'
+    return url.hostname === 'soundcloud.com' && !url.pathname.includes('/sets/')
   } catch {
     return false
   }
 })
 
 const isDownloading = computed(() => {
-  return track.value ? downloadingTracks.value.has(track.value.id) : false
+  return track.value ? downloadingTracks.value.includes(track.value.id.toString()) : false
 })
 
 function formatDuration(ms: number) {
@@ -183,3 +185,11 @@ onUnmounted(() => {
 })
 </script>
 
+<style scoped>
+.line-clamp-1 {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+</style>
