@@ -64,8 +64,7 @@
       </div>
     </div>
 
-    <!-- Loading State -->
-    <div v-if="isLoading" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6">
+    <!-- Loading State --<div v-if="isLoading" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-3 lg:gap-4 xl:gap-6">
       <div v-for="i in 6" :key="i" 
            class="bg-gray-800/30 backdrop-blur-lg rounded-xl border border-gray-700/30 p-4 lg:p-5 animate-pulse">
         <div class="flex gap-4 lg:gap-6">
