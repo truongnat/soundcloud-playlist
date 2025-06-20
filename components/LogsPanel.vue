@@ -84,74 +84,141 @@
     </div>
 
     <!-- Logs List -->
-    <div class="flex-1 overflow-y-auto">
+    <div ref="logsContainer" class="flex-1 overflow-y-auto" @scroll="handleScroll">
       <div v-if="filteredLogs.length === 0" class="flex flex-col items-center justify-center h-full text-gray-400 p-8">
         <div class="bg-gray-800/50 rounded-full p-4 mb-4">
           <svg class="w-8 h-8 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
           </svg>
         </div>
-        <p class="text-sm font-medium">No logs available</p>
-        <p class="text-xs text-gray-500 mt-1 text-center">Activity will appear here as you use the app</p>
+        <p class="text-sm font-medium">No activity yet</p>
+        <p class="text-xs text-gray-500 mt-1 text-center">Download progress, API requests, and system events will appear here</p>
       </div>
 
       <div v-else class="divide-y divide-gray-700/30">
         <div
           v-for="log in filteredLogs"
           :key="log.id"
-          class="p-3 hover:bg-gray-800/30 transition-colors"
+          class="p-3 hover:bg-gray-800/30 transition-colors group"
+          :class="getLogRowClass(log)"
         >
           <!-- Log Header -->
           <div class="flex items-start justify-between mb-1">
             <div class="flex items-center gap-2 min-w-0 flex-1">
-              <!-- Type Icon -->
-              <div class="flex-shrink-0" :class="getLogIconClass(log)">
+              <!-- Type Icon with Animation -->
+              <div class="flex-shrink-0 relative" :class="getLogIconClass(log)">
                 <component :is="getLogIcon(log)" class="w-4 h-4" />
+                <!-- Pulse animation for active downloads -->
+                <div v-if="log.type === 'download' && log.progress !== undefined && log.progress < 100"
+                     class="absolute inset-0 rounded-full animate-ping opacity-20 bg-current"></div>
               </div>
               
-              <!-- Title -->
-              <h4 class="font-medium text-sm truncate" :class="getLogTitleClass(log)">
-                {{ log.title }}
-              </h4>
+              <!-- Title with Status Badge -->
+              <div class="flex items-center gap-2 min-w-0 flex-1">
+                <h4 class="font-medium text-sm truncate" :class="getLogTitleClass(log)">
+                  {{ log.title }}
+                </h4>
+                <span v-if="getLogStatusBadge(log)" 
+                      class="px-1.5 py-0.5 text-xs rounded-full flex-shrink-0"
+                      :class="getLogStatusBadge(log)?.class">
+                  {{ getLogStatusBadge(log)?.text }}
+                </span>
+              </div>
             </div>
             
-            <!-- Timestamp -->
-            <span class="text-xs text-gray-500 flex-shrink-0 ml-2">
-              {{ formatTime(log.timestamp) }}
-            </span>
+            <!-- Timestamp with Relative Time -->
+            <div class="flex flex-col items-end text-xs text-gray-500 flex-shrink-0 ml-2">
+              <span>{{ formatTime(log.timestamp) }}</span>
+              <span class="text-gray-600">{{ formatRelativeTime(log.timestamp) }}</span>
+            </div>
           </div>
 
           <!-- Message -->
-          <p class="text-xs text-gray-400 mb-1 pl-6">
+          <p class="text-xs text-gray-400 mb-1 pl-6 break-words">
             {{ log.message }}
           </p>
 
-          <!-- Progress Bar (for download logs) -->
+          <!-- Enhanced Progress Bar (for download logs) -->
           <div v-if="log.progress !== undefined" class="pl-6 mb-2">
-            <div class="w-full bg-gray-700/50 rounded-full h-1.5">
-              <div 
-                class="h-1.5 rounded-full transition-all duration-300"
-                :class="log.level === 'error' ? 'bg-red-500' : 'bg-orange-500'"
-                :style="{ width: `${log.progress}%` }"
-              ></div>
+            <div class="flex items-center gap-2 mb-1">
+              <div class="flex-1 bg-gray-700/50 rounded-full h-2 overflow-hidden">
+                <div 
+                  class="h-full rounded-full transition-all duration-500 relative"
+                  :class="getProgressBarClass(log)"
+                  :style="{ width: `${Math.max(log.progress, 2)}%` }"
+                >
+                  <!-- Shimmer effect for active downloads -->
+                  <div v-if="log.progress < 100 && log.level !== 'error'"
+                       class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer"></div>
+                </div>
+              </div>
+              <span class="text-xs font-mono text-gray-400 min-w-[3rem] text-right">
+                {{ log.progress }}%
+              </span>
             </div>
           </div>
 
-          <!-- Details (expandable) -->
+          <!-- API Status Indicator -->
+          <div v-if="log.type === 'api' && log.details?.status" class="pl-6 mb-2">
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-mono px-2 py-1 rounded"
+                    :class="getApiStatusClass(log.details.status)">
+                {{ log.details.status }}
+              </span>
+              <span v-if="log.details.method" class="text-xs text-gray-500 uppercase">
+                {{ log.details.method }}
+              </span>
+            </div>
+          </div>
+
+          <!-- System Status Indicator -->
+          <div v-if="log.type === 'system' && log.level === 'success'" class="pl-6 mb-2">
+            <div class="flex items-center gap-1">
+              <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+              <span class="text-xs text-green-400">Online</span>
+            </div>
+          </div>
+
+          <!-- Details (expandable with better formatting) -->
           <div v-if="log.details && expandedLogs.includes(log.id)" class="pl-6 mt-2">
-            <div class="bg-gray-800/50 rounded p-2 text-xs">
-              <pre class="text-gray-300 whitespace-pre-wrap">{{ JSON.stringify(log.details, null, 2) }}</pre>
+            <div class="bg-gray-800/50 rounded-lg p-3 text-xs border border-gray-700/50">
+              <div v-if="typeof log.details === 'object'">
+                <div v-for="(value, key) in log.details" :key="key" class="mb-2 last:mb-0">
+                  <span class="text-gray-400 font-medium">{{ key }}:</span>
+                  <span class="text-gray-300 ml-2">
+                    {{ typeof value === 'object' ? JSON.stringify(value, null, 2) : value }}
+                  </span>
+                </div>
+              </div>
+              <pre v-else class="text-gray-300 whitespace-pre-wrap">{{ log.details }}</pre>
             </div>
           </div>
 
-          <!-- Expand Button -->
-          <button
-            v-if="log.details"
-            @click="toggleLogExpansion(log.id)"
-            class="pl-6 mt-1 text-xs text-gray-500 hover:text-gray-400 transition-colors"
-          >
-            {{ expandedLogs.includes(log.id) ? 'Hide details' : 'Show details' }}
-          </button>
+          <!-- Action Buttons -->
+          <div class="flex items-center gap-2 pl-6 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
+            <button
+              v-if="log.details"
+              @click="toggleLogExpansion(log.id)"
+              class="text-xs text-gray-500 hover:text-gray-400 transition-colors flex items-center gap-1"
+            >
+              <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      :d="expandedLogs.includes(log.id) ? 'M5 15l7-7 7 7' : 'M19 9l-7 7-7-7'" />
+              </svg>
+              {{ expandedLogs.includes(log.id) ? 'Hide details' : 'Show details' }}
+            </button>
+            
+            <button
+              v-if="log.type === 'error'"
+              @click="copyErrorToClipboard(log)"
+              class="text-xs text-gray-500 hover:text-gray-400 transition-colors flex items-center gap-1"
+            >
+              <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+              </svg>
+              Copy error
+            </button>
+          </div>
         </div>
       </div>
     </div>
