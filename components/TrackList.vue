@@ -1,4 +1,5 @@
-<template>  <div class="space-y-8">
+<template>  
+  <div class="space-y-8">
     <!-- Playlist Header -->
     <div v-if="playlistTitle || playlistArtwork" class="relative">
       <!-- Banner Image -->
@@ -12,13 +13,13 @@
         <div class="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-black/80"></div>
         
         <!-- Playlist Info -->
-        <div class="absolute bottom-0 left-0 right-0 p-8 flex justify-between items-end">
+        <div class="absolute bottom-0 left-0 right-0 p-4 lg:p-8 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
           <div class="text-white">
-            <h1 class="text-3xl md:text-4xl lg:text-5xl font-bold mb-3 text-shadow-lg 
+            <h1 class="text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold mb-3 text-shadow-lg 
                        bg-gradient-to-r from-white via-orange-100 to-orange-200 bg-clip-text text-transparent">
               {{ playlistTitle || 'Untitled Playlist' }}
             </h1>
-            <p class="text-base md:text-lg text-orange-200/90 text-shadow">
+            <p class="text-sm md:text-base lg:text-lg text-orange-200/90 text-shadow">
               {{ tracks?.length || 0 }} tracks
             </p>
           </div>
@@ -28,15 +29,15 @@
             v-if="tracks && tracks.length > 0"
             @click="$emit('downloadAll')"
             :disabled="isDownloadingAll"
-            class="px-6 py-3.5 bg-gradient-to-r from-orange-500 to-orange-600 text-white 
+            class="px-4 lg:px-6 py-2.5 lg:py-3.5 bg-gradient-to-r from-orange-500 to-orange-600 text-white 
                    rounded-xl font-medium shadow-lg hover:from-orange-600 hover:to-orange-700 
                    focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 
                    focus:ring-offset-gray-900 transition-all duration-200 
                    disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2
-                   hover:shadow-orange-500/20 hover:shadow-xl"
+                   hover:shadow-orange-500/20 hover:shadow-xl text-sm lg:text-base"
           >
             <svg
-              class="w-5 h-5"
+              class="w-4 h-4 lg:w-5 lg:h-5"
               :class="{ 'animate-spin': isDownloadingAll }"
               fill="none"
               viewBox="0 0 24 24"
@@ -63,15 +64,16 @@
       </div>
     </div>
 
-    <!-- Loading State --<div v-if="isLoading" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6">
+    <!-- Loading State -->
+    <div v-if="isLoading" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6">
       <div v-for="i in 6" :key="i" 
-           class="bg-gray-800/30 backdrop-blur-lg rounded-xl border border-gray-700/30 p-5 animate-pulse">
-        <div class="flex gap-6">
-          <div class="w-28 h-28 bg-gray-700/50 rounded-lg"></div>
-          <div class="flex-1">
-            <div class="h-6 bg-gray-700/50 rounded w-3/4 mb-2"></div>
-            <div class="h-4 bg-gray-700/50 rounded w-1/2 mb-4"></div>
-            <div class="h-8 bg-gray-700/50 rounded w-1/3"></div>
+           class="bg-gray-800/30 backdrop-blur-lg rounded-xl border border-gray-700/30 p-4 lg:p-5 animate-pulse">
+        <div class="flex gap-4 lg:gap-6">
+          <div class="w-20 h-20 lg:w-28 lg:h-28 bg-gray-700/50 rounded-lg flex-shrink-0"></div>
+          <div class="flex-1 min-w-0">
+            <div class="h-5 lg:h-6 bg-gray-700/50 rounded w-3/4 mb-2"></div>
+            <div class="h-3 lg:h-4 bg-gray-700/50 rounded w-1/2 mb-3 lg:mb-4"></div>
+            <div class="h-6 lg:h-8 bg-gray-700/50 rounded w-1/3"></div>
           </div>
         </div>
       </div>
@@ -97,14 +99,14 @@
     />
 
     <!-- Empty State -->
-    <div v-else class="bg-gray-800/50 border border-gray-700 rounded-2xl p-12 text-center">
+    <div v-else class="bg-gray-800/50 border border-gray-700 rounded-2xl p-8 lg:p-12 text-center">
       <div class="flex justify-center mb-4">
-        <div class="p-4 rounded-full bg-gray-700/50">
-          <UIcon name="i-heroicons-musical-note" class="w-12 h-12 text-orange-500/70" />
+        <div class="p-3 lg:p-4 rounded-full bg-gray-700/50">
+          <UIcon name="i-heroicons-musical-note" class="w-10 h-10 lg:w-12 lg:h-12 text-orange-500/70" />
         </div>
       </div>
-      <h3 class="text-xl font-semibold text-gray-200 mb-2">No tracks found</h3>
-      <p class="text-gray-400">Enter a SoundCloud playlist URL to start downloading tracks</p>
+      <h3 class="text-lg lg:text-xl font-semibold text-gray-200 mb-2">No tracks found</h3>
+      <p class="text-sm lg:text-base text-gray-400">Enter a SoundCloud playlist URL to start downloading tracks</p>
     </div>
   </div>
 </template>
@@ -129,4 +131,3 @@ defineEmits<{
   (e: 'downloadAll'): void
 }>()
 </script>
-

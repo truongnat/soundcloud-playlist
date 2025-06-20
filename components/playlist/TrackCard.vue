@@ -1,7 +1,8 @@
-<template>  <div class="bg-gray-800/30 backdrop-blur-lg rounded-xl border border-gray-700/30 p-5 
+<template>  
+  <div class="bg-gray-800/30 backdrop-blur-lg rounded-xl border border-gray-700/30 p-4 lg:p-5 
               hover:bg-gray-800/40 hover:border-orange-500/30 transition-all duration-300 group 
               hover:shadow-lg hover:shadow-orange-500/10 hover:translate-y-[-2px]">
-    <div class="flex gap-6">
+    <div class="flex gap-4 lg:gap-6">
       <!-- Artwork -->
       <div class="relative flex-shrink-0 rounded-lg overflow-hidden">
         <!-- Track Image -->
@@ -9,7 +10,7 @@
           v-if="track.artwork"
           :src="track.artwork"
           :alt="track.title"
-          class="w-28 h-28 object-cover shadow-lg transition-all duration-300
+          class="w-20 h-20 lg:w-28 lg:h-28 object-cover shadow-lg transition-all duration-300
                  group-hover:scale-105 group-hover:brightness-110"
           loading="lazy"
         />
@@ -17,11 +18,11 @@
         <!-- Placeholder -->
         <div
           v-else
-          class="w-28 h-28 bg-gradient-to-br from-gray-800 to-gray-700 rounded-lg 
+          class="w-20 h-20 lg:w-28 lg:h-28 bg-gradient-to-br from-gray-800 to-gray-700 rounded-lg 
                  flex items-center justify-center ring-1 ring-white/5"
         >
           <svg
-            class="w-12 h-12 text-gray-600 group-hover:text-orange-500 transition-colors duration-300"
+            class="w-8 h-8 lg:w-12 lg:h-12 text-gray-600 group-hover:text-orange-500 transition-colors duration-300"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -38,10 +39,10 @@
         <!-- Download Status -->
         <div
           v-if="activeDownloads.includes(getTrackId(track.id))"
-          class="absolute -top-2 -right-2 bg-gradient-to-r from-orange-500 to-pink-500 
-                 text-white p-2 rounded-full shadow-lg animate-bounce"
+          class="absolute -top-1 -right-1 lg:-top-2 lg:-right-2 bg-gradient-to-r from-orange-500 to-pink-500 
+                 text-white p-1.5 lg:p-2 rounded-full shadow-lg animate-bounce"
         >
-          <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+          <svg class="w-3 h-3 lg:w-4 lg:h-4 animate-spin" fill="none" viewBox="0 0 24 24">
             <circle
               class="opacity-25"
               cx="12"
@@ -61,10 +62,10 @@
         <!-- Download Complete Status -->
         <div
           v-else-if="completedDownloads.includes(getTrackId(track.id))"
-          class="absolute -top-2 -right-2 bg-gradient-to-r from-green-500 to-emerald-500 
-                 text-white p-2 rounded-full shadow-lg"
+          class="absolute -top-1 -right-1 lg:-top-2 lg:-right-2 bg-gradient-to-r from-green-500 to-emerald-500 
+                 text-white p-1.5 lg:p-2 rounded-full shadow-lg"
         >
-          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg class="w-3 h-3 lg:w-4 lg:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path
               stroke-linecap="round"
               stroke-linejoin="round"
@@ -78,29 +79,29 @@
       <!-- Info -->
       <div class="flex-1 min-w-0 flex flex-col justify-between py-1">
         <div>
-          <h3 class="font-semibold text-gray-100 truncate group-hover:text-orange-400 transition-colors">
+          <h3 class="font-semibold text-gray-100 truncate group-hover:text-orange-400 transition-colors text-sm lg:text-base">
             {{ track.title }}
           </h3>
-          <p class="text-sm text-gray-400 truncate mt-1 group-hover:text-gray-300 transition-colors">
+          <p class="text-xs lg:text-sm text-gray-400 truncate mt-1 group-hover:text-gray-300 transition-colors">
             {{ track.artist }}
           </p>
-          <p class="text-xs text-gray-500 mt-2 group-hover:text-gray-400 transition-colors">
+          <p class="text-xs text-gray-500 mt-1 lg:mt-2 group-hover:text-gray-400 transition-colors">
             {{ formatDuration(track.duration) }}
           </p>
         </div>
 
         <!-- Actions -->
-        <div class="flex items-center gap-3 mt-4">
+        <div class="flex items-center gap-2 lg:gap-3 mt-3 lg:mt-4">
           <!-- Original Link -->
           <a
             :href="track.url"
             target="_blank"
             rel="noopener noreferrer"
             class="text-gray-400 hover:text-orange-500 transition-colors 
-                   hover:scale-110 transform duration-200"
+                   hover:scale-110 transform duration-200 flex-shrink-0"
             :title="'Open in SoundCloud'"
           >
-            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+            <svg class="w-4 h-4 lg:w-5 lg:h-5" fill="currentColor" viewBox="0 0 24 24">
               <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm0 21.75c-5.385 0-9.75-4.365-9.75-9.75S6.615 2.25 12 2.25s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75zm0-17.5c-4.28 0-7.75 3.47-7.75 7.75S7.72 19.75 12 19.75s7.75-3.47 7.75-7.75S16.28 4.25 12 4.25zm3.75 8.75l-5.5 4-5.5-4v-2l5.5 4 5.5-4v2z"/>
             </svg>
           </a>
@@ -109,14 +110,15 @@
           <button
             @click="$emit('download', track)"
             :disabled="isDownloading || isCompleted || hasError"
-            class="flex-1 py-2 px-4 rounded-lg font-medium transition-all duration-200
+            class="flex-1 py-1.5 lg:py-2 px-3 lg:px-4 rounded-lg font-medium transition-all duration-200
                    disabled:opacity-50 disabled:cursor-not-allowed
                    bg-gradient-to-r from-orange-500/20 to-orange-600/20 
                    hover:from-orange-500 hover:to-orange-600
                    text-orange-500 hover:text-white
                    border border-orange-500/30 hover:border-orange-500
                    focus:outline-none focus:ring-2 focus:ring-orange-500/50
-                   group-hover:shadow-lg group-hover:shadow-orange-500/10"
+                   group-hover:shadow-lg group-hover:shadow-orange-500/10
+                   text-xs lg:text-sm"
           >
             <span v-if="isDownloading">Downloading...</span>
             <span v-else-if="isCompleted">Downloaded</span>
