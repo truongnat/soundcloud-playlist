@@ -1,24 +1,9 @@
 <template>
   <UApp class="dark">
     <div class="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 text-gray-100 flex">
-      <!-- Left Sidebar - Logging (placeholder for future) -->
+      <!-- Left Sidebar - Activity Logs -->
       <aside class="hidden lg:block w-80 bg-gray-900/50 border-r border-gray-700/50 flex-shrink-0">
-        <div class="p-4 border-b border-gray-700/50">
-          <h2 class="text-lg font-semibold text-gray-300">Activity Logs</h2>
-          <p class="text-sm text-gray-500">Coming soon...</p>
-        </div>
-        <div class="p-4 space-y-2">
-          <!-- Placeholder for logging content -->
-          <div class="text-sm text-gray-500 italic">
-            This panel will show:
-            <ul class="mt-2 space-y-1 ml-4">
-              <li>• Download progress</li>
-              <li>• API requests</li>
-              <li>• Error logs</li>
-              <li>• System status</li>
-            </ul>
-          </div>
-        </div>
+        <LogsPanel />
       </aside>
 
       <!-- Main Content Area -->
