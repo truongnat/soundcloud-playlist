@@ -226,15 +226,50 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, nextTick, watch, onMounted, onUnmounted, h } from 'vue'
 import { useLogsStore } from '@/stores/logs'
+import { useLogger } from '@/composables/useLogger'
 import type { LogEntry } from '@/stores/logs'
 
 const logsStore = useLogsStore()
+const logger = useLogger()
 const expandedLogs = ref<string[]>([])
+const logsContainer = ref<HTMLElement>()
+const autoScroll = ref(true)
+const isUserScrolling = ref(false)
 
 const filteredLogs = computed(() => logsStore.filteredLogs)
 const logStats = computed(() => logsStore.logStats)
+
+// Auto-scroll functionality
+const scrollToBottom = async () => {
+  if (!autoScroll.value || !logsContainer.value) return
+  
+  await nextTick()
+  logsContainer.value.scrollTop = logsContainer.value.scrollHeight
+}
+
+const handleScroll = () => {
+  if (!logsContainer.value) return
+  
+  const { scrollTop, scrollHeight, clientHeight } = logsContainer.value
+  const isAtBottom = scrollTop + clientHeight >= scrollHeight - 10
+  
+  if (!isAtBottom) {
+    isUserScrolling.value = true
+    autoScroll.value = false
+  } else if (isUserScrolling.value) {
+    autoScroll.value = true
+    isUserScrolling.value = false
+  }
+}
+
+// Watch for new logs and auto-scroll
+watch(filteredLogs, () => {
+  if (autoScroll.value) {
+    scrollToBottom()
+  }
+}, { deep: true })
 
 const toggleLogExpansion = (logId: string) => {
   const index = expandedLogs.value.indexOf(logId)
@@ -242,6 +277,27 @@ const toggleLogExpansion = (logId: string) => {
     expandedLogs.value.splice(index, 1)
   } else {
     expandedLogs.value.push(logId)
+  }
+}
+
+const clearLogs = () => {
+  logsStore.clearLogs()
+  logger.logSystem('Logs Cleared', 'All activity logs have been cleared', 'info')
+}
+
+const exportLogs = () => {
+  logsStore.exportLogs()
+  logger.logSystem('Logs Exported', 'Activity logs exported successfully', 'success')
+}
+
+const copyErrorToClipboard = async (log: LogEntry) => {
+  const errorText = `${log.title}: ${log.message}\n${log.details ? JSON.stringify(log.details, null, 2) : ''}`
+  
+  try {
+    await navigator.clipboard.writeText(errorText)
+    logger.logSystem('Error Copied', 'Error details copied to clipboard', 'success')
+  } catch (error) {
+    console.error('Failed to copy to clipboard:', error)
   }
 }
 
@@ -254,14 +310,54 @@ const formatTime = (timestamp: Date) => {
   })
 }
 
+const formatRelativeTime = (timestamp: Date) => {
+  const now = new Date()
+  const diff = now.getTime() - timestamp.getTime()
+  const seconds = Math.floor(diff / 1000)
+  const minutes = Math.floor(seconds / 60)
+  const hours = Math.floor(minutes / 60)
+  
+  if (seconds < 60) return 'now'
+  if (minutes < 60) return `${minutes}m ago`
+  if (hours < 24) return `${hours}h ago`
+  return timestamp.toLocaleDateString()
+}
+
+// Enhanced icon components
 const getLogIcon = (log: LogEntry) => {
-  const icons = {
-    download: 'svg',
-    api: 'svg', 
-    error: 'svg',
-    system: 'svg'
+  const iconMap = {
+    download: () => h('svg', { fill: 'none', viewBox: '0 0 24 24', stroke: 'currentColor' }, [
+      h('path', { 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'stroke-width': '2', d: 'M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4' })
+    ]),
+    api: () => h('svg', { fill: 'none', viewBox: '0 0 24 24', stroke: 'currentColor' }, [
+      h('path', { 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'stroke-width': '2', d: 'M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z' })
+    ]),
+    error: () => h('svg', { fill: 'none', viewBox: '0 0 24 24', stroke: 'currentColor' }, [
+      h('path', { 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'stroke-width': '2', d: 'M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z' })
+    ]),
+    system: () => h('svg', { fill: 'none', viewBox: '0 0 24 24', stroke: 'currentColor' }, [
+      h('path', { 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'stroke-width': '2', d: 'M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z' })
+    ])
   }
-  return 'svg' // Sẽ được thay thế bằng component icon thực tế
+  return iconMap[log.type] || iconMap.system
+}
+
+const getFilterIcon = (type: string) => {
+  const iconMap = {
+    download: () => h('svg', { fill: 'none', viewBox: '0 0 24 24', stroke: 'currentColor' }, [
+      h('path', { 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'stroke-width': '2', d: 'M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4' })
+    ]),
+    api: () => h('svg', { fill: 'none', viewBox: '0 0 24 24', stroke: 'currentColor' }, [
+      h('path', { 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'stroke-width': '2', d: 'M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z' })
+    ]),
+    error: () => h('svg', { fill: 'none', viewBox: '0 0 24 24', stroke: 'currentColor' }, [
+      h('path', { 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'stroke-width': '2', d: 'M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z' })
+    ]),
+    system: () => h('svg', { fill: 'none', viewBox: '0 0 24 24', stroke: 'currentColor' }, [
+      h('path', { 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'stroke-width': '2', d: 'M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z' })
+    ])
+  }
+  return iconMap[type as keyof typeof iconMap] || iconMap.system
 }
 
 const getLogIconClass = (log: LogEntry) => {
@@ -284,15 +380,59 @@ const getLogTitleClass = (log: LogEntry) => {
   return classes[log.level] || 'text-gray-200'
 }
 
+const getLogRowClass = (log: LogEntry) => {
+  if (log.level === 'error') return 'border-l-2 border-red-500/50 bg-red-900/5'
+  if (log.level === 'warning') return 'border-l-2 border-yellow-500/50 bg-yellow-900/5'
+  if (log.level === 'success') return 'border-l-2 border-green-500/50 bg-green-900/5'
+  return ''
+}
+
+const getLogStatusBadge = (log: LogEntry) => {
+  if (log.type === 'download' && log.progress !== undefined) {
+    if (log.progress === 100) {
+      return { text: 'Complete', class: 'bg-green-900/50 text-green-300' }
+    } else if (log.level === 'error') {
+      return { text: 'Failed', class: 'bg-red-900/50 text-red-300' }
+    } else {
+      return { text: 'Downloading', class: 'bg-blue-900/50 text-blue-300' }
+    }
+  }
+  return null
+}
+
+const getProgressBarClass = (log: LogEntry) => {
+  if (log.level === 'error') return 'bg-red-500'
+  if (log.progress === 100) return 'bg-green-500'
+  return 'bg-gradient-to-r from-blue-500 to-purple-500'
+}
+
+const getApiStatusClass = (status: number) => {
+  if (status >= 200 && status < 300) return 'bg-green-900/50 text-green-300'
+  if (status >= 400 && status < 500) return 'bg-yellow-900/50 text-yellow-300'
+  if (status >= 500) return 'bg-red-900/50 text-red-300'
+  return 'bg-gray-700/50 text-gray-300'
+}
+
 const getFilterActiveClass = (type: string) => {
   const classes = {
-    download: 'bg-blue-900/50 text-blue-300',
-    api: 'bg-green-900/50 text-green-300',
-    error: 'bg-red-900/50 text-red-300',
-    system: 'bg-purple-900/50 text-purple-300'
+    download: 'bg-blue-900/50 text-blue-300 border border-blue-500/30',
+    api: 'bg-green-900/50 text-green-300 border border-green-500/30',
+    error: 'bg-red-900/50 text-red-300 border border-red-500/30',
+    system: 'bg-purple-900/50 text-purple-300 border border-purple-500/30'
   }
   return classes[type as keyof typeof classes] || 'bg-gray-700 text-gray-300'
 }
+
+// Initialize auto-logging on mount
+onMounted(() => {
+  logger.setupAutoLogging()
+  logger.logAppStart()
+  scrollToBottom()
+})
+
+onUnmounted(() => {
+  // Clean up any intervals or listeners if needed
+})
 </script>
 
 <style scoped>
@@ -312,5 +452,272 @@ const getFilterActiveClass = (type: string) => {
 
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(156, 163, 175, 0.7);
+}
+
+/* Enhanced animations */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 2s infinite;
+}
+
+/* Smooth transitions for log entries */
+.group {
+  transition: all 0.2s ease;
+}
+
+.group:hover {
+  transform: translateX(2px);
+}
+
+/* Progress bar animations */
+.progress-bar {
+  position: relative;
+  overflow: hidden;
+}
+
+.progress-bar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  animation: shimmer 2s infinite;
+}
+
+/* Status indicators */
+.status-online {
+  position: relative;
+}
+
+.status-online::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 100%;
+  background: inherit;
+  border-radius: inherit;
+  transform: translate(-50%, -50%);
+  animation: pulse 2s infinite;
+}
+
+/* Filter button enhancements */
+.filter-button {
+  position: relative;
+  overflow: hidden;
+}
+
+.filter-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  transition: left 0.5s;
+}
+
+.filter-button:hover::before {
+  left: 100%;
+}
+
+/* Log entry animations */
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.log-entry {
+  animation: slideInLeft 0.3s ease-out;
+}
+
+/* Error log highlighting */
+.error-log {
+  position: relative;
+}
+
+.error-log::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: linear-gradient(to bottom, #ef4444, #dc2626);
+  border-radius: 0 2px 2px 0;
+}
+
+/* Success log highlighting */
+.success-log {
+  position: relative;
+}
+
+.success-log::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: linear-gradient(to bottom, #10b981, #059669);
+  border-radius: 0 2px 2px 0;
+}
+
+/* Warning log highlighting */
+.warning-log {
+  position: relative;
+}
+
+.warning-log::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: linear-gradient(to bottom, #f59e0b, #d97706);
+  border-radius: 0 2px 2px 0;
+}
+
+/* Pulse animation for active elements */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Glow effect for important logs */
+.important-log {
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+/* Fade in animation for new logs */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.new-log {
+  animation: fadeIn 0.5s ease-out;
+}
+
+/* Enhanced hover effects */
+.hover-lift:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Loading spinner for active downloads */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-spinner {
+  animation: spin 1s linear infinite;
+}
+
+/* Gradient text effects */
+.gradient-text {
+  background: linear-gradient(45deg, #3b82f6, #8b5cf6, #ec4899);
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: gradientShift 3s ease infinite;
+}
+
+@keyframes gradientShift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .log-entry {
+    padding: 0.75rem;
+  }
+  
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+  
+  .filter-buttons {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+/* Dark mode enhancements */
+@media (prefers-color-scheme: dark) {
+  .glass-effect {
+    backdrop-filter: blur(10px);
+    background: rgba(17, 24, 39, 0.8);
+    border: 1px solid rgba(75, 85, 99, 0.3);
+  }
+}
+
+/* Focus states for accessibility */
+button:focus-visible,
+.focusable:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .log-entry {
+    border: 1px solid currentColor;
+  }
+  
+  .progress-bar {
+    border: 1px solid currentColor;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 </style>
