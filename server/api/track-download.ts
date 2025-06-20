@@ -194,13 +194,10 @@ export default defineEventHandler(async (event) => {
 
     // Get stream URL using the same logic as playlist
     const streamUrl = await getStreamUrl(trackRes)
-    if (!streamUrl) {
-      throw new Error('Could not get stream URL for track')
-    }
 
     // Format track response
     const track: Track = {
-      id: trackRes.id,
+      id: trackRes.id.toString(),
       title: trackRes.title,
       artist: trackRes.user.username,
       duration: trackRes.duration,
