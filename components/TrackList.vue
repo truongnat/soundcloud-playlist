@@ -131,11 +131,3 @@ defineEmits<{
 }>()
 </script>
 
-<style scoped>
-.text-shadow {
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-}
-.text-shadow-lg {
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-}
-</style>
