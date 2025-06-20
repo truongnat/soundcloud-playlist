@@ -1,4 +1,5 @@
 import { Soundcloud } from 'soundcloud.ts'
+import { getClientId } from '@/server/utils/soundcloud'
 import type {
   SoundCloudUser,
   SoundCloudTrack,
@@ -7,66 +8,17 @@ import type {
   PlaylistResponse
 } from '@/types'
 
-// List of known working client IDs
-const CLIENT_IDS = [
-  '1JEFtFgP4Mocy0oEGJj2zZ0il9pEpBrM',
-  'iZIs9mchVcX5lhVRyQGGAYlNPVldzAoX',
-  'ccCB37jIWCBP7JB9SnUPPui8LzeaQT45',
-  '6ibGdGJqSm8F5DPvKPJMODIzhlvKbDks',
-]
+let soundcloud: Soundcloud
 
-let currentClientIdIndex = 0
-let soundcloud = new Soundcloud(CLIENT_IDS[currentClientIdIndex])
-
-// Function to try the next client ID
-const tryNextClientId = () => {
-  currentClientIdIndex = (currentClientIdIndex + 1) % CLIENT_IDS.length
-  const nextClientId = CLIENT_IDS[currentClientIdIndex]
-  console.log('Switching to next client ID:', nextClientId)
-  soundcloud = new Soundcloud(nextClientId)
-  return nextClientId
-}
-
-// Hàm để lấy client ID mới từ SoundCloud web
-async function getNewClientId(): Promise<string> {
+// Initialize soundcloud client with a valid client ID
+async function initializeSoundcloud() {
   try {
-    const headers = {
-      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36'
-    }
-
-    const response = await fetch('https://soundcloud.com/', { headers });
-    const html = await response.text();
-
-    // Find the app script
-    const scriptMatch = html.match(/https:\/\/[^"]+app-[^"]+\.js/);
-    if (!scriptMatch) return tryNextClientId();
-
-    const scriptUrl = scriptMatch[0];
-    const scriptResponse = await fetch(scriptUrl, { headers });
-    const scriptContent = await scriptResponse.text();
-
-    // Look for client_id in the script
-    const clientIdMatch = scriptContent.match(/,client_id:"([^"]+)"/);
-    if (clientIdMatch?.[1]) {
-      console.log('Found new client ID:', clientIdMatch[1]);
-      CLIENT_IDS.push(clientIdMatch[1]); // Add to our list
-      return clientIdMatch[1];
-    }
+    const clientId = await getClientId()
+    soundcloud = new Soundcloud(clientId)
+    console.log('Initialized SoundCloud client with client ID:', clientId)
   } catch (error) {
-    console.error('Error getting new client ID:', error);
-  }
-
-  return tryNextClientId();
-}
-
-// Function to verify a client ID works
-async function verifyClientId(clientId: string): Promise<boolean> {
-  try {
-    const testUrl = 'https://api-v2.soundcloud.com/tracks/1234?client_id=' + clientId;
-    const response = await fetch(testUrl);
-    return response.status !== 401;
-  } catch {
-    return false;
+    console.error('Failed to initialize SoundCloud client:', error)
+    throw error
   }
 }
 
@@ -89,7 +41,7 @@ function cleanUrl(url: string): string {
   }
 }
 
-// Hàm xử lý mobile URL
+// Handle mobile URLs
 async function resolveMobileUrl(url: string): Promise<string> {
   try {
     const response = await fetch(url, {
@@ -105,25 +57,7 @@ async function resolveMobileUrl(url: string): Promise<string> {
   }
 }
 
-// Initialize with a working client ID
-async function initializeClient() {
-  for (const clientId of CLIENT_IDS) {
-    if (await verifyClientId(clientId)) {
-      soundcloud = new Soundcloud(clientId);
-      console.log('Using verified client ID:', clientId);
-      return;
-    }
-  }
-
-  // If no existing client IDs work, try to get a new one
-  const newClientId = await getNewClientId();
-  if (await verifyClientId(newClientId)) {
-    soundcloud = new Soundcloud(newClientId);
-    console.log('Using new client ID:', newClientId);
-  }
-}
-
-// Hàm lấy stream URL với nhiều phương thức và retry
+// Get stream URL with multiple methods and retry
 async function getStreamUrl(track: SoundCloudTrack, retryCount = 0): Promise<string | null> {
   const methods = [
     // Method 1: Try to get stream URL directly from track
@@ -164,11 +98,11 @@ async function getStreamUrl(track: SoundCloudTrack, retryCount = 0): Promise<str
       }
     } catch (error: any) {
       console.log(`Method ${i + 1} failed for track ${track.id}:`, error.message);
-      if (error.message.includes('client_id') || error.message.includes('Client ID')) {
+      
+      if (error.message.includes('client_id') || error.message.includes('Client ID') || error.status === 401) {
         if (retryCount < 1) {
-          console.log('Updating client ID and retrying...');
-          const newClientId = await getNewClientId();
-          soundcloud = new Soundcloud(newClientId);
+          console.log('Client ID error, reinitializing SoundCloud client...');
+          await initializeSoundcloud();
           return getStreamUrl(track, retryCount + 1);
         }
       }
@@ -188,12 +122,10 @@ async function getStreamUrl(track: SoundCloudTrack, retryCount = 0): Promise<str
   return null;
 }
 
-
-
-// Hàm lấy tất cả tracks với pagination và retry logic
+// Get all tracks with pagination and retry logic
 async function getAllPlaylistTracks(playlist: SoundCloudPlaylist, playlistUrl: string): Promise<SoundCloudTrack[]> {
   const allTracks: SoundCloudTrack[] = [];
-  const limit = 50; // Giảm limit xuống để tránh quá tải
+  const limit = 50;
   let offset = 0;
   let retryCount = 0;
   const maxRetries = 5;
@@ -211,23 +143,24 @@ async function getAllPlaylistTracks(playlist: SoundCloudPlaylist, playlistUrl: s
         } catch (error: any) {
           fetchRetries++;
           if (error.status === 401 || error.message.includes('client_id')) {
-            console.log('Client ID error, trying next one...');
-            tryNextClientId();
+            console.log('Client ID error, reinitializing SoundCloud client...');
+            await initializeSoundcloud();
             await new Promise(resolve => setTimeout(resolve, 1000));
           } else {
             throw error;
           }
         }
       }
+      
       if (!playlistData || !playlistData.tracks || playlistData.tracks.length === 0) {
         throw new Error('No tracks received in response');
       }
 
       allTracks.push(...playlistData.tracks);
       offset += playlistData.tracks.length;
-      retryCount = 0; // Reset retry count on successful fetch
+      retryCount = 0;
 
-      // Thêm delay để tránh rate limit
+      // Add delay to avoid rate limit
       await new Promise(resolve => setTimeout(resolve, 1500));
 
     } catch (error: any) {
@@ -260,8 +193,8 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  // Initialize the client with a working client ID
-  await initializeClient()
+  // Initialize the SoundCloud client
+  await initializeSoundcloud()
 
   try {
     // Handle mobile URLs
@@ -286,9 +219,8 @@ export default defineEventHandler(async (event) => {
         console.error(`Attempt ${retryCount}/${maxRetries} failed:`, error.message)
 
         if (error.status === 401 || error.message.includes('client_id')) {
-          // Try next client ID if unauthorized
-          tryNextClientId()
-          // Wait before retry
+          // Reinitialize SoundCloud client with new client ID
+          await initializeSoundcloud()
           await new Promise(resolve => setTimeout(resolve, 1000))
         } else if (retryCount === maxRetries) {
           throw error
@@ -384,6 +316,8 @@ export default defineEventHandler(async (event) => {
       errorMessage = 'Playlist not found. Please make sure the URL is correct.'
     } else if (error.message.includes('rate limit') || error.status === 429) {
       errorMessage = 'Too many requests. Please try again in a few minutes.'
+    } else if (error.message.includes('Could not obtain a valid client ID')) {
+      errorMessage = 'SoundCloud API is temporarily unavailable. Please try again later.'
     } else {
       errorMessage += 'Please make sure the URL is correct and the playlist is public.'
     }
