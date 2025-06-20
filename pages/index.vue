@@ -28,6 +28,16 @@
       </div>
     </div>
 
+    <!-- Debug Info -->
+    <div v-if="tracks || playlistInfo" class="bg-blue-900/20 border border-blue-800/50 text-blue-200 p-4 rounded-xl mb-8 backdrop-blur-sm">
+      <div class="text-sm">
+        <div>PlaylistInfo exists: {{ !!playlistInfo }}</div>
+        <div>Tracks exists: {{ !!tracks }}</div>
+        <div>Tracks length: {{ tracks?.length || 0 }}</div>
+        <div>Condition result: {{ !!(playlistInfo && tracks && tracks.length > 0) }}</div>
+      </div>
+    </div>
+
     <!-- Track List -->
     <TrackList 
       v-if="playlistInfo && tracks && tracks.length > 0"

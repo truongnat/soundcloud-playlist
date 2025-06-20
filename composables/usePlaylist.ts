@@ -17,6 +17,10 @@ export const usePlaylist = () => {
 
       const data: PlaylistResponse = await response.json()
       
+      console.log('usePlaylist: Raw API response:', data)
+      console.log('usePlaylist: Tracks array:', data.tracks)
+      console.log('usePlaylist: PlaylistInfo:', data.playlistInfo)
+      
       if (!data.tracks || !Array.isArray(data.tracks)) {
         throw new Error('Invalid playlist data received')
       }
