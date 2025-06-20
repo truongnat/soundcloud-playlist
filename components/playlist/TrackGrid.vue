@@ -1,6 +1,6 @@
 <template>
-  <!-- Grid Container -->
-  <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6">      
+  <!-- Grid Container with better responsive breakpoints -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-3 lg:gap-4 xl:gap-6">      
     <TrackCard
       v-for="track in tracks"
       :key="getTrackId(track)"
