@@ -57,11 +57,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watchEffect, inject, type Ref } from 'vue'
+import { ref, computed, watchEffect, inject, type Ref, onMounted } from 'vue'
 import type { Track, PlaylistInfo, PlaylistResponse } from '@/types'
 import { usePlaylist } from '@/composables/usePlaylist'
+import { useLogger } from '@/composables/useLogger'
 
 const { error: playlistError } = usePlaylist()
+const logger = useLogger()
 
 // Inject download functionality from layout
 const handleDownloadTrack = inject('handleDownloadTrack') as (track: Track) => Promise<void>
@@ -78,18 +80,27 @@ async function handlePlaylistLoaded(data: PlaylistResponse) {
   tracks.value = data.tracks
   playlistInfo.value = data.playlistInfo
   error.value = ''
+  
+  // Log successful playlist load
+  logger.logPlaylistLoad(data.playlistInfo.url || 'Unknown URL', data.tracks.length)
+  logger.logUserAction(`Loaded playlist: ${data.playlistInfo.title}`)
 }
 
 function handleError(errorMessage: string) {
   error.value = errorMessage
   tracks.value = []
   playlistInfo.value = null
+  
+  // Log playlist error
+  logger.logPlaylistError('Unknown URL', errorMessage)
+  logger.logError('Playlist Load Failed', errorMessage)
 }
 
 async function handleDownloadAll() {
   if (!tracks.value || tracks.value.length === 0) return
   
   isDownloadingAll.value = true
+  
   try {
     // Filter out tracks that are already being downloaded or have errors
     const tracksToDownload = tracks.value.filter(track => {
@@ -97,12 +108,31 @@ async function handleDownloadAll() {
       return !downloadingTracks.value.includes(trackId) && !errorTracks.value[trackId]
     })
 
+    // Log batch download start
+    logger.logDownloadQueueStart(tracksToDownload.length)
+    logger.logUserAction(`Started batch download of ${tracksToDownload.length} tracks`)
+
+    let successCount = 0
+    let errorCount = 0
+
     // Add all tracks to the queue
     for (const track of tracksToDownload) {
-      await handleDownloadTrack(track)
-      // Add a small delay between each track to prevent overwhelming the server
-      await new Promise(resolve => setTimeout(resolve, 500))
+      try {
+        await handleDownloadTrack(track)
+        successCount++
+        // Add a small delay between each track to prevent overwhelming the server
+        await new Promise(resolve => setTimeout(resolve, 500))
+      } catch (error) {
+        errorCount++
+        logger.logDownloadError(track.title, error instanceof Error ? error.message : 'Unknown error')
+      }
     }
+
+    // Log batch download completion
+    logger.logDownloadQueueComplete(successCount, tracksToDownload.length)
+    
+  } catch (error) {
+    logger.logError('Batch Download Failed', error instanceof Error ? error.message : 'Unknown error')
   } finally {
     isDownloadingAll.value = false
   }
@@ -112,7 +142,14 @@ async function handleDownloadAll() {
 watchEffect(() => {
   if (playlistError.value) {
     error.value = playlistError.value
+    logger.logPlaylistError('Unknown URL', playlistError.value)
   }
+})
+
+// Log page visit
+onMounted(() => {
+  logger.logUserAction('Visited playlist page')
+  logger.logSystemStatus('Playlist Page', 'online', 'Playlist downloader ready')
 })
 </script>
 
