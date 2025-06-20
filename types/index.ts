@@ -42,6 +42,7 @@ export interface PlaylistInfo {
   description: string
   artwork: string
   tracksCount: number
+  user?: string
 }
 
 export interface PlaylistResponse {
