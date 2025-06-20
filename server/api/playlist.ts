@@ -322,7 +322,7 @@ export default defineEventHandler(async (event) => {
       const batchResults = await Promise.all(
         batch.map(async (track: SoundCloudTrack) => {
           const trackInfo: ProcessedTrack = {
-            id: track.id,
+            id: track.id.toString(),
             title: track.title,
             artist: track.user.username,
             duration: track.duration,
@@ -352,7 +352,7 @@ export default defineEventHandler(async (event) => {
     }
 
     const response: PlaylistResponse = {
-      info: {
+      playlistInfo: {
         id: playlist.id,
         title: playlist.title,
         description: playlist.description || '',

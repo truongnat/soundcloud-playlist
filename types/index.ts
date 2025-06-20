@@ -46,8 +46,8 @@ export interface PlaylistInfo {
 }
 
 export interface PlaylistResponse {
-  tracks: Track[]
   playlistInfo: PlaylistInfo
+  tracks: Track[]
 }
 
 // Download Queue Types
