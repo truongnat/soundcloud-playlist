@@ -1,71 +1,14 @@
 <template>
-  <div class="h-screen flex flex-col">
-    <!-- Queue Header -->
-    <div class="flex items-center justify-between p-4 border-b border-gray-200 bg-white sticky top-0 z-10">
-      <!-- Left side: Title and status -->
-      <div class="flex items-center space-x-3 flex-1 min-w-0">
-        <svg class="w-5 h-5 text-gray-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-        </svg>
-        <h2 class="text-lg font-semibold text-gray-900 flex-shrink-0">Download Queue</h2>
-        <span v-if="downloadStats.active > 0" class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full flex-shrink-0">
-          {{ downloadStats.active }} active
-        </span>
-      </div>
-
-      <!-- Right side: Action buttons -->
-      <div class="flex items-center space-x-2 flex-shrink-0">
-        <!-- Clear completed button -->
-        <button v-if="downloadStats.completed > 0"
-          @click="downloadQueueStore.clearCompleted"
-          class="px-2 py-1 text-xs text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition-colors"
-          title="Clear completed downloads"
-        >
-          Clear completed
-        </button>
-
-        <!-- Retry all failed button -->
-        <button v-if="downloadStats.failed > 0"
-          @click="handleRetryAllFailed"
-          class="flex items-center space-x-1 px-2 py-1 text-xs text-orange-500 hover:text-orange-700 hover:bg-orange-50 rounded transition-colors font-medium"
-          title="Retry all failed downloads"
-        >
-          <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-          </svg>
-          <span>Retry Failed</span>
-        </button>
-
-        <!-- Discard all button -->
-        <button v-if="downloadStats.total > 0"
-          @click="handleDiscardAll"
-          class="flex items-center space-x-1 px-2 py-1 text-xs text-red-500 hover:text-red-700 hover:bg-red-50 rounded transition-colors font-medium"
-          title="Stop all downloads and clear queue"
-        >
-          <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-          </svg>
-          <span>Discard All</span>
-        </button>
-
-        <!-- Close button -->
-        <button @click="$emit('close')" class="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors ml-1">
-          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
-      </div>
-    </div>
-
+  <div class="h-full flex flex-col">
     <!-- Queue Actions -->
-    <div v-if="downloadStats.queued > 0" class="p-4 bg-gray-50 border-b border-gray-200">
+    <div v-if="downloadStats.queued > 0" class="p-4 bg-gray-800/30 border-b border-gray-700/50">
       <button
         @click="handleDownloadAll"
         :disabled="downloadStats.active > 0"
         class="w-full flex items-center justify-center px-4 py-2 rounded-lg transition-colors"
         :class="downloadStats.active > 0 
-          ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
-          : 'bg-blue-600 text-white hover:bg-blue-700'"
+          ? 'bg-gray-700/50 text-gray-400 cursor-not-allowed' 
+          : 'bg-orange-600 text-white hover:bg-orange-700'"
       >
         <svg class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -74,26 +17,64 @@
       </button>
     </div>
 
+    <!-- Action Buttons -->
+    <div v-if="downloadStats.total > 0" class="p-4 border-b border-gray-700/50 flex items-center justify-between">
+      <div class="flex items-center space-x-2">
+        <!-- Clear completed button -->
+        <button v-if="downloadStats.completed > 0"
+          @click="downloadQueueStore.clearCompleted"
+          class="px-3 py-1.5 text-xs text-gray-400 hover:text-gray-200 hover:bg-gray-800/50 rounded transition-colors"
+          title="Clear completed downloads"
+        >
+          Clear completed
+        </button>
+
+        <!-- Retry all failed button -->
+        <button v-if="downloadStats.failed > 0"
+          @click="handleRetryAllFailed"
+          class="flex items-center space-x-1 px-3 py-1.5 text-xs text-orange-400 hover:text-orange-300 hover:bg-orange-900/20 rounded transition-colors font-medium"
+          title="Retry all failed downloads"
+        >
+          <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          <span>Retry Failed</span>
+        </button>
+      </div>
+
+      <!-- Discard all button -->
+      <button
+        @click="handleDiscardAll"
+        class="flex items-center space-x-1 px-3 py-1.5 text-xs text-red-400 hover:text-red-300 hover:bg-red-900/20 rounded transition-colors font-medium"
+        title="Stop all downloads and clear queue"
+      >
+        <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+        </svg>
+        <span>Discard All</span>
+      </button>
+    </div>
+
     <!-- Queue List -->
     <div class="flex-1 overflow-y-auto">
-      <div v-if="storeQueueItems.length === 0" class="flex flex-col items-center justify-center h-full text-gray-500 p-8">
-        <div class="bg-gray-50 rounded-full p-4 mb-4">
-          <svg class="w-10 h-10 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <div v-if="storeQueueItems.length === 0" class="flex flex-col items-center justify-center h-full text-gray-400 p-8">
+        <div class="bg-gray-800/50 rounded-full p-4 mb-4">
+          <svg class="w-10 h-10 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
           </svg>
         </div>
         <p class="text-base font-medium">Queue is empty</p>
-        <p class="text-sm text-gray-400 mt-1 text-center">Add tracks from the playlist to download them</p>
+        <p class="text-sm text-gray-500 mt-1 text-center">Add tracks from the playlist to download them</p>
       </div>
 
-      <div v-else class="divide-y divide-gray-100">
+      <div v-else class="divide-y divide-gray-700/30">
         <div v-for="item in storeQueueItems"
           :key="item.track.id" 
-          class="p-4 hover:bg-gray-50 transition-colors"
+          class="p-4 hover:bg-gray-800/30 transition-colors"
         >
           <!-- Track Info -->
           <div class="flex items-start space-x-3">
-            <div class="w-10 h-10 bg-gray-100 rounded-lg flex-shrink-0 flex items-center justify-center">
+            <div class="w-10 h-10 bg-gray-800/50 rounded-lg flex-shrink-0 flex items-center justify-center">
               <svg class="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2z" />
               </svg>
@@ -102,8 +83,8 @@
             <div class="flex-1 min-w-0">
               <div class="flex items-center justify-between">
                 <div class="min-w-0 flex-1 mr-4">
-                  <h4 class="font-medium text-gray-900 text-sm max-w-[200px] truncate">{{ item.track.title }}</h4>
-                  <p class="text-xs text-gray-500 truncate">{{ item.track.artist }}</p>
+                  <h4 class="font-medium text-gray-200 text-sm max-w-[200px] truncate">{{ item.track.title }}</h4>
+                  <p class="text-xs text-gray-400 truncate">{{ item.track.artist }}</p>
                 </div>
                 <div class="flex items-center space-x-2 flex-shrink-0">
                   <button 
@@ -112,8 +93,8 @@
                     :disabled="downloadStats.active > 0"
                     class="flex items-center space-x-1 px-3 py-1.5 text-sm font-medium rounded-lg transition-colors"
                     :class="downloadStats.active > 0 
-                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
-                      : 'bg-blue-600 text-white hover:bg-blue-700'"
+                      ? 'bg-gray-700/50 text-gray-400 cursor-not-allowed' 
+                      : 'bg-orange-600 text-white hover:bg-orange-700'"
                     title="Start download"
                   >
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -124,7 +105,7 @@
                   <button
                     v-if="item.status === 'queued'"
                     @click="downloadQueueStore.removeFromQueue(item.track.id.toString())"
-                    class="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                    class="p-1.5 text-gray-400 hover:text-gray-200 hover:bg-gray-800/50 rounded-lg transition-colors"
                     title="Remove from queue"
                   >
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -140,8 +121,8 @@
                   <div class="flex items-center justify-between text-xs">
                     <div class="flex items-center space-x-2">
                       <span class="flex items-center" :class="{
-                        'text-blue-600': item.status === 'downloading',
-                        'text-green-600': item.status === 'converting'
+                        'text-blue-400': item.status === 'downloading',
+                        'text-green-400': item.status === 'converting'
                       }">
                         <svg v-if="item.status === 'downloading'" class="w-4 h-4 mr-1 animate-spin" fill="none" viewBox="0 0 24 24">
                           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -153,17 +134,17 @@
                         {{ getStatusText(item) }}
                       </span>
                       <span class="px-2 py-0.5 rounded-full text-xs" :class="{
-                        'bg-blue-50 text-blue-700': item.status === 'downloading',
-                        'bg-green-50 text-green-700': item.status === 'converting'
+                        'bg-blue-900/50 text-blue-300': item.status === 'downloading',
+                        'bg-green-900/50 text-green-300': item.status === 'converting'
                       }">
                         {{ item.progress }}%
                       </span>
                     </div>
                   </div>
-                  <div class="w-full bg-gray-100 rounded-full h-2">
+                  <div class="w-full bg-gray-700/50 rounded-full h-2">
                     <div class="h-2 rounded-full transition-all duration-300" 
                       :class="{
-                        'bg-blue-600': item.status === 'downloading',
+                        'bg-blue-500': item.status === 'downloading',
                         'bg-green-500': item.status === 'converting'
                       }" 
                       :style="{ width: `${item.progress}%` }"
@@ -172,7 +153,7 @@
                 </div>
 
                 <div v-else-if="item.status === 'completed'" 
-                  class="flex items-center text-sm text-green-600 mt-1 bg-green-50 px-3 py-1.5 rounded-lg"
+                  class="flex items-center text-sm text-green-400 mt-1 bg-green-900/20 px-3 py-1.5 rounded-lg"
                 >
                   <svg class="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
@@ -181,7 +162,7 @@
                 </div>
 
                 <div v-else-if="item.status === 'error'"
-                  class="flex items-center justify-between text-sm text-red-600 bg-red-50 px-3 py-1.5 rounded-lg mt-1"
+                  class="flex items-center justify-between text-sm text-red-400 bg-red-900/20 px-3 py-1.5 rounded-lg mt-1"
                 >
                   <div class="flex items-center flex-1 min-w-0">
                     <svg class="w-4 h-4 mr-1.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -191,14 +172,14 @@
                   </div>
                   <button
                     @click="handleRetry(item.track.id)"
-                    class="ml-2 px-2 py-1 text-xs bg-red-100 hover:bg-red-200 text-red-700 rounded transition-colors flex-shrink-0"
+                    class="ml-2 px-2 py-1 text-xs bg-red-800/50 hover:bg-red-800/70 text-red-300 rounded transition-colors flex-shrink-0"
                     title="Retry download"
                   >
                     Retry
                   </button>
                 </div>
 
-                <div v-else class="text-sm text-gray-500 mt-1 flex items-center">
+                <div v-else class="text-sm text-gray-400 mt-1 flex items-center">
                   <svg class="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
@@ -350,5 +331,8 @@ const handleRetry = async (trackId: string | number) => {
   }
 }
 
+// Expose methods for parent component
+defineExpose({
+  addToQueue
+})
 </script>
-
