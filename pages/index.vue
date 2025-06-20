@@ -72,9 +72,15 @@
         <!-- Track List -->
         <TrackList 
           :tracks="tracks"
-          :downloading-tracks="downloadingTracks"
+          :is-loading="loading"
+          :error="error"
+          :playlist-title="playlistInfo?.title"
+          :playlist-artwork="playlistInfo?.artwork"
+          :is-downloading-all="isDownloadingAll"
+          :downloading-tracks="Array.from(downloadingTracks)"
           :error-tracks="errorTracks"
-          @download-track="handleDownloadTrack"
+          @download="handleDownloadTrack"
+          @download-all="handleDownloadAll"
         />
       </div>
 
@@ -93,12 +99,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watchEffect } from 'vue'
 import type { Track, PlaylistInfo, PlaylistResponse } from '@/types'
 import { usePlaylist } from '@/composables/usePlaylist'
 import { useTrackDownloader } from '@/composables/useTrackDownloader'
 
-const { fetchPlaylist, error: playlistError } = usePlaylist()
+const { error: playlistError } = usePlaylist()
 const {
   downloadingTracks,
   errorTracks,
