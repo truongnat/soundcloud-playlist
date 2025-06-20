@@ -75,13 +75,23 @@
 </template>
 
 <script setup lang="ts">
+import { usePlaylist } from '@/composables/usePlaylist'
+import type { PlaylistResponse } from '@/types'
+
 const playlistUrl = ref('')
 const error = ref('')
-const emit = defineEmits(['fetch-playlist'])
+const loading = ref(false)
+
+const emit = defineEmits<{
+  'playlist-loaded': [data: PlaylistResponse]
+  'error': [message: string]
+}>()
 
 defineProps<{
-  loading: boolean
+  loading?: boolean
 }>()
+
+const { fetchPlaylist } = usePlaylist()
 
 const isValidUrl = computed(() => {
   if (!playlistUrl.value) return false
@@ -95,7 +105,7 @@ const isValidUrl = computed(() => {
   }
 })
 
-const handleFetchPlaylist = () => {
+const handleFetchPlaylist = async () => {
   error.value = ''
   if (!playlistUrl.value) {
     error.value = 'Please enter a SoundCloud playlist URL'
@@ -107,6 +117,17 @@ const handleFetchPlaylist = () => {
     return
   }
   
-  emit('fetch-playlist', playlistUrl.value.trim())
+  loading.value = true
+  
+  try {
+    const data = await fetchPlaylist(playlistUrl.value.trim())
+    emit('playlist-loaded', data)
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Failed to load playlist'
+    error.value = message
+    emit('error', message)
+  } finally {
+    loading.value = false
+  }
 }
 </script>
