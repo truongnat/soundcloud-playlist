@@ -1,15 +1,15 @@
 <template>
   <UApp class="dark">
-    <div class="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 text-gray-100 flex">
+    <div class="h-screen bg-gradient-to-br from-gray-900 to-gray-800 text-gray-100 flex overflow-hidden">
       <!-- Left Sidebar - Activity Logs -->
       <Transition name="slide-left">
         <aside v-if="uiStore.showLogsPanel"
-          class="w-full sm:w-80 bg-gray-900/50 border-r border-gray-700/50 flex-shrink-0 flex flex-col fixed sm:relative inset-0 sm:inset-auto z-50 sm:z-auto"
+          class="w-full sm:w-80 bg-gray-900/50 border-r border-gray-700/50 flex-shrink-0 flex flex-col fixed sm:relative inset-0 sm:inset-auto z-50 sm:z-auto h-full"
           role="complementary"
           aria-label="Activity logs">
           
           <!-- Logs Panel Header (Mobile only) -->
-          <div class="sm:hidden p-4 border-b border-gray-700/50 flex items-center justify-between">
+          <div class="sm:hidden p-4 border-b border-gray-700/50 flex items-center justify-between flex-shrink-0">
             <div class="flex items-center gap-3">
               <svg class="w-5 h-5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -33,14 +33,14 @@
           </div>
 
           <!-- Logs Panel Content -->
-          <div class="flex-1 overflow-hidden">
+          <div class="flex-1 overflow-hidden min-h-0">
             <LogsPanel @close="toggleLogsPanel" />
           </div>
         </aside>
       </Transition>
 
       <!-- Main Content Area -->
-      <div class="flex-1 flex flex-col min-w-0">
+      <div class="flex-1 flex flex-col min-w-0 h-full">
         <!-- Header -->
         <header class="backdrop-blur-md bg-gray-900/80 border-b border-gray-700/50 sticky top-0 z-40">
           <div class="px-4 lg:px-6 h-16 flex items-center justify-between">
