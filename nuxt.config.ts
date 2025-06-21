@@ -19,7 +19,6 @@ export default defineNuxtConfig({
     }
   },
   nitro: {
-    preset: 'netlify',
     routeRules: {
       '/**': {
         headers: {
