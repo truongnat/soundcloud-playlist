@@ -297,6 +297,7 @@
 import { ref, nextTick, onMounted, computed, provide } from 'vue'
 import { useUIStore } from '@/stores/ui'
 import { useDownloadQueueStore } from '@/stores/downloadQueue'
+import { useLogsStore } from '@/stores/logs'
 import type { Track } from '@/types'
 
 // Enhanced error handling
@@ -307,6 +308,7 @@ const handleError = (error: Error) => {
 
 const uiStore = useUIStore()
 const downloadQueueStore = useDownloadQueueStore()
+const logsStore = useLogsStore()
 const downloadQueueRef = ref()
 
 // Track download state
@@ -351,8 +353,15 @@ const downloadStats = computed(() => {
   return stats
 })
 
+// Logs statistics
+const logStats = computed(() => logsStore.logStats)
+
 const toggleDownloadQueue = () => {
   uiStore.showDownloadQueue = !uiStore.showDownloadQueue
+}
+
+const toggleLogsPanel = () => {
+  uiStore.toggleLogsPanel()
 }
 
 const handleDownloadTrack = async (track: Track) => {
@@ -427,6 +436,23 @@ useHead({
 </script>
 
 <style>
+.slide-left-enter-active,
+.slide-left-leave-active {
+  transition: all 0.3s ease;
+}
+
+.slide-left-enter-from,
+.slide-left-leave-to {
+  transform: translateX(-100%);
+  opacity: 0;
+}
+
+.slide-left-enter-to,
+.slide-left-leave-from {
+  transform: translateX(0);
+  opacity: 1;
+}
+
 .slide-right-enter-active,
 .slide-right-leave-active {
   transition: all 0.3s ease;

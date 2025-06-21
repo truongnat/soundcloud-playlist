@@ -231,6 +231,10 @@ import { useLogsStore } from '@/stores/logs'
 import { useLogger } from '@/composables/useLogger'
 import type { LogEntry } from '@/stores/logs'
 
+const emit = defineEmits<{
+  (e: 'close'): void
+}>()
+
 const logsStore = useLogsStore()
 const logger = useLogger()
 const expandedLogs = ref<string[]>([])
