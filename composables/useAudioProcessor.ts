@@ -138,7 +138,9 @@ export const useAudioProcessor = () => {
         console.error('Conversion error:', error)
         const errorMessage = error instanceof Error ? error.message : 'Unknown error'
         throw new Error(`Conversion failed: ${errorMessage}`)
-      }      console.log('Reading output file')
+      }
+      
+      console.log('Reading output file')
       const data = await ffmpeg.value.readFile('output.mp3')
       
       if (!(data instanceof Uint8Array)) {
