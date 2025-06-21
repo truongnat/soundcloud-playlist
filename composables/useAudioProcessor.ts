@@ -147,7 +147,7 @@ export const useAudioProcessor = () => {
         '-acodec', 'libmp3lame',           // Explicitly set audio codec
         '-ar', '44100',                    // Set sample rate
         '-ac', '2',                        // Set to stereo
-        '-b:a', performanceSettings.audioQuality, // Use dynamic bitrate
+        '-b:a', performanceSettings.value.audioQuality, // Use dynamic bitrate
         '-f', 'mp3',                       // Force MP3 format
         '-y',                              // Overwrite output
         'output.mp3'

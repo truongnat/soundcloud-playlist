@@ -45,7 +45,7 @@ export const useDownloadQueue = () => {
     store.addToQueue(track)
     // Auto-start download if we have available slots
     nextTick(() => {
-      if (downloadSemaphore.value < performanceSettings.maxConcurrentDownloads) {
+      if (downloadSemaphore.value < performanceSettings.value.maxConcurrentDownloads) {
         const trackId = track.id.toString()
         const queueItem = store.queue[trackId]
         if (queueItem && queueItem.status === 'queued') {
@@ -159,7 +159,7 @@ export const useDownloadQueue = () => {
           const contentLength = +(audioResponse.headers.get('Content-Length') || 0)
           let receivedLength = 0
           const chunks: Uint8Array[] = []
-          const chunkSize = performanceSettings.chunkSize
+          const chunkSize = performanceSettings.value.chunkSize
 
           while (true) {
             // Kiểm tra cancel trong quá trình download
