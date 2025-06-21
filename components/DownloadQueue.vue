@@ -61,7 +61,7 @@
     </div>
 
     <!-- Queue List -->
-    <div class="flex-1 overflow-y-auto">
+    <div class="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800">
       <div v-if="storeQueueItems.length === 0" class="flex flex-col items-center justify-center h-full text-gray-400 p-8">
         <div class="bg-gray-800/50 rounded-full p-4 mb-4">
           <svg class="w-10 h-10 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
