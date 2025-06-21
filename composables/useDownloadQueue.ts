@@ -220,10 +220,12 @@ export const useDownloadQueue = () => {
       }
 
       // Convert to MP3
+      console.log('Starting conversion for track:', track.title)
       store.updateTrackStatus(trackId, 'converting')
       conversionStartTime = Date.now()
       const mp3Blob = await convertToMp3(audioData!)
       const conversionTime = Date.now() - conversionStartTime
+      console.log('Conversion completed for track:', track.title, 'Time:', conversionTime + 'ms')
 
       // Kiểm tra cancel trước khi save
       if (abortController.signal.aborted) {
@@ -231,8 +233,10 @@ export const useDownloadQueue = () => {
       }
 
       // Save file
+      console.log('Saving file for track:', track.title)
       const filename = sanitizeFilename(`${track.title}.mp3`)
       await downloadBlob(mp3Blob, filename)
+      console.log('File saved successfully:', filename)
 
       // Mark as completed
       store.updateTrackStatus(trackId, 'completed')

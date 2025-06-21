@@ -41,11 +41,18 @@ export const useAudioProcessor = () => {
         // Load FFmpeg with multi-threading support
         const baseURL = 'https://unpkg.com/@ffmpeg/core-mt@0.12.10/dist/esm'
         
-        await ffmpeg.value.load({
-          coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
-          wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm'),
-          workerURL: await toBlobURL(`${baseURL}/ffmpeg-core.worker.js`, 'text/javascript'),
-        })
+        console.log('Loading FFmpeg with multi-threading from:', baseURL)
+        
+        try {
+          await ffmpeg.value.load({
+            coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
+            wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm'),
+            workerURL: await toBlobURL(`${baseURL}/ffmpeg-core.worker.js`, 'text/javascript'),
+          })
+        } catch (loadError) {
+          console.error('Multi-threaded FFmpeg load failed:', loadError)
+          throw loadError
+        }
         
         console.log('FFmpeg loaded successfully with multi-threading support')
       } else {
@@ -142,16 +149,18 @@ export const useAudioProcessor = () => {
       })
 
       try {
+        console.log('Executing FFmpeg conversion command...')
         await Promise.race([conversionPromise, timeoutPromise])
-        console.log('Conversion completed successfully')
+        console.log('FFmpeg conversion completed successfully')
       } catch (error: unknown) {
         console.error('Conversion error:', error)
         const errorMessage = error instanceof Error ? error.message : 'Unknown error'
         throw new Error(`Conversion failed: ${errorMessage}`)
       }
       
-      console.log('Reading output file')
+      console.log('Reading output file from FFmpeg...')
       const data = await ffmpeg.value.readFile('output.mp3')
+      console.log('Output file read, size:', data instanceof Uint8Array ? data.length : 'Invalid type')
       
       if (!(data instanceof Uint8Array)) {
         console.error('Output is not Uint8Array:', typeof data)
@@ -171,8 +180,10 @@ export const useAudioProcessor = () => {
         throw new Error('Invalid MP3 format: No valid MP3 frame found')
       }
 
-      console.log('MP3 validation successful')
-      return new Blob([data], { type: 'audio/mpeg' })
+      console.log('MP3 validation successful, creating blob...')
+      const blob = new Blob([data], { type: 'audio/mpeg' })
+      console.log('Blob created successfully, size:', blob.size)
+      return blob
 
     } catch (error) {
       console.error('Error converting to MP3:', error)
