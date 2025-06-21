@@ -1,64 +1,10 @@
 import { Soundcloud } from 'soundcloud.ts'
 import type { Track, StreamResponse, SoundCloudAPITrack } from '~/types'
 import { getClientId } from '../utils/soundcloud'
+import { getTranscoding, getStreamUrl } from '~/utils/soundcloud'
+import { fetchWithRetry, handleApiError } from '~/utils/api'
 
 let soundcloud: Soundcloud
-
-function getTranscoding(trackDetails: SoundCloudAPITrack) {
-  if (!trackDetails.media || !Array.isArray(trackDetails.media.transcodings) || trackDetails.media.transcodings.length === 0) {
-    throw createError({
-      statusCode: 404,
-      message: 'No transcoding data available for this track. The track may be unavailable or restricted.'
-    })
-  }
-
-  // Find MP3 transcoding
-  const mp3Transcoding = trackDetails.media.transcodings.find(t => 
-    t.format?.protocol === 'progressive' && 
-    t.format?.mime_type === 'audio/mpeg' &&
-    t.url
-  )
-  
-  if (mp3Transcoding) {
-    return {
-      url: mp3Transcoding.url,
-      isHLS: false,
-      duration: mp3Transcoding.duration || trackDetails.duration,
-      format: {
-        protocol: 'progressive' as const,
-        mimeType: mp3Transcoding.format.mime_type
-      }
-    }
-  }
-
-  // Try to find HLS stream instead
-  const hlsTranscoding = trackDetails.media.transcodings.find(t =>
-    t.format?.protocol === 'hls' &&
-    t.format?.mime_type === 'audio/mpeg' &&
-    t.url
-  )
-
-  if (!hlsTranscoding) {
-    const availableFormats = trackDetails.media.transcodings
-      .map(t => `${t.format?.protocol || 'unknown'} (${t.format?.mime_type || 'unknown'})`)
-      .join(', ')
-    
-    throw createError({
-      statusCode: 404,
-      message: `No suitable audio stream found for this track. Available formats: ${availableFormats}`
-    })
-  }
-
-  return {
-    url: hlsTranscoding.url,
-    isHLS: true,
-    duration: hlsTranscoding.duration || trackDetails.duration,
-    format: {
-      protocol: 'hls' as const,
-      mimeType: hlsTranscoding.format.mime_type
-    }
-  }
-}
 
 export default defineEventHandler(async (event): Promise<StreamResponse> => {
   try {
@@ -127,31 +73,16 @@ export default defineEventHandler(async (event): Promise<StreamResponse> => {
 
     while (attempt < maxRetries && !streamUrl) {
       try {
-        const response = await fetch(`${transcoding.url}?client_id=${clientId}`)
-
-        if (!response.ok) {
-          if (response.status === 429) {
-            // Rate limited, wait longer
-            const delay = 5000 * Math.pow(2, attempt)
-            console.log(`Rate limited, waiting ${delay}ms...`)
-            await new Promise(resolve => setTimeout(resolve, delay))
-            attempt++
-            continue
-          }
-
-          throw new Error(`Failed to get stream URL: ${response.status} ${response.statusText}`)
-        }
-
-        const data = await response.json()
-        streamUrl = data.url
+        streamUrl = await getStreamUrl(transcoding.url, clientId)
       } catch (error: any) {
         attempt++
         console.error(`Stream URL attempt ${attempt}/${maxRetries} failed:`, error.message)
 
-        if (error.status === 401 || error.message?.includes('client_id')) {
+        if (error.message?.includes('401') || error.message?.includes('client_id')) {
           // Try to get a new client ID if the current one is invalid
           const newClientId = await getClientId()
           soundcloud = new Soundcloud(newClientId)
+          clientId = newClientId
           await new Promise(resolve => setTimeout(resolve, 1000))
         } else if (attempt === maxRetries) {
           throw createError({
