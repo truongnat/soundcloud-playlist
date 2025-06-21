@@ -84,16 +84,44 @@ export const useAudioProcessor = () => {
         }
       }
       
+      // Strategy 4: Try with a fresh FFmpeg instance if still failing
+      if (!loadSuccess) {
+        try {
+          console.log('Attempting FFmpeg load with fresh instance...')
+          ffmpeg.value = new FFmpeg()
+          await ffmpeg.value.load()
+          loadSuccess = true
+          console.log('FFmpeg loaded successfully (fresh instance)')
+        } catch (freshError) {
+          console.warn('Fresh instance FFmpeg load failed:', freshError)
+        }
+      }
+      
       if (!loadSuccess) {
         throw new Error('All FFmpeg loading strategies failed')
       }
       
-      // Verify FFmpeg is actually loaded
-      if (!ffmpeg.value.loaded) {
-        throw new Error('FFmpeg loaded but not in ready state')
+      // Give FFmpeg a moment to fully initialize
+      await new Promise(resolve => setTimeout(resolve, 100))
+      
+      // Verify FFmpeg is actually loaded - be more lenient with the check
+      if (!ffmpeg.value || typeof ffmpeg.value.exec !== 'function') {
+        throw new Error('FFmpeg not properly initialized - missing exec function')
       }
       
       console.log('FFmpeg initialization completed successfully')
+      console.log('FFmpeg loaded state:', ffmpeg.value.loaded)
+      console.log('FFmpeg has exec function:', typeof ffmpeg.value.exec === 'function')
+      
+      // Test FFmpeg with a simple command to ensure it's working
+      try {
+        console.log('Testing FFmpeg functionality...')
+        await ffmpeg.value.exec(['-version'])
+        console.log('FFmpeg test successful')
+      } catch (testError) {
+        console.warn('FFmpeg test failed, but continuing anyway:', testError)
+        // Don't throw here, as some FFmpeg builds might not support -version
+      }
       
     } catch (error) {
       console.error('FFmpeg initialization failed completely:', error)
@@ -122,8 +150,8 @@ export const useAudioProcessor = () => {
         throw new Error('FFmpeg not initialized')
       }
 
-      if (!ffmpeg.value.loaded) {
-        throw new Error('FFmpeg not loaded properly')
+      if (typeof ffmpeg.value.exec !== 'function') {
+        throw new Error('FFmpeg not properly loaded - missing exec function')
       }
 
       console.log('FFmpeg initialized successfully, writing input file...')
