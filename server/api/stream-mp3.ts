@@ -19,7 +19,7 @@ export default defineEventHandler(async (event): Promise<StreamResponse> => {
     }
 
     // Initialize SoundCloud client
-    const clientId = await getClientId()
+    let clientId = await getClientId()
     soundcloud = new Soundcloud(clientId)
 
     // Get track details with retry logic

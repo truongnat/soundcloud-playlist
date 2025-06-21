@@ -2,6 +2,7 @@ import { ref } from 'vue'
 import { FFmpeg } from '@ffmpeg/ffmpeg'
 import { toBlobURL } from '@ffmpeg/util'
 import type { FFmpegType } from '@/types'
+import { validateAudioFormat, validateMP3Output } from '~/utils/audio'
 
 export const useAudioProcessor = () => {
   const ffmpeg = ref<FFmpegType>()
@@ -50,13 +51,7 @@ export const useAudioProcessor = () => {
       console.log('Writing input file')
       
       // Verify input data format before conversion
-      const isMP3 = inputData[0] === 0xFF && (inputData[1] & 0xE0) === 0xE0
-      const isM4A = (
-        inputData[4] === 0x66 && // f
-        inputData[5] === 0x74 && // t
-        inputData[6] === 0x79 && // y
-        inputData[7] === 0x70    // p
-      )
+      const { isMP3, isM4A } = validateAudioFormat(inputData)
       
       console.log('Input format:', isMP3 ? 'MP3' : isM4A ? 'M4A' : 'Unknown')
       
@@ -104,24 +99,8 @@ export const useAudioProcessor = () => {
       // Log first few bytes for debugging
       console.log('Output file first bytes:', Array.from(data.slice(0, 4)).map(b => b.toString(16).padStart(2, '0')).join(' '))
       
-      // More thorough MP3 header verification
-      const hasID3 = data[0] === 0x49 && data[1] === 0x44 && data[2] === 0x33 // "ID3"
-      let offset = 0
-      
-      if (hasID3) {
-        // Skip ID3v2 tag if present
-        const id3Size = ((data[6] & 0x7f) << 21) | ((data[7] & 0x7f) << 14) | ((data[8] & 0x7f) << 7) | (data[9] & 0x7f)
-        offset = id3Size + 10
-        console.log('Found ID3v2 tag, skipping', offset, 'bytes')
-      }
-      
-      // Check for MP3 sync word (0xFFF) after ID3 tag if present
-      const isValidMp3 = (data[offset] === 0xFF && (data[offset + 1] & 0xE0) === 0xE0) || 
-                        (data[offset] === 0xFF && data[offset + 1] === 0xFB)
-      
-      if (!isValidMp3) {
-        console.error('Invalid MP3 header at offset', offset, ':', 
-          Array.from(data.slice(offset, offset + 4)).map(b => b.toString(16).padStart(2, '0')).join(' '))
+      // Validate MP3 output
+      if (!validateMP3Output(data)) {
         throw new Error('Invalid MP3 format: No valid MP3 frame found')
       }
 

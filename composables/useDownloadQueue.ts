@@ -15,17 +15,7 @@ export const useDownloadQueue = () => {
   // Helper functions
   const getTrackId = (id: string | number): string => id.toString()
   
-  const downloadFile = async (blob: Blob, filename: string): Promise<void> => {
-    const url = window.URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = filename
-    document.body.appendChild(a)
-    a.click()
-    window.URL.revokeObjectURL(url)
-    document.body.removeChild(a)
-  }
-
+  
   const retryDownload = async (trackId: string): Promise<void> => {
     const queueItem = store.queue[trackId]
     if (!queueItem || !['error', 'retry'].includes(queueItem.status)) return
@@ -176,13 +166,7 @@ export const useDownloadQueue = () => {
           }
 
           // Verify data format
-          const isMP3 = audioData[0] === 0xFF && (audioData[1] & 0xE0) === 0xE0
-          const isM4A = (
-            audioData[4] === 0x66 && // f
-            audioData[5] === 0x74 && // t
-            audioData[6] === 0x79 && // y
-            audioData[7] === 0x70    // p
-          )
+          const { isMP3, isM4A } = validateAudioFormat(audioData)
           
           if (!isMP3 && !isM4A) {
             throw new Error('Invalid audio format')
@@ -215,8 +199,8 @@ export const useDownloadQueue = () => {
       }
 
       // Save file
-      const filename = `${track.title}.mp3`.replace(/[<>:"/\\|?*]/g, '_')
-      await downloadFile(mp3Blob, filename)
+      const filename = sanitizeFilename(`${track.title}.mp3`)
+      await downloadBlob(mp3Blob, filename)
 
       // Mark as completed
       store.updateTrackStatus(trackId, 'completed')
