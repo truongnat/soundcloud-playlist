@@ -2,9 +2,42 @@
   <UApp class="dark">
     <div class="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 text-gray-100 flex">
       <!-- Left Sidebar - Activity Logs -->
-      <aside class="hidden lg:block w-80 bg-gray-900/50 border-r border-gray-700/50 flex-shrink-0">
-        <LogsPanel />
-      </aside>
+      <Transition name="slide-left">
+        <aside v-if="uiStore.showLogsPanel"
+          class="w-full sm:w-80 bg-gray-900/50 border-r border-gray-700/50 flex-shrink-0 flex flex-col fixed sm:relative inset-0 sm:inset-auto z-50 sm:z-auto"
+          role="complementary"
+          aria-label="Activity logs">
+          
+          <!-- Logs Panel Header (Mobile only) -->
+          <div class="sm:hidden p-4 border-b border-gray-700/50 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <svg class="w-5 h-5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              <h2 class="text-lg font-semibold text-gray-200">Activity Logs</h2>
+              <span v-if="logStats.total > 0" 
+                class="bg-blue-500/20 text-blue-400 text-xs px-2 py-1 rounded-full">
+                {{ logStats.total }}
+              </span>
+            </div>
+            
+            <button
+              @click="toggleLogsPanel"
+              class="p-1.5 text-gray-400 hover:text-gray-200 transition-colors rounded-lg hover:bg-gray-800/50"
+              aria-label="Close logs panel">
+              <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          <!-- Logs Panel Content -->
+          <div class="flex-1 overflow-hidden">
+            <LogsPanel @close="toggleLogsPanel" />
+          </div>
+        </aside>
+      </Transition>
 
       <!-- Main Content Area -->
       <div class="flex-1 flex flex-col min-w-0">
@@ -44,6 +77,26 @@
             </div>
             
             <div class="flex items-center gap-2 lg:gap-4">
+              <!-- Logs Panel Toggle Button -->
+              <button
+                @click="toggleLogsPanel"
+                class="relative p-2 text-gray-400 hover:text-blue-500 transition-all hover:scale-110 rounded-lg hover:bg-gray-800/50"
+                :class="{ 'text-blue-500': uiStore.showLogsPanel }"
+                aria-label="Toggle activity logs"
+              >
+                <svg class="w-5 h-5 lg:w-6 lg:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                
+                <!-- Logs Count Badge -->
+                <span v-if="logStats.total > 0"
+                  class="absolute -top-1 -right-1 bg-blue-500 text-white text-xs font-medium rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1"
+                  aria-hidden="true">
+                  {{ logStats.total }}
+                </span>
+              </button>
+
               <!-- Download Queue Toggle Button -->
               <button
                 @click="toggleDownloadQueue"
@@ -128,11 +181,20 @@
         </aside>
       </Transition>
 
-      <!-- Mobile Backdrop -->
+      <!-- Mobile Backdrop for Download Queue -->
       <Transition name="fade">
         <div v-if="uiStore.showDownloadQueue" 
           class="sm:hidden fixed inset-0 bg-black/40 backdrop-blur-sm z-40"
           @click="toggleDownloadQueue"
+          aria-hidden="true">
+        </div>
+      </Transition>
+
+      <!-- Mobile Backdrop for Logs Panel -->
+      <Transition name="fade">
+        <div v-if="uiStore.showLogsPanel" 
+          class="sm:hidden fixed inset-0 bg-black/40 backdrop-blur-sm z-40"
+          @click="toggleLogsPanel"
           aria-hidden="true">
         </div>
       </Transition>
