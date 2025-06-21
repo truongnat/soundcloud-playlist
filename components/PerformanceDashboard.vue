@@ -193,6 +193,12 @@ const successRateColor = computed(() => {
 
 const avgSpeed = computed(() => {
   const speed = metrics.averageDownloadSpeed
+  
+  // Handle invalid or zero values
+  if (!speed || speed === 0 || isNaN(speed)) {
+    return '0 B/s'
+  }
+  
   if (speed > 1024 * 1024) {
     return `${Math.round(speed / (1024 * 1024))}MB/s`
   } else if (speed > 1024) {
