@@ -4,14 +4,17 @@ import type { UIState } from '@/types'
 export const useUIStore = defineStore('ui', {
   state: (): UIState => ({
     showDownloadQueue: false,
-    shouldKeepQueueOpen: false
+    shouldKeepQueueOpen: false,
+    showLogsPanel: false
   }),
 
   getters: {
-    isQueueVisible: (state) => state.showDownloadQueue
+    isQueueVisible: (state) => state.showDownloadQueue,
+    isLogsPanelVisible: (state) => state.showLogsPanel
   },
 
   actions: {
+    // Download Queue Actions
     toggleDownloadQueue() {
       this.showDownloadQueue = !this.showDownloadQueue
     },
@@ -36,6 +39,19 @@ export const useUIStore = defineStore('ui', {
     resetKeepQueueOpen() {
       this.shouldKeepQueueOpen = false
       this.hideQueue()
+    },
+
+    // Logs Panel Actions
+    toggleLogsPanel() {
+      this.showLogsPanel = !this.showLogsPanel
+    },
+
+    showLogsPanel() {
+      this.showLogsPanel = true
+    },
+
+    hideLogsPanel() {
+      this.showLogsPanel = false
     }
   }
 })

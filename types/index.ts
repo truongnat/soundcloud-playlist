@@ -93,6 +93,7 @@ export type { FFmpeg as FFmpegType } from '@ffmpeg/ffmpeg'
 export interface UIState {
   showDownloadQueue: boolean
   shouldKeepQueueOpen: boolean
+  showLogsPanel: boolean
 }
 
 // Download Queue Store State
