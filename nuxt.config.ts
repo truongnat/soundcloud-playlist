@@ -19,6 +19,7 @@ export default defineNuxtConfig({
     }
   },
   nitro: {
+    preset: 'netlify',
     routeRules: {
       '/**': {
         headers: {
@@ -26,6 +27,15 @@ export default defineNuxtConfig({
           'Cross-Origin-Opener-Policy': 'same-origin'
         }
       }
+    },
+    experimental: {
+      wasm: true
     }
   },
+  runtimeConfig: {
+    // Server-side environment variables
+    public: {
+      // Client-side environment variables
+    }
+  }
 })
