@@ -25,11 +25,25 @@ export default defineNuxtConfig({
           'Cross-Origin-Embedder-Policy': 'unsafe-none',
           'Cross-Origin-Opener-Policy': 'same-origin'
         }
+      },
+      '/api/**': {
+        cors: true,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+        }
       }
     },
     experimental: {
       wasm: true
-    }
+    },
+    // Optimize for serverless
+    preset: 'netlify',
+    // Increase timeout for API routes
+    timing: true,
+    // Enable compression
+    compressPublicAssets: true
   },
   runtimeConfig: {
     // Server-side environment variables
