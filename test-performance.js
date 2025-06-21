@@ -102,7 +102,7 @@ function runTests() {
 }
 
 // Run tests if in Node.js environment
-if (typeof module !== 'undefined' && module.exports) {
+if (typeof window === 'undefined') {
   runTests()
 } else {
   // Browser environment
