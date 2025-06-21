@@ -42,7 +42,7 @@
       <!-- Main Content Area -->
       <div class="flex-1 flex flex-col min-w-0 h-full">
         <!-- Header -->
-        <header class="backdrop-blur-md bg-gray-900/80 border-b border-gray-700/50 sticky top-0 z-40">
+        <header class="backdrop-blur-md bg-gray-900/80 border-b border-gray-700/50 flex-shrink-0 z-40">
           <div class="px-4 lg:px-6 h-16 flex items-center justify-between">
             <div class="flex items-center gap-4 lg:gap-8">
               <NuxtLink to="/" class="flex items-center gap-3 hover:scale-105 transition-transform">
@@ -132,7 +132,7 @@
         </header>
 
         <!-- Main Content -->
-        <main class="flex-1 p-4 lg:p-6 overflow-y-auto min-w-0">
+        <main class="flex-1 p-4 lg:p-6 overflow-y-auto min-w-0 min-h-0">
           <div class="w-full">
             <slot />
           </div>
@@ -142,12 +142,12 @@
       <!-- Right Sidebar - Download Queue -->
       <Transition name="slide-right">
         <aside v-if="uiStore.showDownloadQueue"
-          class="w-full sm:w-[420px] bg-gray-900/50 border-l border-gray-700/50 flex-shrink-0 flex flex-col fixed sm:relative inset-0 sm:inset-auto z-50 sm:z-auto"
+          class="w-full sm:w-[420px] bg-gray-900/50 border-l border-gray-700/50 flex-shrink-0 flex flex-col fixed sm:relative inset-0 sm:inset-auto z-50 sm:z-auto h-full"
           role="complementary"
           aria-label="Download queue">
           
           <!-- Download Queue Header (Mobile only) -->
-          <div class="sm:hidden p-4 border-b border-gray-700/50 flex items-center justify-between">
+          <div class="sm:hidden p-4 border-b border-gray-700/50 flex items-center justify-between flex-shrink-0">
             <div class="flex items-center gap-3">
               <svg class="w-5 h-5 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -171,7 +171,7 @@
           </div>
 
           <!-- Download Queue Content -->
-          <div class="flex-1 overflow-hidden">
+          <div class="flex-1 overflow-hidden min-h-0">
             <DownloadQueue 
               ref="downloadQueueRef" 
               @close="toggleDownloadQueue"
