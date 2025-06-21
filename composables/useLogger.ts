@@ -126,6 +126,10 @@ export const useLogger = () => {
     )
   }
 
+  const logSystem = (title: string, message: string, level: 'info' | 'warning' | 'success' = 'info') => {
+    logsStore.logSystem(title, message, level)
+  }
+
   // Utility functions
   const clearLogs = () => {
     logsStore.clearLogs()
@@ -182,6 +186,7 @@ export const useLogger = () => {
     logSystemStatus,
     logMemoryUsage,
     logUserAction,
+    logSystem,
 
     // Downloads
     logDownloadStart,
