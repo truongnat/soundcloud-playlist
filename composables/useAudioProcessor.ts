@@ -20,6 +20,11 @@ export const useAudioProcessor = () => {
   }
   
   const initFFmpeg = async () => {
+    // Ensure we're running on the client side
+    if (typeof window === 'undefined') {
+      throw new Error('FFmpeg can only be initialized on the client side')
+    }
+    
     if (ffmpeg.value?.loaded) {
       console.log('FFmpeg already loaded')
       return

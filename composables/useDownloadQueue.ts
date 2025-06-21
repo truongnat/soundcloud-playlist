@@ -66,6 +66,12 @@ export const useDownloadQueue = () => {
 
   // Download processing
   const startDownload = async (trackId: string): Promise<void> => {
+    // Ensure we're running on the client side
+    if (typeof window === 'undefined') {
+      console.warn('startDownload can only be called on the client side')
+      return
+    }
+    
     const queueItem = store.queue[trackId]
     if (!queueItem || queueItem.status !== 'queued') return
 
@@ -257,6 +263,12 @@ export const useDownloadQueue = () => {
 
   // Start all queued downloads with concurrency control
   const startAllDownloads = async (): Promise<void> => {
+    // Ensure we're running on the client side
+    if (typeof window === 'undefined') {
+      console.warn('startAllDownloads can only be called on the client side')
+      return
+    }
+    
     const queuedItems = queueItems.value.filter(item => item.status === 'queued')
     
     if (queuedItems.length === 0) return
