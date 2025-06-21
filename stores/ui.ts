@@ -46,7 +46,7 @@ export const useUIStore = defineStore('ui', {
       this.showLogsPanel = !this.showLogsPanel
     },
 
-    showLogsPanel() {
+    onShowLogsPanel() {
       this.showLogsPanel = true
     },
 
