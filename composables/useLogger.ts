@@ -10,7 +10,7 @@ export const useLogger = () => {
 
   const logPlaylistLoad = (playlistUrl: string, trackCount: number) => {
     logsStore.logSystem(
-      'Playlist Loaded', 
+      'Playlist Loaded',
       `Loaded playlist with ${trackCount} tracks`,
       'success'
     )
@@ -93,7 +93,13 @@ export const useLogger = () => {
 
   // System status logging
   const logSystemStatus = (component: string, status: 'online' | 'offline' | 'error', message?: string) => {
-    const level = status === 'online' ? 'success' : status === 'offline' ? 'warning' : 'error'
+    // Map 'error' to 'warning' since 'logSystem' does not accept 'error' as a level
+    const level: 'info' | 'warning' | 'success' =
+      status === 'online'
+        ? 'success'
+        : status === 'offline'
+          ? 'warning'
+          : 'warning'
     logsStore.logSystem(
       `${component} Status`,
       message || `${component} is ${status}`,
