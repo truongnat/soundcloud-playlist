@@ -4,8 +4,10 @@
   functions = ".output/server"
 
 [functions]
-  # Increase timeout for serverless functions (max 26 seconds for paid plans)
-  timeout = 26
+  # Set function directory
+  directory = ".output/server"
+
+[functions."*"]
   # Increase memory allocation
   memory = 1024
 
