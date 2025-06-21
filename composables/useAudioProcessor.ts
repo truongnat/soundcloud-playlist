@@ -136,7 +136,31 @@ export const useAudioProcessor = () => {
 
   const reinitializeFFmpeg = async () => {
     console.log('Reinitializing FFmpeg due to error...')
+    
+    // Clean up current instance
+    if (ffmpeg.value) {
+      try {
+        // Try to clean up any remaining files
+        await Promise.race([
+          Promise.all([
+            ffmpeg.value.deleteFile('input.audio').catch(() => {}),
+            ffmpeg.value.deleteFile('output.mp3').catch(() => {})
+          ]),
+          new Promise(resolve => setTimeout(resolve, 1000))
+        ])
+      } catch (cleanupError) {
+        console.warn('Cleanup during reinitialization failed:', cleanupError)
+      }
+    }
+    
+    // Reset the instance
     ffmpeg.value = undefined
+    isLoadingFFmpeg.value = false
+    
+    // Wait a moment before reinitializing
+    await new Promise(resolve => setTimeout(resolve, 500))
+    
+    // Initialize fresh instance
     await initFFmpeg()
   }
 
@@ -327,7 +351,18 @@ export const useAudioProcessor = () => {
         if (shouldRetry) {
           retryCount++
           console.log(`Retrying conversion (${retryCount}/${maxRetries})...`)
-          await reinitializeFFmpeg()
+          
+          // Add delay before retry
+          await new Promise(resolve => setTimeout(resolve, 1000))
+          
+          try {
+            await reinitializeFFmpeg()
+            console.log('FFmpeg reinitialized successfully for retry')
+          } catch (reinitError) {
+            console.error('Failed to reinitialize FFmpeg:', reinitError)
+            throw new Error('Failed to reinitialize FFmpeg for retry')
+          }
+          
           continue // Retry the conversion
         } else {
           throw new Error('Failed to convert audio: ' + errorMessage)
