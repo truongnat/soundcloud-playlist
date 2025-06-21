@@ -1,15 +1,6 @@
 [build]
   command = "npm run build"
   publish = ".output/public"
-  functions = ".output/server"
-
-[functions]
-  # Set function directory
-  directory = ".output/server"
-
-[functions."*"]
-  # Increase memory allocation
-  memory = 1024
 
 [[redirects]]
   from = "/api/*"
@@ -27,21 +18,6 @@
 [build.environment]
   NODE_VERSION = "18"
   NPM_FLAGS = "--production=false"
-
-# Optimize build performance
-[build.processing]
-  skip_processing = false
-
-[build.processing.css]
-  bundle = true
-  minify = true
-
-[build.processing.js]
-  bundle = true
-  minify = true
-
-[build.processing.html]
-  pretty_urls = true
 
 # Cache static assets
 [[headers]]
