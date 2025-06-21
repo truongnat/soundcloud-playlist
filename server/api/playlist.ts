@@ -193,116 +193,27 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  // Initialize the SoundCloud client
-  await initializeSoundcloud()
+  // Set timeout for serverless environment
+  const timeoutPromise = new Promise((_, reject) => {
+    setTimeout(() => reject(new Error('Request timeout')), 25000) // 25 seconds for Netlify
+  })
 
   try {
-    // Handle mobile URLs
-    if (url.includes('soundcloud.app.goo.gl')) {
-      url = await resolveMobileUrl(url)
-    }
-
-    // Clean the URL before processing
-    url = cleanUrl(url)
-    console.log('Processing playlist URL:', url)
-
-    // Get initial playlist data with retry logic
-    let playlist: SoundCloudPlaylist | null = null
-    let retryCount = 0
-    const maxRetries = 5
-
-    while (retryCount < maxRetries && !playlist) {
-      try {
-        playlist = await soundcloud.playlists.get(url) as SoundCloudPlaylist
-      } catch (error: any) {
-        retryCount++
-        console.error(`Attempt ${retryCount}/${maxRetries} failed:`, error.message)
-
-        if (error.status === 401 || error.message.includes('client_id')) {
-          // Reinitialize SoundCloud client with new client ID
-          await initializeSoundcloud()
-          await new Promise(resolve => setTimeout(resolve, 1000))
-        } else if (retryCount === maxRetries) {
-          throw error
-        } else {
-          // Wait before retrying with exponential backoff
-          await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, retryCount)))
-        }
-      }
-    }
-
-    if (!playlist) {
-      throw new Error('Failed to fetch playlist after multiple attempts')
-    }
-
-    console.log(`Found playlist: ${playlist.title} with ${playlist.track_count} tracks`)
-
-    // Get all tracks with pagination
-    const allTracks = await getAllPlaylistTracks(playlist, url)
-    console.log(`Successfully fetched ${allTracks.length} of ${playlist.track_count} tracks`)
-
-    if (allTracks.length === 0) {
-      throw new Error('No tracks could be fetched from the playlist')
-    }
-
-    // Process tracks in batches to avoid rate limiting
-    const batchSize = 5
-    const tracks: ProcessedTrack[] = []
-
-    for (let i = 0; i < allTracks.length; i += batchSize) {
-      const batch = allTracks.slice(i, i + batchSize)
-      const batchResults = await Promise.all(
-        batch.map(async (track: SoundCloudTrack) => {
-          const trackInfo: ProcessedTrack = {
-            id: track.id.toString(),
-            title: track.title,
-            artist: track.user.username,
-            duration: track.duration,
-            artwork: track.artwork_url?.replace('-large', '-t500x500') ||
-              track.user.avatar_url?.replace('-large', '-t500x500') ||
-              'https://secure.gravatar.com/avatar/?size=500&default=mm',
-            url: track.permalink_url,
-            streamUrl: null
-          }
-
-          try {
-            trackInfo.streamUrl = await getStreamUrl(track)
-          } catch (error) {
-            console.error(`Error getting stream URL for track ${track.id}:`, error)
-          }
-
-          return trackInfo
-        })
-      )
-
-      tracks.push(...batchResults)
-
-      // Add delay between batches to avoid rate limiting
-      if (i + batchSize < allTracks.length) {
-        await new Promise(resolve => setTimeout(resolve, 1000))
-      }
-    }
-
-    const response: PlaylistResponse = {
-      playlistInfo: {
-        id: playlist.id,
-        title: playlist.title,
-        description: playlist.description || '',
-        artwork: playlist.artwork_url?.replace('-large', '-t500x500') || 'https://secure.gravatar.com/avatar/?size=500&default=mm',
-        tracksCount: playlist.track_count,
-      },
-      tracks
-    }
-
-    return response
-
+    const result = await Promise.race([
+      processPlaylist(url),
+      timeoutPromise
+    ])
+    return result
   } catch (error: any) {
-    console.error('Error fetching playlist:', error)
-    console.error('Error details:', {
-      message: error.message,
-      status: error.status,
-      url: url
-    })
+    console.error('Error in playlist handler:', error)
+    
+    // Handle timeout specifically
+    if (error.message === 'Request timeout') {
+      throw createError({
+        statusCode: 504,
+        message: 'Request timed out. The playlist might be too large or SoundCloud is slow to respond. Please try again or use a smaller playlist.'
+      })
+    }
 
     let errorMessage = 'Failed to fetch playlist. '
 
@@ -332,3 +243,172 @@ export default defineEventHandler(async (event) => {
     })
   }
 })
+
+async function processPlaylist(url: string): Promise<PlaylistResponse> {
+  // Initialize the SoundCloud client
+  await initializeSoundcloud()
+
+  // Handle mobile URLs
+  if (url.includes('soundcloud.app.goo.gl')) {
+    url = await resolveMobileUrl(url)
+  }
+
+  // Clean the URL before processing
+  url = cleanUrl(url)
+  console.log('Processing playlist URL:', url)
+
+  // Get initial playlist data with reduced retry logic for serverless
+  let playlist: SoundCloudPlaylist | null = null
+  let retryCount = 0
+  const maxRetries = 2 // Reduced for serverless
+
+  while (retryCount < maxRetries && !playlist) {
+    try {
+      playlist = await soundcloud.playlists.get(url) as SoundCloudPlaylist
+    } catch (error: any) {
+      retryCount++
+      console.error(`Attempt ${retryCount}/${maxRetries} failed:`, error.message)
+
+      if (error.status === 401 || error.message.includes('client_id')) {
+        // Reinitialize SoundCloud client with new client ID
+        await initializeSoundcloud()
+        await new Promise(resolve => setTimeout(resolve, 500)) // Reduced delay
+      } else if (retryCount === maxRetries) {
+        throw error
+      } else {
+        // Reduced wait time for serverless
+        await new Promise(resolve => setTimeout(resolve, 500))
+      }
+    }
+  }
+
+  if (!playlist) {
+    throw new Error('Failed to fetch playlist after multiple attempts')
+  }
+
+  console.log(`Found playlist: ${playlist.title} with ${playlist.track_count} tracks`)
+
+  // Limit tracks for serverless environment to avoid timeout
+  const maxTracks = 50 // Limit for serverless
+  const limitedTrackCount = Math.min(playlist.track_count, maxTracks)
+  
+  // Get tracks with reduced pagination for faster response
+  const allTracks = await getAllPlaylistTracksLimited(playlist, url, limitedTrackCount)
+  console.log(`Successfully fetched ${allTracks.length} of ${playlist.track_count} tracks`)
+
+  if (allTracks.length === 0) {
+    throw new Error('No tracks could be fetched from the playlist')
+  }
+
+  // Process tracks with reduced batch size and faster processing
+  const batchSize = 3 // Reduced for serverless
+  const tracks: ProcessedTrack[] = []
+
+  for (let i = 0; i < allTracks.length; i += batchSize) {
+    const batch = allTracks.slice(i, i + batchSize)
+    const batchResults = await Promise.all(
+      batch.map(async (track: SoundCloudTrack) => {
+        const trackInfo: ProcessedTrack = {
+          id: track.id.toString(),
+          title: track.title,
+          artist: track.user.username,
+          duration: track.duration,
+          artwork: track.artwork_url?.replace('-large', '-t500x500') ||
+            track.user.avatar_url?.replace('-large', '-t500x500') ||
+            'https://secure.gravatar.com/avatar/?size=500&default=mm',
+          url: track.permalink_url,
+          streamUrl: null
+        }
+
+        // Skip stream URL fetching for faster response in serverless
+        // Stream URLs will be fetched on-demand by a separate endpoint
+        return trackInfo
+      })
+    )
+
+    tracks.push(...batchResults)
+
+    // Reduced delay for serverless
+    if (i + batchSize < allTracks.length) {
+      await new Promise(resolve => setTimeout(resolve, 200))
+    }
+  }
+
+  const response: PlaylistResponse = {
+    playlistInfo: {
+      id: playlist.id,
+      title: playlist.title,
+      description: playlist.description || '',
+      artwork: playlist.artwork_url?.replace('-large', '-t500x500') || 'https://secure.gravatar.com/avatar/?size=500&default=mm',
+      tracksCount: playlist.track_count,
+    },
+    tracks
+  }
+
+  return response
+}
+
+// Optimized version for serverless with limits
+async function getAllPlaylistTracksLimited(playlist: SoundCloudPlaylist, playlistUrl: string, maxTracks: number): Promise<SoundCloudTrack[]> {
+  const allTracks: SoundCloudTrack[] = [];
+  const limit = 20; // Reduced batch size
+  let offset = 0;
+  let retryCount = 0;
+  const maxRetries = 2; // Reduced retries
+
+  while (offset < Math.min(playlist.track_count, maxTracks)) {
+    try {
+      console.log(`Fetching tracks ${offset} to ${offset + limit} of ${Math.min(playlist.track_count, maxTracks)}`);
+
+      let playlistData: SoundCloudPlaylist | null = null;
+      let fetchRetries = 0;
+
+      while (fetchRetries < 2 && !playlistData) { // Reduced retries
+        try {
+          playlistData = await soundcloud.playlists.get(playlistUrl + `?limit=${limit}&offset=${offset}`) as SoundCloudPlaylist;
+        } catch (error: any) {
+          fetchRetries++;
+          if (error.status === 401 || error.message.includes('client_id')) {
+            console.log('Client ID error, reinitializing SoundCloud client...');
+            await initializeSoundcloud();
+            await new Promise(resolve => setTimeout(resolve, 300)); // Reduced delay
+          } else {
+            throw error;
+          }
+        }
+      }
+      
+      if (!playlistData || !playlistData.tracks || playlistData.tracks.length === 0) {
+        throw new Error('No tracks received in response');
+      }
+
+      allTracks.push(...playlistData.tracks);
+      offset += playlistData.tracks.length;
+      retryCount = 0;
+
+      // Reduced delay for serverless
+      await new Promise(resolve => setTimeout(resolve, 300));
+
+      // Break if we've reached our limit
+      if (allTracks.length >= maxTracks) {
+        break;
+      }
+
+    } catch (error: any) {
+      console.error(`Error fetching tracks at offset ${offset}:`, error);
+
+      retryCount++;
+      if (retryCount >= maxRetries) {
+        console.error(`Max retries (${maxRetries}) reached for offset ${offset}`);
+        break;
+      }
+
+      // Reduced backoff for serverless
+      const delay = Math.min(500 * Math.pow(2, retryCount), 2000);
+      console.log(`Retrying in ${delay}ms... (Attempt ${retryCount}/${maxRetries})`);
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+  }
+
+  return allTracks.slice(0, maxTracks); // Ensure we don't exceed the limit
+}
