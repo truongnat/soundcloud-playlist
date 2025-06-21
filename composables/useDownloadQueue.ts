@@ -132,10 +132,13 @@ export const useDownloadQueue = () => {
         }
       }
 
-      console.log('Got stream URL, downloading...')      // Download the audio file
+      console.log('Got stream URL, downloading...')
+      
+      // Download the audio file
       let audioData: Uint8Array
       let maxRetries = 3
       let attempt = 0
+      downloadStartTime = Date.now()
 
       while (attempt < maxRetries) {
         try {
@@ -151,11 +154,12 @@ export const useDownloadQueue = () => {
           
           if (!audioResponse.body) throw new Error('No response body')
 
-          // Download with progress tracking
+          // Download with progress tracking and performance monitoring
           const reader = audioResponse.body.getReader()
           const contentLength = +(audioResponse.headers.get('Content-Length') || 0)
           let receivedLength = 0
           const chunks: Uint8Array[] = []
+          const chunkSize = performanceSettings.chunkSize
 
           while (true) {
             // Kiểm tra cancel trong quá trình download
@@ -168,6 +172,10 @@ export const useDownloadQueue = () => {
 
             chunks.push(value)
             receivedLength += value.length
+
+            // Calculate download speed
+            const elapsed = (Date.now() - downloadStartTime) / 1000
+            downloadSpeed = receivedLength / elapsed // bytes per second
 
             if (contentLength) {
               store.updateTrackProgress(trackId, Math.round((receivedLength / contentLength) * 100))
@@ -213,7 +221,9 @@ export const useDownloadQueue = () => {
 
       // Convert to MP3
       store.updateTrackStatus(trackId, 'converting')
+      conversionStartTime = Date.now()
       const mp3Blob = await convertToMp3(audioData!)
+      const conversionTime = Date.now() - conversionStartTime
 
       // Kiểm tra cancel trước khi save
       if (abortController.signal.aborted) {
@@ -227,6 +237,10 @@ export const useDownloadQueue = () => {
       // Mark as completed
       store.updateTrackStatus(trackId, 'completed')
       store.updateTrackProgress(trackId, 100)
+      
+      // Update performance metrics
+      updateMetrics(downloadSpeed, conversionTime, true)
+      console.log(`Download completed: ${track.title} (Speed: ${Math.round(downloadSpeed / 1024)}KB/s, Conversion: ${Math.round(conversionTime / 1000)}s)`)
     } catch (error: any) {
       console.error('Download failed:', error)
 
@@ -238,6 +252,8 @@ export const useDownloadQueue = () => {
         // Mark as error cho các lỗi khác
         store.updateTrackStatus(trackId, 'error', error.message)
         store.updateTrackProgress(trackId, 0)
+        // Update metrics for failed download
+        updateMetrics(downloadSpeed, 0, false)
       }
     } finally {
       // Cleanup abort controller
