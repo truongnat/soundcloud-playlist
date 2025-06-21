@@ -24,7 +24,7 @@
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
       <div class="bg-gray-900/50 rounded-lg p-3 text-center">
         <div class="text-sm text-gray-400">Concurrent</div>
-        <div class="text-lg font-bold text-blue-400">{{ settings.maxConcurrentDownloads }}</div>
+        <div class="text-lg font-bold text-blue-400">{{ settings?.maxConcurrentDownloads || 3 }}</div>
       </div>
       <div class="bg-gray-900/50 rounded-lg p-3 text-center">
         <div class="text-sm text-gray-400">Success Rate</div>
@@ -36,8 +36,8 @@
       </div>
       <div class="bg-gray-900/50 rounded-lg p-3 text-center">
         <div class="text-sm text-gray-400">Threading</div>
-        <div class="text-lg font-bold" :class="settings.enableMultiThreading ? 'text-green-400' : 'text-gray-400'">
-          {{ settings.enableMultiThreading ? 'ON' : 'OFF' }}
+        <div class="text-lg font-bold" :class="settings?.enableMultiThreading ? 'text-green-400' : 'text-gray-400'">
+          {{ settings?.enableMultiThreading ? 'ON' : 'OFF' }}
         </div>
       </div>
     </div>
@@ -177,7 +177,13 @@ const {
 } = useDownloadPerformance()
 
 const expanded = ref(false)
-const localSettings = ref({ ...settings })
+const localSettings = ref({ 
+  maxConcurrentDownloads: 3,
+  enableMultiThreading: true,
+  compressionPreset: 'fast' as const,
+  audioQuality: '320k' as const,
+  chunkSize: 1024 * 1024
+})
 
 // Computed properties for display
 const successRate = computed(() => {
@@ -219,10 +225,12 @@ const avgConversionTime = computed(() => {
   return Math.round(time / 1000)
 })
 
-// Watch for settings changes
+// Watch for settings changes and initialize localSettings
 watch(settings, (newSettings) => {
-  localSettings.value = { ...newSettings }
-}, { deep: true })
+  if (newSettings) {
+    localSettings.value = { ...newSettings }
+  }
+}, { deep: true, immediate: true })
 
 const toggleExpanded = () => {
   expanded.value = !expanded.value
@@ -234,7 +242,9 @@ const updateSettings = () => {
 
 const applyOptimalSettings = () => {
   applyOptimal()
-  localSettings.value = { ...settings }
+  if (settings) {
+    localSettings.value = { ...settings }
+  }
 }
 </script>
 
