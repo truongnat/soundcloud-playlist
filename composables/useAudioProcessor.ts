@@ -8,6 +8,15 @@ export const useAudioProcessor = () => {
   const ffmpeg = ref<FFmpegType>()
   const isLoadingFFmpeg = ref(false)
   
+  // Detect number of CPU cores for optimal threading
+  const getOptimalThreadCount = (): number => {
+    if (typeof navigator !== 'undefined' && 'hardwareConcurrency' in navigator) {
+      // Use half of available cores, capped at 8 for optimal performance
+      return Math.min(Math.max(Math.floor(navigator.hardwareConcurrency / 2), 1), 8)
+    }
+    return 4 // Default fallback
+  }
+  
   const initFFmpeg = async () => {
     if (ffmpeg.value?.loaded) {
       console.log('FFmpeg already loaded')
@@ -16,16 +25,33 @@ export const useAudioProcessor = () => {
     
     try {
       isLoadingFFmpeg.value = true
-      console.log('Starting FFmpeg initialization')
+      console.log('Starting FFmpeg initialization with multi-threading support')
       
-      // Create FFmpeg instance with proper CORS configuration
+      // Create FFmpeg instance with multi-threading configuration
       ffmpeg.value = new FFmpeg()
       
-      await ffmpeg.value.load()
-      console.log('FFmpeg loaded successfully')
+      // Load FFmpeg with multi-threading support
+      const baseURL = 'https://unpkg.com/@ffmpeg/core-mt@0.12.10/dist/esm'
+      
+      await ffmpeg.value.load({
+        coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
+        wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm'),
+        workerURL: await toBlobURL(`${baseURL}/ffmpeg-core.worker.js`, 'text/javascript'),
+      })
+      
+      console.log('FFmpeg loaded successfully with multi-threading support')
     } catch (error) {
       console.error('Error loading FFmpeg:', error)
-      throw new Error('Failed to load audio converter. Please try again or contact support if the issue persists.')
+      // Fallback to single-threaded version
+      try {
+        console.log('Falling back to single-threaded FFmpeg')
+        ffmpeg.value = new FFmpeg()
+        await ffmpeg.value.load()
+        console.log('FFmpeg loaded successfully (single-threaded fallback)')
+      } catch (fallbackError) {
+        console.error('Fallback FFmpeg loading failed:', fallbackError)
+        throw new Error('Failed to load audio converter. Please try again or contact support if the issue persists.')
+      }
     } finally {
       isLoadingFFmpeg.value = false
     }
@@ -59,16 +85,22 @@ export const useAudioProcessor = () => {
       
       console.log('Converting to MP3')
       
-      // Add timeout promise
+      // Get optimal thread count for this conversion
+      const threadCount = getOptimalThreadCount()
+      console.log(`Using ${threadCount} threads for conversion`)
+      
+      // Add timeout promise with multi-threading support
       const conversionPromise = ffmpeg.value.exec([
         '-i', 'input.audio',
-        '-acodec', 'libmp3lame', // Explicitly set audio codec
-        '-ar', '44100',          // Set sample rate
-        '-ac', '2',              // Set to stereo
-        '-ab', '320k',           // Set bitrate
-        '-map', '0:a',           // Only map audio stream
-        '-f', 'mp3',             // Force MP3 format
-        '-y',                    // Overwrite output
+        '-threads', threadCount.toString(), // Enable multi-threading
+        '-acodec', 'libmp3lame',           // Explicitly set audio codec
+        '-ar', '44100',                    // Set sample rate
+        '-ac', '2',                        // Set to stereo
+        '-ab', '320k',                     // Set bitrate
+        '-map', '0:a',                     // Only map audio stream
+        '-f', 'mp3',                       // Force MP3 format
+        '-preset', 'fast',                 // Use fast preset for better performance
+        '-y',                              // Overwrite output
         'output.mp3'
       ])
 
