@@ -1,5 +1,10 @@
 <template>
   <div class="h-full flex flex-col">
+    <!-- Performance Dashboard -->
+    <div class="border-b border-gray-700/50">
+      <PerformanceDashboard />
+    </div>
+    
     <!-- Queue Actions -->
     <div v-if="downloadStats.queued > 0" class="p-4 bg-gray-800/30 border-b border-gray-700/50">
       <button

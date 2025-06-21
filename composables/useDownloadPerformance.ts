@@ -1,4 +1,4 @@
-import { ref, computed } from 'vue'
+import { ref, computed, readonly } from 'vue'
 
 export interface PerformanceSettings {
   maxConcurrentDownloads: number
