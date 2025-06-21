@@ -57,21 +57,28 @@ async function getFallbackClientId(): Promise<string | null> {
   return null
 }
 
-// Try to extract client ID from SoundCloud's JavaScript files
+// Try to extract client ID from SoundCloud's JavaScript files (optimized for serverless)
 async function extractClientIdFromScripts(): Promise<string | null> {
   try {
     console.log('Fetching SoundCloud main page...')
+    
+    // Add timeout for serverless environment
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 8000) // 8 second timeout
+    
     const response = await fetch('https://soundcloud.com', {
+      signal: controller.signal,
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
         'Accept-Language': 'en-US,en;q=0.5',
-        'Accept-Encoding': 'gzip, deflate, br',
         'DNT': '1',
         'Connection': 'keep-alive',
         'Upgrade-Insecure-Requests': '1'
       }
     })
+    
+    clearTimeout(timeoutId)
     
     if (!response.ok) {
       throw new Error(`Failed to fetch SoundCloud page: ${response.status}`)
@@ -102,18 +109,25 @@ async function extractClientIdFromScripts(): Promise<string | null> {
       }
     }
 
-    // Try to find and parse JavaScript files
+    // Try to find and parse JavaScript files (limited for serverless)
     const scriptMatches = html.matchAll(/src="(https:\/\/a-v2\.sndcdn\.com\/assets\/[^"]+\.js)"/g)
-    const scriptUrls = Array.from(scriptMatches).map(match => match[1]).slice(0, 5) // Limit to first 5 scripts
+    const scriptUrls = Array.from(scriptMatches).map(match => match[1]).slice(0, 2) // Reduced to 2 scripts for serverless
 
     for (const url of scriptUrls) {
       try {
         console.log('Checking script:', url)
+        
+        const scriptController = new AbortController()
+        const scriptTimeoutId = setTimeout(() => scriptController.abort(), 5000) // 5 second timeout per script
+        
         const scriptRes = await fetch(url, {
+          signal: scriptController.signal,
           headers: {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
           }
         })
+        
+        clearTimeout(scriptTimeoutId)
         
         if (!scriptRes.ok) continue
         
