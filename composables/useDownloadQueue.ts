@@ -1,5 +1,4 @@
 import type { Track } from '@/types'
-import { nextTick } from 'vue'
 import { useAudioProcessor } from './useAudioProcessor'
 import { useDownloadPerformance } from './useDownloadPerformance'
 import { useDownloadQueueStore } from '@/stores/downloadQueue'
@@ -43,16 +42,7 @@ export const useDownloadQueue = () => {
   // Queue management sử dụng store actions
   const addToQueue = (track: Track): void => {
     store.addToQueue(track)
-    // Auto-start download if we have available slots
-    nextTick(() => {
-      if (downloadSemaphore.value < performanceSettings.value.maxConcurrentDownloads) {
-        const trackId = track.id.toString()
-        const queueItem = store.queue[trackId]
-        if (queueItem && queueItem.status === 'queued') {
-          startDownloadWithSemaphore(trackId)
-        }
-      }
-    })
+    // Chỉ thêm vào queue, không tự động bắt đầu download
   }
 
   const removeFromQueue = (trackId: string | number): void => {

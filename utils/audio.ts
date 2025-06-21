@@ -35,6 +35,11 @@ export function validateMP3Output(data: Uint8Array): boolean {
 }
 
 export async function downloadBlob(blob: Blob, filename: string): Promise<void> {
+  // Check if we're running on the client side
+  if (typeof window === 'undefined' || typeof document === 'undefined') {
+    throw new Error('downloadBlob can only be called on the client side')
+  }
+  
   const url = window.URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
