@@ -3,10 +3,12 @@ import { FFmpeg } from '@ffmpeg/ffmpeg'
 import { toBlobURL } from '@ffmpeg/util'
 import type { FFmpegType } from '@/types'
 import { validateAudioFormat, validateMP3Output } from '~/utils/audio'
+import { useDownloadPerformance } from './useDownloadPerformance'
 
 export const useAudioProcessor = () => {
   const ffmpeg = ref<FFmpegType>()
   const isLoadingFFmpeg = ref(false)
+  const { settings: performanceSettings } = useDownloadPerformance()
   
   // Detect number of CPU cores for optimal threading
   const getOptimalThreadCount = (): number => {
@@ -89,20 +91,29 @@ export const useAudioProcessor = () => {
       const threadCount = getOptimalThreadCount()
       console.log(`Using ${threadCount} threads for conversion`)
       
-      // Add timeout promise with multi-threading support
-      const conversionPromise = ffmpeg.value.exec([
+      // Build FFmpeg command with performance settings
+      const ffmpegArgs = [
         '-i', 'input.audio',
-        '-threads', threadCount.toString(), // Enable multi-threading
         '-acodec', 'libmp3lame',           // Explicitly set audio codec
         '-ar', '44100',                    // Set sample rate
         '-ac', '2',                        // Set to stereo
-        '-ab', '320k',                     // Set bitrate
+        '-ab', performanceSettings.audioQuality, // Use dynamic bitrate
         '-map', '0:a',                     // Only map audio stream
         '-f', 'mp3',                       // Force MP3 format
-        '-preset', 'fast',                 // Use fast preset for better performance
+        '-preset', performanceSettings.compressionPreset, // Use dynamic preset
         '-y',                              // Overwrite output
         'output.mp3'
-      ])
+      ]
+
+      // Add multi-threading if enabled
+      if (performanceSettings.enableMultiThreading) {
+        ffmpegArgs.splice(2, 0, '-threads', threadCount.toString())
+      }
+
+      console.log('FFmpeg command:', ffmpegArgs.join(' '))
+      
+      // Add timeout promise with multi-threading support
+      const conversionPromise = ffmpeg.value.exec(ffmpegArgs)
 
       const timeoutPromise = new Promise((_, reject) => {
         setTimeout(() => reject(new Error('Conversion timeout (5 minutes)')), CONVERSION_TIMEOUT)
