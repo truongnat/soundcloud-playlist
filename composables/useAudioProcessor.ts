@@ -27,61 +27,73 @@ export const useAudioProcessor = () => {
     
     try {
       isLoadingFFmpeg.value = true
+      console.log('Starting FFmpeg initialization...')
       
-      // Check if SharedArrayBuffer is available for multi-threading
-      const hasSharedArrayBuffer = typeof SharedArrayBuffer !== 'undefined'
-      console.log('SharedArrayBuffer available:', hasSharedArrayBuffer)
+      // Always start with single-threaded version for better compatibility
+      ffmpeg.value = new FFmpeg()
       
-      // Force single-threaded mode if COEP is unsafe-none
-      const canUseMultiThreading = hasSharedArrayBuffer && performanceSettings.enableMultiThreading
-      console.log('Multi-threading enabled:', canUseMultiThreading)
+      // Try to load FFmpeg with multiple fallback strategies
+      let loadSuccess = false
       
-      if (canUseMultiThreading) {
-        console.log('Starting FFmpeg initialization with multi-threading support')
-        
-        // Create FFmpeg instance with multi-threading configuration
-        ffmpeg.value = new FFmpeg()
-        
-        // Load FFmpeg with multi-threading support
-        const baseURL = 'https://unpkg.com/@ffmpeg/core-mt@0.12.10/dist/esm'
-        
-        console.log('Loading FFmpeg with multi-threading from:', baseURL)
-        
+      // Strategy 1: Try default single-threaded load
+      try {
+        console.log('Attempting default FFmpeg load...')
+        await ffmpeg.value.load()
+        loadSuccess = true
+        console.log('FFmpeg loaded successfully (default)')
+      } catch (defaultError) {
+        console.warn('Default FFmpeg load failed:', defaultError)
+      }
+      
+      // Strategy 2: Try with explicit CDN URLs if default failed
+      if (!loadSuccess) {
         try {
+          console.log('Attempting FFmpeg load with explicit CDN URLs...')
+          const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.10/dist/esm'
+          
           await ffmpeg.value.load({
             coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
             wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm'),
-            workerURL: await toBlobURL(`${baseURL}/ffmpeg-core.worker.js`, 'text/javascript'),
           })
-        } catch (loadError) {
-          console.error('Multi-threaded FFmpeg load failed:', loadError)
-          throw loadError
+          loadSuccess = true
+          console.log('FFmpeg loaded successfully (explicit CDN)')
+        } catch (cdnError) {
+          console.warn('CDN FFmpeg load failed:', cdnError)
         }
-        
-        console.log('FFmpeg loaded successfully with multi-threading support')
-      } else {
-        console.log('Starting FFmpeg initialization (single-threaded)')
-        ffmpeg.value = new FFmpeg()
+      }
+      
+      // Strategy 3: Try alternative CDN if previous attempts failed
+      if (!loadSuccess) {
         try {
-          await ffmpeg.value.load()
-          console.log('FFmpeg loaded successfully (single-threaded)')
-        } catch (loadError) {
-          console.error('Single-threaded FFmpeg load failed:', loadError)
-          throw loadError
+          console.log('Attempting FFmpeg load with alternative CDN...')
+          const altBaseURL = 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/esm'
+          
+          await ffmpeg.value.load({
+            coreURL: await toBlobURL(`${altBaseURL}/ffmpeg-core.js`, 'text/javascript'),
+            wasmURL: await toBlobURL(`${altBaseURL}/ffmpeg-core.wasm`, 'application/wasm'),
+          })
+          loadSuccess = true
+          console.log('FFmpeg loaded successfully (alternative CDN)')
+        } catch (altError) {
+          console.warn('Alternative CDN FFmpeg load failed:', altError)
         }
       }
-    } catch (error) {
-      console.error('Error loading FFmpeg:', error)
-      // Fallback to single-threaded version
-      try {
-        console.log('Falling back to single-threaded FFmpeg')
-        ffmpeg.value = new FFmpeg()
-        await ffmpeg.value.load()
-        console.log('FFmpeg loaded successfully (single-threaded fallback)')
-      } catch (fallbackError) {
-        console.error('Fallback FFmpeg loading failed:', fallbackError)
-        throw new Error('Failed to load audio converter. Please try again or contact support if the issue persists.')
+      
+      if (!loadSuccess) {
+        throw new Error('All FFmpeg loading strategies failed')
       }
+      
+      // Verify FFmpeg is actually loaded
+      if (!ffmpeg.value.loaded) {
+        throw new Error('FFmpeg loaded but not in ready state')
+      }
+      
+      console.log('FFmpeg initialization completed successfully')
+      
+    } catch (error) {
+      console.error('FFmpeg initialization failed completely:', error)
+      ffmpeg.value = undefined
+      throw new Error('Failed to load audio converter. Please check your internet connection and try again.')
     } finally {
       isLoadingFFmpeg.value = false
     }
@@ -129,24 +141,17 @@ export const useAudioProcessor = () => {
       const threadCount = getOptimalThreadCount()
       console.log(`Using ${threadCount} threads for conversion`)
       
-      // Build FFmpeg command with performance settings
+      // Build simplified FFmpeg command for better compatibility
       const ffmpegArgs = [
         '-i', 'input.audio',
         '-acodec', 'libmp3lame',           // Explicitly set audio codec
         '-ar', '44100',                    // Set sample rate
         '-ac', '2',                        // Set to stereo
-        '-ab', performanceSettings.audioQuality, // Use dynamic bitrate
-        '-map', '0:a',                     // Only map audio stream
+        '-b:a', performanceSettings.audioQuality, // Use dynamic bitrate
         '-f', 'mp3',                       // Force MP3 format
-        '-preset', performanceSettings.compressionPreset, // Use dynamic preset
         '-y',                              // Overwrite output
         'output.mp3'
       ]
-
-      // Add multi-threading if enabled
-      if (performanceSettings.enableMultiThreading) {
-        ffmpegArgs.splice(2, 0, '-threads', threadCount.toString())
-      }
 
       console.log('FFmpeg command:', ffmpegArgs.join(' '))
       
