@@ -32,7 +32,11 @@ export const useAudioProcessor = () => {
       const hasSharedArrayBuffer = typeof SharedArrayBuffer !== 'undefined'
       console.log('SharedArrayBuffer available:', hasSharedArrayBuffer)
       
-      if (hasSharedArrayBuffer && performanceSettings.enableMultiThreading) {
+      // Force single-threaded mode if COEP is unsafe-none
+      const canUseMultiThreading = hasSharedArrayBuffer && performanceSettings.enableMultiThreading
+      console.log('Multi-threading enabled:', canUseMultiThreading)
+      
+      if (canUseMultiThreading) {
         console.log('Starting FFmpeg initialization with multi-threading support')
         
         // Create FFmpeg instance with multi-threading configuration
@@ -58,8 +62,13 @@ export const useAudioProcessor = () => {
       } else {
         console.log('Starting FFmpeg initialization (single-threaded)')
         ffmpeg.value = new FFmpeg()
-        await ffmpeg.value.load()
-        console.log('FFmpeg loaded successfully (single-threaded)')
+        try {
+          await ffmpeg.value.load()
+          console.log('FFmpeg loaded successfully (single-threaded)')
+        } catch (loadError) {
+          console.error('Single-threaded FFmpeg load failed:', loadError)
+          throw loadError
+        }
       }
     } catch (error) {
       console.error('Error loading FFmpeg:', error)

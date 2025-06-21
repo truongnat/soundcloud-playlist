@@ -22,7 +22,7 @@ export default defineNuxtConfig({
     routeRules: {
       '/**': {
         headers: {
-          'Cross-Origin-Embedder-Policy': 'credentialless',
+          'Cross-Origin-Embedder-Policy': 'unsafe-none',
           'Cross-Origin-Opener-Policy': 'same-origin'
         }
       }
