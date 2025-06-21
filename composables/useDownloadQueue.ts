@@ -271,14 +271,14 @@ export const useDownloadQueue = () => {
     
     if (queuedItems.length === 0) return
     
-    console.log(`Starting batch download of ${queuedItems.length} tracks with max ${performanceSettings.maxConcurrentDownloads} concurrent downloads`)
+    console.log(`Starting batch download of ${queuedItems.length} tracks with max ${performanceSettings.value.maxConcurrentDownloads} concurrent downloads`)
     
     // Process downloads with concurrency limit
     const downloadPromises: Promise<void>[] = []
     
     for (const item of queuedItems) {
       // Wait if we've reached the concurrent download limit
-      while (downloadSemaphore.value >= performanceSettings.maxConcurrentDownloads) {
+      while (downloadSemaphore.value >= performanceSettings.value.maxConcurrentDownloads) {
         await new Promise(resolve => setTimeout(resolve, 100))
       }
       
