@@ -9,7 +9,6 @@ import 'node:buffer';
 import '@iconify/utils';
 import 'node:crypto';
 import 'consola';
-import 'node:module';
 import 'node:fs';
 import 'node:path';
 import 'pinia';

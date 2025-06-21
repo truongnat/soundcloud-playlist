@@ -1,11 +1,10 @@
-import process from 'node:process';globalThis._importMeta_=globalThis._importMeta_||{url:"file:///_entry.js",env:process.env};globalThis.__timing__.logStart('Load chunks/_/nitro');import http from 'node:http';
+globalThis.__timing__.logStart('Load chunks/_/nitro');import http from 'node:http';
 import https from 'node:https';
 import { EventEmitter } from 'node:events';
 import { Buffer as Buffer$1 } from 'node:buffer';
 import { getIcons } from '@iconify/utils';
 import { createHash } from 'node:crypto';
 import { consola } from 'consola';
-import { createRequire } from 'node:module';
 import { promises, existsSync } from 'node:fs';
 import { resolve, dirname, join } from 'node:path';
 
@@ -4215,7 +4214,7 @@ function _expandFromEnv(value) {
 const _inlineRuntimeConfig = {
   "app": {
     "baseURL": "/",
-    "buildId": "34cf9c13-31fb-4a42-8367-b95d393740ce",
+    "buildId": "aaed1fd9-9cc1-4ecf-83e7-65362d031113",
     "buildAssetsDir": "/_nuxt/",
     "cdnURL": ""
   },
@@ -4934,8 +4933,6 @@ async function getClientId() {
   }
   throw new Error("Could not obtain a valid client ID. All fallback client IDs have expired.");
 }
-
-createRequire(globalThis._importMeta_.url);
 
 const collections = {
 };
