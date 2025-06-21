@@ -118,7 +118,7 @@
               </button>
 
               <!-- GitHub Link -->
-              <a href="https://github.com/truongnat/playlist-soundcloud" 
+              <a href="https://github.com/truongnat/soundcloud-playlist.git" 
                  target="_blank" 
                  rel="noopener noreferrer"
                  class="hidden sm:block text-gray-400 hover:text-orange-500 transition-all hover:scale-110 p-2 rounded-lg hover:bg-gray-800/50"
