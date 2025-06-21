@@ -277,17 +277,35 @@ export const useAudioProcessor = () => {
         let shouldRetry = false
         
         if (error instanceof Error) {
-          if (error.message.includes('FS error') || error.message.includes('ErrnoError') || error.message.includes('filesystem')) {
+          const errorStr = error.toString().toLowerCase()
+          const messageStr = error.message.toLowerCase()
+          
+          if (errorStr.includes('fs error') || errorStr.includes('errnoerror') || 
+              messageStr.includes('fs error') || messageStr.includes('errnoerror') ||
+              errorStr.includes('filesystem') || messageStr.includes('filesystem')) {
             errorMessage = 'FFmpeg filesystem error'
             shouldRetry = retryCount < maxRetries
-          } else if (error.message.includes('timeout')) {
+            console.log(`Filesystem error detected, shouldRetry: ${shouldRetry}, retryCount: ${retryCount}`)
+          } else if (messageStr.includes('timeout')) {
             errorMessage = 'Conversion took too long'
-          } else if (error.message.includes('EBML')) {
+          } else if (messageStr.includes('ebml')) {
             errorMessage = 'Invalid input format'
-          } else if (error.message.includes('too large')) {
+          } else if (messageStr.includes('too large')) {
             errorMessage = 'File too large'
           } else {
             errorMessage = error.message
+            // Also retry for unknown errors that might be filesystem related
+            if (retryCount < maxRetries) {
+              shouldRetry = true
+              console.log(`Unknown error, attempting retry: ${error.message}`)
+            }
+          }
+        } else {
+          // Handle non-Error objects
+          errorMessage = String(error)
+          if (retryCount < maxRetries) {
+            shouldRetry = true
+            console.log(`Non-Error object, attempting retry: ${errorMessage}`)
           }
         }
         
