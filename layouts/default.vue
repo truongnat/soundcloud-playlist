@@ -199,6 +199,34 @@
         </div>
       </Transition>
 
+      <!-- Logs Panel Indicator (when panel is hidden) -->
+      <Transition name="bounce">
+        <button v-if="logStats.total > 0 && !uiStore.showLogsPanel"
+          @click="toggleLogsPanel"
+          class="fixed bottom-4 left-4 lg:bottom-8 lg:left-8 bg-blue-600 hover:bg-blue-700 text-white rounded-full p-3 lg:p-4 shadow-lg transition-all hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900 z-30"
+          :aria-label="`${logStats.total} logs available. Click to open logs panel.`">
+          <div class="relative">
+            <!-- Logs Icon -->
+            <svg class="w-5 h-5 lg:w-6 lg:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+
+            <!-- Count Badge -->
+            <span class="absolute -top-2 -right-2 bg-blue-500 text-white text-xs font-medium rounded-full min-w-[20px] h-[20px] flex items-center justify-center px-1.5"
+              aria-hidden="true">
+              {{ logStats.total }}
+            </span>
+
+            <!-- Error indicator if there are errors -->
+            <div v-if="logStats.error > 0" 
+              class="absolute -bottom-1 -left-1 w-3 h-3 bg-red-500 rounded-full border-2 border-gray-900 animate-pulse"
+              aria-hidden="true">
+            </div>
+          </div>
+        </button>
+      </Transition>
+
       <!-- Download Status Indicator (when queue is hidden) -->
       <Transition name="bounce">
         <button v-if="downloadStats.total > 0 && !uiStore.showDownloadQueue"
