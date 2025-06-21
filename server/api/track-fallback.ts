@@ -1,5 +1,6 @@
 import { Soundcloud } from 'soundcloud.ts'
 import { getClientId } from '../utils/soundcloud'
+import { getStreamUrl } from '~/utils/soundcloud'
 import type { SoundCloudAPITrack } from '~/types'
 
 let soundcloud: Soundcloud
@@ -43,10 +44,7 @@ export default defineEventHandler(async (event) => {
           t.format?.mime_type === 'audio/mpeg'
         )
         if (mp3Transcoding?.url) {
-          const response = await fetch(`${mp3Transcoding.url}?client_id=${clientId}`)
-          if (!response.ok) throw new Error(`Failed to get stream: ${response.status}`)
-          const data = await response.json()
-          return data.url
+          return await getStreamUrl(mp3Transcoding.url, clientId)
         }
         throw new Error('No MP3 progressive stream available')
       },
@@ -63,10 +61,7 @@ export default defineEventHandler(async (event) => {
           t.format?.mime_type === 'audio/mpeg'
         )
         if (hlsTranscoding?.url) {
-          const response = await fetch(`${hlsTranscoding.url}?client_id=${clientId}`)
-          if (!response.ok) throw new Error(`Failed to get stream: ${response.status}`)
-          const data = await response.json()
-          return data.url
+          return await getStreamUrl(hlsTranscoding.url, clientId)
         }
         throw new Error('No HLS stream available')
       },
@@ -89,10 +84,7 @@ export default defineEventHandler(async (event) => {
           t.format?.mime_type === 'audio/mpeg'
         )
         if (transcoding?.url) {
-          const response = await fetch(`${transcoding.url}?client_id=${newClientId}`)
-          if (!response.ok) throw new Error(`Failed to get stream: ${response.status}`)
-          const data = await response.json()
-          return data.url
+          return await getStreamUrl(transcoding.url, newClientId)
         }
         throw new Error('No suitable stream found')
       }

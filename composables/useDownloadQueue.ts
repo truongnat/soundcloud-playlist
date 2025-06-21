@@ -1,23 +1,13 @@
 import type { Track } from '@/types'
 import { useAudioProcessor } from './useAudioProcessor'
 import { useDownloadQueueStore } from '@/stores/downloadQueue'
+import { validateAudioFormat, downloadBlob } from '~/utils/audio'
+import { sanitizeFilename } from '~/utils/api'
 
 const { convertToMp3 } = useAudioProcessor()
 
 // Global abort controllers để có thể cancel downloads
 const activeDownloads = new Map<string, AbortController>()
-
-// Helper for file download
-const downloadFile = async (blob: Blob, filename: string): Promise<void> => {
-  const url = window.URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = filename
-  document.body.appendChild(a)
-  a.click()
-  window.URL.revokeObjectURL(url)
-  document.body.removeChild(a)
-}
 
 export const useDownloadQueue = () => {
   const store = useDownloadQueueStore()
