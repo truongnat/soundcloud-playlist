@@ -134,17 +134,27 @@ export const useAudioProcessor = () => {
   const MAX_INPUT_SIZE = 100 * 1024 * 1024 // 100MB
   const CONVERSION_TIMEOUT = 5 * 60 * 1000 // 5 minutes
 
+  const reinitializeFFmpeg = async () => {
+    console.log('Reinitializing FFmpeg due to error...')
+    ffmpeg.value = undefined
+    await initFFmpeg()
+  }
+
   const convertToMp3 = async (inputData: Uint8Array): Promise<Blob> => {
     console.log('Starting audio conversion, input size:', inputData.length)
     
-    try {
-      // Check input size
-      if (inputData.length > MAX_INPUT_SIZE) {
-        throw new Error('Input file too large (max 100MB)')
-      }
+    let retryCount = 0
+    const maxRetries = 2
+    
+    while (retryCount <= maxRetries) {
+      try {
+        // Check input size
+        if (inputData.length > MAX_INPUT_SIZE) {
+          throw new Error('Input file too large (max 100MB)')
+        }
 
-      console.log('Initializing FFmpeg...')
-      await initFFmpeg()
+        console.log('Initializing FFmpeg...')
+        await initFFmpeg()
       
       if (!ffmpeg.value) {
         throw new Error('FFmpeg not initialized')
@@ -165,14 +175,25 @@ export const useAudioProcessor = () => {
         throw new Error('Unsupported input format - not MP3 or M4A')
       }
       
-      await ffmpeg.value.writeFile('input.audio', inputData)
-      console.log('Input file written successfully')
+      // Clean up any existing files first
+      try {
+        await ffmpeg.value.deleteFile('input.audio')
+        await ffmpeg.value.deleteFile('output.mp3')
+      } catch (cleanupError) {
+        // Ignore cleanup errors - files might not exist
+        console.log('Cleanup before conversion (expected):', cleanupError)
+      }
+      
+      // Write input file with error handling
+      try {
+        await ffmpeg.value.writeFile('input.audio', inputData)
+        console.log('Input file written successfully')
+      } catch (writeError) {
+        console.error('Failed to write input file:', writeError)
+        throw new Error('Failed to write input file to FFmpeg filesystem')
+      }
       
       console.log('Starting MP3 conversion...')
-      
-      // Get optimal thread count for this conversion
-      const threadCount = getOptimalThreadCount()
-      console.log(`Using ${threadCount} threads for conversion`)
       
       // Build simplified FFmpeg command for better compatibility
       const ffmpegArgs = [
@@ -188,11 +209,12 @@ export const useAudioProcessor = () => {
 
       console.log('FFmpeg command:', ffmpegArgs.join(' '))
       
-      // Add timeout promise with multi-threading support
+      // Reduced timeout for faster failure detection
+      const REDUCED_TIMEOUT = 60 * 1000 // 1 minute
       const conversionPromise = ffmpeg.value.exec(ffmpegArgs)
 
       const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Conversion timeout (5 minutes)')), CONVERSION_TIMEOUT)
+        setTimeout(() => reject(new Error('Conversion timeout (1 minute)')), REDUCED_TIMEOUT)
       })
 
       try {
@@ -202,12 +224,28 @@ export const useAudioProcessor = () => {
       } catch (error: unknown) {
         console.error('Conversion error:', error)
         const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+        
+        // Check if it's a filesystem error
+        if (errorMessage.includes('FS error') || errorMessage.includes('ErrnoError')) {
+          throw new Error('FFmpeg filesystem error - try refreshing the page and trying again')
+        }
+        
         throw new Error(`Conversion failed: ${errorMessage}`)
       }
       
       console.log('Reading output file from FFmpeg...')
-      const data = await ffmpeg.value.readFile('output.mp3')
-      console.log('Output file read, size:', data instanceof Uint8Array ? data.length : 'Invalid type')
+      let data: Uint8Array
+      try {
+        const fileData = await ffmpeg.value.readFile('output.mp3')
+        if (!(fileData instanceof Uint8Array)) {
+          throw new Error('Output file is not Uint8Array')
+        }
+        data = fileData
+        console.log('Output file read, size:', data.length)
+      } catch (readError) {
+        console.error('Failed to read output file:', readError)
+        throw new Error('Failed to read converted file from FFmpeg filesystem')
+      }
       
       if (!(data instanceof Uint8Array)) {
         console.error('Output is not Uint8Array:', typeof data)
