@@ -74,7 +74,7 @@ export const useAudioProcessor = () => {
   const CONVERSION_TIMEOUT = 5 * 60 * 1000 // 5 minutes
 
   const convertToMp3 = async (inputData: Uint8Array): Promise<Blob> => {
-    console.log('Starting audio conversion')
+    console.log('Starting audio conversion, input size:', inputData.length)
     
     try {
       // Check input size
@@ -82,22 +82,32 @@ export const useAudioProcessor = () => {
         throw new Error('Input file too large (max 100MB)')
       }
 
+      console.log('Initializing FFmpeg...')
       await initFFmpeg()
       
       if (!ffmpeg.value) {
         throw new Error('FFmpeg not initialized')
       }
 
-      console.log('Writing input file')
+      if (!ffmpeg.value.loaded) {
+        throw new Error('FFmpeg not loaded properly')
+      }
+
+      console.log('FFmpeg initialized successfully, writing input file...')
       
       // Verify input data format before conversion
       const { isMP3, isM4A } = validateAudioFormat(inputData)
       
       console.log('Input format:', isMP3 ? 'MP3' : isM4A ? 'M4A' : 'Unknown')
       
-      await ffmpeg.value.writeFile('input.audio', inputData)
+      if (!isMP3 && !isM4A) {
+        throw new Error('Unsupported input format - not MP3 or M4A')
+      }
       
-      console.log('Converting to MP3')
+      await ffmpeg.value.writeFile('input.audio', inputData)
+      console.log('Input file written successfully')
+      
+      console.log('Starting MP3 conversion...')
       
       // Get optimal thread count for this conversion
       const threadCount = getOptimalThreadCount()
