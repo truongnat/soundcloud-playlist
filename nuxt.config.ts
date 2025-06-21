@@ -20,7 +20,7 @@ export default defineNuxtConfig({
   },
   nitro: {
     routeRules: {
-      '/_nuxt/**': {
+      '/**': {
         headers: {
           'Cross-Origin-Embedder-Policy': 'require-corp',
           'Cross-Origin-Opener-Policy': 'same-origin'

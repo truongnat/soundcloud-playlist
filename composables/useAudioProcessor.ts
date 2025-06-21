@@ -27,21 +27,33 @@ export const useAudioProcessor = () => {
     
     try {
       isLoadingFFmpeg.value = true
-      console.log('Starting FFmpeg initialization with multi-threading support')
       
-      // Create FFmpeg instance with multi-threading configuration
-      ffmpeg.value = new FFmpeg()
+      // Check if SharedArrayBuffer is available for multi-threading
+      const hasSharedArrayBuffer = typeof SharedArrayBuffer !== 'undefined'
+      console.log('SharedArrayBuffer available:', hasSharedArrayBuffer)
       
-      // Load FFmpeg with multi-threading support
-      const baseURL = 'https://unpkg.com/@ffmpeg/core-mt@0.12.10/dist/esm'
-      
-      await ffmpeg.value.load({
-        coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
-        wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm'),
-        workerURL: await toBlobURL(`${baseURL}/ffmpeg-core.worker.js`, 'text/javascript'),
-      })
-      
-      console.log('FFmpeg loaded successfully with multi-threading support')
+      if (hasSharedArrayBuffer && performanceSettings.enableMultiThreading) {
+        console.log('Starting FFmpeg initialization with multi-threading support')
+        
+        // Create FFmpeg instance with multi-threading configuration
+        ffmpeg.value = new FFmpeg()
+        
+        // Load FFmpeg with multi-threading support
+        const baseURL = 'https://unpkg.com/@ffmpeg/core-mt@0.12.10/dist/esm'
+        
+        await ffmpeg.value.load({
+          coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
+          wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm'),
+          workerURL: await toBlobURL(`${baseURL}/ffmpeg-core.worker.js`, 'text/javascript'),
+        })
+        
+        console.log('FFmpeg loaded successfully with multi-threading support')
+      } else {
+        console.log('Starting FFmpeg initialization (single-threaded)')
+        ffmpeg.value = new FFmpeg()
+        await ffmpeg.value.load()
+        console.log('FFmpeg loaded successfully (single-threaded)')
+      }
     } catch (error) {
       console.error('Error loading FFmpeg:', error)
       // Fallback to single-threaded version
