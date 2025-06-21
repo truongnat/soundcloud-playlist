@@ -37,13 +37,7 @@ export default defineNuxtConfig({
     },
     experimental: {
       wasm: true
-    },
-    // Optimize for serverless
-    preset: 'netlify',
-    // Increase timeout for API routes
-    timing: true,
-    // Enable compression
-    compressPublicAssets: true
+    }
   },
   runtimeConfig: {
     // Server-side environment variables
