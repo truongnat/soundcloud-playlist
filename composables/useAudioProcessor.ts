@@ -268,41 +268,56 @@ export const useAudioProcessor = () => {
       console.log('MP3 validation successful, creating blob...')
       const blob = new Blob([data], { type: 'audio/mpeg' })
       console.log('Blob created successfully, size:', blob.size)
-      return blob
+        return blob
 
-    } catch (error) {
-      console.error('Error converting to MP3:', error)
-      let errorMessage = 'Unknown error during conversion'
-      
-      if (error instanceof Error) {
-        if (error.message.includes('timeout')) {
-          errorMessage = 'Conversion took too long'
-        } else if (error.message.includes('EBML')) {
-          errorMessage = 'Invalid input format'
-        } else if (error.message.includes('too large')) {
-          errorMessage = 'File too large'
-        } else {
-          errorMessage = error.message
-        }
-      }
-      
-      throw new Error('Failed to convert audio: ' + errorMessage)
-    } finally {
-      // Cleanup with timeout
-      try {
-        if (ffmpeg.value) {
-          await Promise.race([
-            Promise.all([
-              ffmpeg.value.deleteFile('input.audio'),
-              ffmpeg.value.deleteFile('output.mp3')
-            ]),
-            new Promise(r => setTimeout(r, 5000)) // 5s timeout for cleanup
-          ])
-        }
       } catch (error) {
-        console.warn('Cleanup error:', error)
+        console.error(`Error converting to MP3 (attempt ${retryCount + 1}):`, error)
+        
+        let errorMessage = 'Unknown error during conversion'
+        let shouldRetry = false
+        
+        if (error instanceof Error) {
+          if (error.message.includes('FS error') || error.message.includes('ErrnoError') || error.message.includes('filesystem')) {
+            errorMessage = 'FFmpeg filesystem error'
+            shouldRetry = retryCount < maxRetries
+          } else if (error.message.includes('timeout')) {
+            errorMessage = 'Conversion took too long'
+          } else if (error.message.includes('EBML')) {
+            errorMessage = 'Invalid input format'
+          } else if (error.message.includes('too large')) {
+            errorMessage = 'File too large'
+          } else {
+            errorMessage = error.message
+          }
+        }
+        
+        // Cleanup before retry or final error
+        try {
+          if (ffmpeg.value) {
+            await Promise.race([
+              Promise.all([
+                ffmpeg.value.deleteFile('input.audio'),
+                ffmpeg.value.deleteFile('output.mp3')
+              ]),
+              new Promise(r => setTimeout(r, 2000)) // 2s timeout for cleanup
+            ])
+          }
+        } catch (cleanupError) {
+          console.warn('Cleanup error:', cleanupError)
+        }
+        
+        if (shouldRetry) {
+          retryCount++
+          console.log(`Retrying conversion (${retryCount}/${maxRetries})...`)
+          await reinitializeFFmpeg()
+          continue // Retry the conversion
+        } else {
+          throw new Error('Failed to convert audio: ' + errorMessage)
+        }
       }
     }
+    
+    throw new Error('Failed to convert audio after all retries')
   }
 
   return {
