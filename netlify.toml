@@ -3,7 +3,7 @@
   publish = ".output/public"
 
 [functions]
-  directory = ".output/server"
+  directory = "netlify/functions"
 
 [[headers]]
   for = "/*"
