@@ -1,4 +1,5 @@
 import type { Track } from '@/types'
+import { nextTick } from 'vue'
 import { useAudioProcessor } from './useAudioProcessor'
 import { useDownloadQueueStore } from '@/stores/downloadQueue'
 import { validateAudioFormat, downloadBlob } from '~/utils/audio'
@@ -8,6 +9,10 @@ const { convertToMp3 } = useAudioProcessor()
 
 // Global abort controllers để có thể cancel downloads
 const activeDownloads = new Map<string, AbortController>()
+
+// Configuration for concurrent downloads
+const MAX_CONCURRENT_DOWNLOADS = 3 // Maximum concurrent downloads
+const downloadSemaphore = ref(0) // Current active downloads count
 
 export const useDownloadQueue = () => {
   const store = useDownloadQueueStore()
@@ -37,6 +42,16 @@ export const useDownloadQueue = () => {
   // Queue management sử dụng store actions
   const addToQueue = (track: Track): void => {
     store.addToQueue(track)
+    // Auto-start download if we have available slots
+    nextTick(() => {
+      if (downloadSemaphore.value < MAX_CONCURRENT_DOWNLOADS) {
+        const trackId = track.id.toString()
+        const queueItem = store.queue[trackId]
+        if (queueItem && queueItem.status === 'queued') {
+          startDownloadWithSemaphore(trackId)
+        }
+      }
+    })
   }
 
   const removeFromQueue = (trackId: string | number): void => {
@@ -223,17 +238,42 @@ export const useDownloadQueue = () => {
     }
   }
 
-  // Start all queued downloads
+  // Start all queued downloads with concurrency control
   const startAllDownloads = async (): Promise<void> => {
     const queuedItems = queueItems.value.filter(item => item.status === 'queued')
     
+    if (queuedItems.length === 0) return
+    
+    console.log(`Starting batch download of ${queuedItems.length} tracks with max ${MAX_CONCURRENT_DOWNLOADS} concurrent downloads`)
+    
+    // Process downloads with concurrency limit
+    const downloadPromises: Promise<void>[] = []
+    
     for (const item of queuedItems) {
-      try {
-        await startDownload(item.track.id.toString())
-      } catch (error) {
-        console.error('Failed to download track:', item.track.title, error)
-        // Continue with next track
+      // Wait if we've reached the concurrent download limit
+      while (downloadSemaphore.value >= MAX_CONCURRENT_DOWNLOADS) {
+        await new Promise(resolve => setTimeout(resolve, 100))
       }
+      
+      // Start download with concurrency tracking
+      const downloadPromise = startDownloadWithSemaphore(item.track.id.toString())
+      downloadPromises.push(downloadPromise)
+    }
+    
+    // Wait for all downloads to complete
+    await Promise.allSettled(downloadPromises)
+    console.log('Batch download completed')
+  }
+  
+  // Helper function to manage download concurrency
+  const startDownloadWithSemaphore = async (trackId: string): Promise<void> => {
+    downloadSemaphore.value++
+    try {
+      await startDownload(trackId)
+    } catch (error) {
+      console.error('Failed to download track:', trackId, error)
+    } finally {
+      downloadSemaphore.value--
     }
   }
 
