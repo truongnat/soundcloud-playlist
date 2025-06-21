@@ -14,7 +14,7 @@ const FALLBACK_CLIENT_IDS = [
 
 let currentFallbackIndex = 0
 let cachedClientId: string | null = null
-const CLIENT_ID_VALIDITY = 1800 * 1000 // 30 minutes (reduced from 1 hour)
+const CLIENT_ID_VALIDITY = 900 * 1000 // 15 minutes (reduced for serverless)
 let lastClientIdFetch = 0
 
 // Validate if a client ID is still working
