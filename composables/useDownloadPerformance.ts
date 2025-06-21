@@ -76,19 +76,36 @@ export const useDownloadPerformance = () => {
 
   // Update metrics
   const updateMetrics = (downloadSpeed: number, conversionTime: number, success: boolean) => {
+    // Validate input parameters
+    const validDownloadSpeed = isNaN(downloadSpeed) || downloadSpeed < 0 ? 0 : downloadSpeed
+    const validConversionTime = isNaN(conversionTime) || conversionTime < 0 ? 0 : conversionTime
+    
     metrics.value.totalDownloads++
     if (!success) {
       metrics.value.failedDownloads++
     }
     
-    // Calculate running averages
+    // Calculate running averages with validation
     const total = metrics.value.totalDownloads
-    metrics.value.averageDownloadSpeed = 
-      (metrics.value.averageDownloadSpeed * (total - 1) + downloadSpeed) / total
-    metrics.value.averageConversionTime = 
-      (metrics.value.averageConversionTime * (total - 1) + conversionTime) / total
-    metrics.value.successRate = 
-      ((total - metrics.value.failedDownloads) / total) * 100
+    if (total > 0) {
+      metrics.value.averageDownloadSpeed = 
+        (metrics.value.averageDownloadSpeed * (total - 1) + validDownloadSpeed) / total
+      metrics.value.averageConversionTime = 
+        (metrics.value.averageConversionTime * (total - 1) + validConversionTime) / total
+      metrics.value.successRate = 
+        ((total - metrics.value.failedDownloads) / total) * 100
+    }
+    
+    // Ensure no NaN values
+    if (isNaN(metrics.value.averageDownloadSpeed)) {
+      metrics.value.averageDownloadSpeed = 0
+    }
+    if (isNaN(metrics.value.averageConversionTime)) {
+      metrics.value.averageConversionTime = 0
+    }
+    if (isNaN(metrics.value.successRate)) {
+      metrics.value.successRate = 0
+    }
   }
 
   // Get performance recommendations

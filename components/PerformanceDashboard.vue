@@ -180,9 +180,13 @@ const expanded = ref(false)
 const localSettings = ref({ ...settings })
 
 // Computed properties for display
-const successRate = computed(() => 
-  metrics.successRate ? Math.round(metrics.successRate) : 0
-)
+const successRate = computed(() => {
+  const rate = metrics.successRate
+  if (!rate || isNaN(rate)) {
+    return 0
+  }
+  return Math.round(rate)
+})
 
 const successRateColor = computed(() => {
   const rate = successRate.value
@@ -207,9 +211,13 @@ const avgSpeed = computed(() => {
   return `${Math.round(speed)}B/s`
 })
 
-const avgConversionTime = computed(() => 
-  Math.round(metrics.averageConversionTime / 1000)
-)
+const avgConversionTime = computed(() => {
+  const time = metrics.averageConversionTime
+  if (!time || isNaN(time)) {
+    return 0
+  }
+  return Math.round(time / 1000)
+})
 
 // Watch for settings changes
 watch(settings, (newSettings) => {
