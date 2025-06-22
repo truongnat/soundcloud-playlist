@@ -1,40 +1,37 @@
 <template>
   <UApp class="dark">
     <div class="h-screen bg-gradient-to-br from-gray-900 to-gray-800 text-gray-100 flex overflow-hidden">
-      <!-- Left Sidebar - Activity Logs -->
+      <!-- Left Sidebar - Settings -->
       <Transition name="slide-left">
-        <aside v-if="uiStore.showLogsPanel"
+        <aside v-if="uiStore.showSettingsPanel"
           class="w-full sm:w-80 bg-gray-900/50 border-r border-gray-700/50 flex-shrink-0 flex flex-col fixed sm:relative inset-0 sm:inset-auto z-50 sm:z-auto h-full"
           role="complementary"
-          aria-label="Activity logs">
+          aria-label="Application settings">
           
-          <!-- Logs Panel Header (Mobile only) -->
+          <!-- Settings Panel Header (Mobile only) -->
           <div class="sm:hidden p-4 border-b border-gray-700/50 flex items-center justify-between flex-shrink-0">
             <div class="flex items-center gap-3">
-              <svg class="w-5 h-5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg class="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
-              <h2 class="text-lg font-semibold text-gray-200">Activity Logs</h2>
-              <span v-if="logStats.total > 0" 
-                class="bg-blue-500/20 text-blue-400 text-xs px-2 py-1 rounded-full">
-                {{ logStats.total }}
-              </span>
+              <h2 class="text-lg font-semibold text-gray-200">Settings</h2>
             </div>
             
             <button
-              @click="toggleLogsPanel"
+              @click="toggleSettingsPanel"
               class="p-1.5 text-gray-400 hover:text-gray-200 transition-colors rounded-lg hover:bg-gray-800/50"
-              aria-label="Close logs panel">
+              aria-label="Close settings panel">
               <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
           </div>
 
-          <!-- Logs Panel Content -->
+          <!-- Settings Panel Content -->
           <div class="flex-1 overflow-hidden min-h-0">
-            <LogsPanel @close="toggleLogsPanel" />
+            <SettingsPanel @close="toggleSettingsPanel" />
           </div>
         </aside>
       </Transition>
@@ -77,24 +74,18 @@
             </div>
             
             <div class="flex items-center gap-2 lg:gap-4">
-              <!-- Logs Panel Toggle Button -->
+              <!-- Settings Panel Toggle Button -->
               <button
-                @click="toggleLogsPanel"
-                class="relative p-2 text-gray-400 hover:text-blue-500 transition-all hover:scale-110 rounded-lg hover:bg-gray-800/50"
-                :class="{ 'text-blue-500': uiStore.showLogsPanel }"
-                aria-label="Toggle activity logs"
+                @click="toggleSettingsPanel"
+                class="relative p-2 text-gray-400 hover:text-gray-300 transition-all hover:scale-110 rounded-lg hover:bg-gray-800/50"
+                :class="{ 'text-gray-300': uiStore.showSettingsPanel }"
+                aria-label="Toggle settings"
               >
                 <svg class="w-5 h-5 lg:w-6 lg:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
-                
-                <!-- Logs Count Badge -->
-                <span v-if="logStats.total > 0"
-                  class="absolute -top-1 -right-1 bg-blue-500 text-white text-xs font-medium rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1"
-                  aria-hidden="true">
-                  {{ logStats.total }}
-                </span>
               </button>
 
               <!-- Download Queue Toggle Button -->
@@ -190,11 +181,11 @@
         </div>
       </Transition>
 
-      <!-- Mobile Backdrop for Logs Panel -->
+      <!-- Mobile Backdrop for Settings Panel -->
       <Transition name="fade">
-        <div v-if="uiStore.showLogsPanel" 
+        <div v-if="uiStore.showSettingsPanel" 
           class="sm:hidden fixed inset-0 bg-black/40 backdrop-blur-sm z-40"
-          @click="toggleLogsPanel"
+          @click="toggleSettingsPanel"
           aria-hidden="true">
         </div>
       </Transition>
@@ -270,7 +261,6 @@
 import { ref, nextTick, onMounted, computed, provide } from 'vue'
 import { useUIStore } from '@/stores/ui'
 import { useDownloadQueueStore } from '@/stores/downloadQueue'
-import { useLogsStore } from '@/stores/logs'
 import type { Track } from '@/types'
 
 // Enhanced error handling
@@ -281,7 +271,6 @@ const handleError = (error: Error) => {
 
 const uiStore = useUIStore()
 const downloadQueueStore = useDownloadQueueStore()
-const logsStore = useLogsStore()
 const downloadQueueRef = ref()
 
 // Track download state
@@ -326,15 +315,12 @@ const downloadStats = computed(() => {
   return stats
 })
 
-// Logs statistics
-const logStats = computed(() => logsStore.logStats)
-
 const toggleDownloadQueue = () => {
   uiStore.showDownloadQueue = !uiStore.showDownloadQueue
 }
 
-const toggleLogsPanel = () => {
-  uiStore.toggleLogsPanel()
+const toggleSettingsPanel = () => {
+  uiStore.toggleSettingsPanel()
 }
 
 const handleDownloadTrack = async (track: Track) => {
