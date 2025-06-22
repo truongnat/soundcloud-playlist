@@ -3,9 +3,13 @@ import { defineStore } from 'pinia'
 export interface PerformanceSettings {
   maxConcurrentDownloads: number
   enableMultiThreading: boolean
-  compressionPreset: 'ultrafast' | 'fast' | 'medium' | 'slow'
-  audioQuality: '128k' | '192k' | '256k' | '320k'
+  compressionPreset: 'ultrafast' | 'superfast' | 'veryfast' | 'faster' | 'fast' | 'medium' | 'slow'
+  audioQuality: '96k' | '128k' | '192k' | '256k' | '320k'
   chunkSize: number
+  enableAutoOptimization: boolean
+  enableStreamCaching: boolean
+  enableConnectionPooling: boolean
+  enableAdaptiveBitrate: boolean
 }
 
 export interface PerformanceMetrics {
@@ -22,8 +26,12 @@ export const usePerformanceStore = defineStore('performance', {
       maxConcurrentDownloads: 3,
       enableMultiThreading: true,
       compressionPreset: 'fast' as const,
-      audioQuality: '320k' as const,
-      chunkSize: 1024 * 1024 // 1MB chunks
+      audioQuality: '128k' as const,
+      chunkSize: 1024 * 1024, // 1MB chunks
+      enableAutoOptimization: true,
+      enableStreamCaching: true,
+      enableConnectionPooling: true,
+      enableAdaptiveBitrate: true
     } as PerformanceSettings,
     
     metrics: {
