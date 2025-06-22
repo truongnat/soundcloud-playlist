@@ -276,6 +276,7 @@ const emit = defineEmits<{
 const downloadQueueStore = useDownloadQueueStore()
 const uiStore = useUIStore()
 const { getCurrentDownloadPath, getResolvedPath } = useDownloadPath()
+const { downloadPermission } = usePermissions()
 
 const {
   queueItems,
