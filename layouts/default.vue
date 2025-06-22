@@ -368,6 +368,52 @@ const handleDownloadTrack = async (track: Track) => {
   }
 }
 
+// Batch add tracks to queue (much faster for "Download All")
+const handleDownloadAllTracks = async (tracks: Track[]) => {
+  try {
+    console.log(`Adding ${tracks.length} tracks to queue...`)
+    
+    // Filter out tracks that are already being downloaded or have errors
+    const tracksToAdd = tracks.filter(track => {
+      const trackId = String(track.id)
+      return !downloadingTracks.value.includes(trackId) && !errorTracks.value[trackId]
+    })
+
+    if (tracksToAdd.length === 0) {
+      console.log('No new tracks to add to queue')
+      return
+    }
+
+    // Add all tracks to downloading state at once
+    const newTrackIds = tracksToAdd.map(track => String(track.id))
+    downloadingTracks.value.push(...newTrackIds)
+
+    // Add all tracks to queue store at once
+    tracksToAdd.forEach(track => {
+      downloadQueueStore.addToQueue(track)
+    })
+
+    // Wait for the next tick to ensure the download queue component is mounted
+    await nextTick()
+    
+    // Start all downloads at once
+    if (downloadQueueRef.value?.startAllDownloads) {
+      await downloadQueueRef.value.startAllDownloads()
+    } else {
+      console.warn('downloadQueueRef.startAllDownloads is not available')
+    }
+
+    // Auto-open download queue if it's closed
+    if (!uiStore.showDownloadQueue) {
+      uiStore.showDownloadQueue = true
+    }
+
+    console.log(`Successfully added ${tracksToAdd.length} tracks to queue`)
+  } catch (error) {
+    console.error('Error handling download all tracks:', error)
+  }
+}
+
 const handleDownloadComplete = (trackId: string) => {
   // Remove from downloading state
   const index = downloadingTracks.value.indexOf(trackId)
@@ -388,6 +434,7 @@ const handleDiscardAll = () => {
 
 // Provide functionality to child components
 provide('handleDownloadTrack', handleDownloadTrack)
+provide('handleDownloadAllTracks', handleDownloadAllTracks)
 provide('downloadingTracks', downloadingTracks)
 provide('errorTracks', errorTracks)
 
