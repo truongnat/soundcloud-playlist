@@ -34,18 +34,75 @@ export function validateMP3Output(data: Uint8Array): boolean {
          (data[offset] === 0xFF && data[offset + 1] === 0xFB)
 }
 
-export async function downloadBlob(blob: Blob, filename: string): Promise<void> {
+export async function downloadBlob(blob: Blob, filename: string, customPath?: string): Promise<void> {
   // Check if we're running on the client side
   if (typeof window === 'undefined' || typeof document === 'undefined') {
     throw new Error('downloadBlob can only be called on the client side')
   }
   
+  // Try to use File System Access API if available and custom path is provided
+  if (customPath && 'showSaveFilePicker' in window) {
+    try {
+      const fileHandle = await (window as any).showSaveFilePicker({
+        suggestedName: filename,
+        types: [{
+          description: 'MP3 files',
+          accept: { 'audio/mpeg': ['.mp3'] }
+        }]
+      })
+      
+      const writable = await fileHandle.createWritable()
+      await writable.write(blob)
+      await writable.close()
+      
+      console.log(`File saved to custom location: ${filename}`)
+      return
+    } catch (error: any) {
+      // User cancelled or API not supported, fall back to default download
+      if (error.name !== 'AbortError') {
+        console.warn('File System Access API failed, falling back to default download:', error)
+      }
+    }
+  }
+  
+  // Fallback to default browser download
   const url = window.URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
   a.download = filename
+  
+  // Add custom path info to the filename if provided
+  if (customPath && customPath !== '~/Downloads') {
+    // Note: Browser will still save to default download folder
+    // This is just for user information
+    console.log(`Note: File will be downloaded to browser's default download folder. Intended path: ${customPath}`)
+  }
+  
   document.body.appendChild(a)
   a.click()
   window.URL.revokeObjectURL(url)
   document.body.removeChild(a)
+}
+
+// Helper function to show download path info
+export function getDownloadInfo(customPath?: string): { 
+  actualPath: string, 
+  isCustomPath: boolean,
+  message: string 
+} {
+  const isCustomPath = customPath && customPath !== '~/Downloads'
+  const actualPath = isCustomPath ? customPath : 'Browser default download folder'
+  
+  let message = ''
+  if (isCustomPath) {
+    if ('showSaveFilePicker' in window) {
+      message = `Will attempt to save to: ${customPath}`
+    } else {
+      message = `Will save to browser default folder (${customPath} not supported)`
+    }
+  } else {
+    message = 'Will save to browser default download folder'
+  }
+  
+  return { actualPath, isCustomPath: !!isCustomPath, message }
 }

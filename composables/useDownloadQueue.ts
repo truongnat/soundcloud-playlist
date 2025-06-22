@@ -2,6 +2,7 @@ import type { Track } from '@/types'
 import { useAudioProcessor } from './useAudioProcessor'
 import { useDownloadQueueStore } from '@/stores/downloadQueue'
 import { usePerformanceStore } from '@/stores/performance'
+import { useDownloadPath } from './useDownloadPath'
 import { validateAudioFormat, downloadBlob } from '~/utils/audio'
 import { sanitizeFilename } from '~/utils/api'
 
@@ -16,6 +17,7 @@ const downloadSemaphore = ref(0) // Current active downloads count
 export const useDownloadQueue = () => {
   const store = useDownloadQueueStore()
   const performanceStore = usePerformanceStore()
+  const { getCurrentDownloadPath, getResolvedPath } = useDownloadPath()
 
   // Helper functions
   const getTrackId = (id: string | number): string => id.toString()
@@ -242,7 +244,12 @@ export const useDownloadQueue = () => {
       // Save file
       console.log('Saving file for track:', track.title)
       const filename = sanitizeFilename(`${track.title}.mp3`)
-      await downloadBlob(mp3Blob, filename)
+      const downloadPath = getCurrentDownloadPath.value
+      
+      // Log download path info
+      console.log(`Downloading to path: ${downloadPath}`)
+      
+      await downloadBlob(mp3Blob, filename, downloadPath)
       console.log('File saved successfully:', filename)
 
       // Mark as completed

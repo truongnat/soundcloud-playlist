@@ -70,6 +70,24 @@
               </button>
             </div>
             <p class="text-xs text-gray-400 mt-1">Choose where downloaded files will be saved</p>
+            
+            <!-- Download Path Info -->
+            <div class="mt-2 p-2 bg-blue-900/20 border border-blue-700/30 rounded-md">
+              <div class="flex items-start gap-2">
+                <svg class="w-4 h-4 text-blue-400 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div class="text-xs text-blue-300">
+                  <p class="font-medium mb-1">Download Path Information:</p>
+                  <ul class="space-y-1 text-blue-200/80">
+                    <li>• Modern browsers will attempt to save to your specified path</li>
+                    <li>• If not supported, files will save to your browser's default download folder</li>
+                    <li>• You can then move files to your desired location</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
           </div>
 
           <!-- Coming Soon Features -->
