@@ -24,16 +24,30 @@ export const usePermissions = () => {
 
   // Check if File System Access API is supported
   const isFileSystemAccessSupported = computed(() => {
+    if (typeof window === 'undefined') return false
     return 'showDirectoryPicker' in window && 'showSaveFilePicker' in window
   })
 
   // Check if download permission is supported
   const isDownloadPermissionSupported = computed(() => {
+    if (typeof navigator === 'undefined') return false
     return 'permissions' in navigator && 'query' in navigator.permissions
   })
 
   // Request download permission (for multiple files)
   const requestDownloadPermission = async (): Promise<boolean> => {
+    // Check if we're in browser environment
+    if (typeof window === 'undefined' || typeof navigator === 'undefined') {
+      console.log('Not in browser environment, assuming granted')
+      downloadPermission.value = {
+        granted: true,
+        denied: false,
+        prompt: false,
+        unsupported: true
+      }
+      return true
+    }
+
     try {
       // Check if permissions API is supported
       if (!isDownloadPermissionSupported.value) {
