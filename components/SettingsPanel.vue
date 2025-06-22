@@ -72,19 +72,26 @@
             <p class="text-xs text-gray-400 mt-1">Choose where downloaded files will be saved</p>
             
             <!-- Download Path Info -->
-            <div class="mt-2 p-2 bg-blue-900/20 border border-blue-700/30 rounded-md">
+            <div class="mt-2 p-3 bg-amber-900/20 border border-amber-700/30 rounded-md">
               <div class="flex items-start gap-2">
-                <svg class="w-4 h-4 text-blue-400 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg class="w-4 h-4 text-amber-400 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.314 16.5c-.77.833.192 2.5 1.732 2.5z" />
                 </svg>
-                <div class="text-xs text-blue-300">
-                  <p class="font-medium mb-1">Download Path Information:</p>
-                  <ul class="space-y-1 text-blue-200/80">
-                    <li>• Modern browsers will attempt to save to your specified path</li>
-                    <li>• If not supported, files will save to your browser's default download folder</li>
-                    <li>• You can then move files to your desired location</li>
-                  </ul>
+                <div class="text-xs text-amber-200">
+                  <p class="font-medium mb-2 text-amber-100">⚠️ Browser Security Limitation:</p>
+                  <div class="space-y-2 text-amber-200/90">
+                    <p><strong>Current behavior:</strong> Files will always download to your browser's default download folder due to security restrictions.</p>
+                    <p><strong>This path setting:</strong> For reference only - shows your preferred organization folder.</p>
+                    <div class="mt-2 p-2 bg-amber-800/20 rounded border-l-2 border-amber-500">
+                      <p class="font-medium text-amber-100 mb-1">💡 Recommended workflow:</p>
+                      <ol class="space-y-1 text-xs">
+                        <li>1. Files download to browser's default folder</li>
+                        <li>2. Manually move/organize files to: <code class="bg-amber-800/40 px-1 rounded">{{ downloadPath }}</code></li>
+                        <li>3. Or set up browser to ask download location each time</li>
+                      </ol>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

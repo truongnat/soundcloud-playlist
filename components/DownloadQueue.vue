@@ -14,14 +14,14 @@
                   d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
           </svg>
           <span class="mr-1">Downloads to:</span>
-          <span class="text-gray-300 font-mono">{{ getCurrentDownloadPath }}</span>
+          <span class="text-orange-300 font-mono">Browser default folder</span>
         </div>
-        <div v-if="getCurrentDownloadPath !== '~/Downloads'" class="flex items-center text-blue-400">
+        <div v-if="getCurrentDownloadPath !== '~/Downloads'" class="flex items-center text-amber-400">
           <svg class="w-3 h-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.314 16.5c-.77.833.192 2.5 1.732 2.5z" />
           </svg>
-          <span>Custom path</span>
+          <span>Move to: {{ getCurrentDownloadPath }}</span>
         </div>
       </div>
     </div>
@@ -187,12 +187,21 @@
                     </svg>
                     Download Completed
                   </div>
-                  <div class="text-xs text-green-300/70 mt-1 flex items-center">
-                    <svg class="w-3 h-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                            d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
-                    </svg>
-                    Saved to: {{ getResolvedPath }}
+                  <div class="text-xs text-green-300/70 mt-1">
+                    <div class="flex items-center">
+                      <svg class="w-3 h-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                              d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                      </svg>
+                      <span>Downloaded to browser's default folder</span>
+                    </div>
+                    <div v-if="getCurrentDownloadPath !== '~/Downloads'" class="flex items-center mt-1 text-amber-300/80">
+                      <svg class="w-3 h-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                              d="M7 16l-4-4m0 0l4-4m-4 4h18" />
+                      </svg>
+                      <span>Move to: {{ getCurrentDownloadPath }}</span>
+                    </div>
                   </div>
                 </div>
 
