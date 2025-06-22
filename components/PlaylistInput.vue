@@ -107,14 +107,18 @@
 
 <script setup lang="ts">
 import { usePlaylist } from '@/composables/usePlaylist'
+import { useBackgroundJobs } from '@/composables/useBackgroundJobs'
 import type { PlaylistResponse } from '@/types'
+import type { JobStatus } from '@/composables/useBackgroundJobs'
 
 const playlistUrl = ref('')
 const error = ref('')
 const loading = ref(false)
+const useBackgroundProcessing = ref(false)
 
 const emit = defineEmits<{
   'playlist-loaded': [data: PlaylistResponse]
+  'background-job-created': [job: JobStatus]
   'error': [message: string]
 }>()
 
@@ -123,6 +127,7 @@ defineProps<{
 }>()
 
 const { fetchPlaylist } = usePlaylist()
+const { processPlaylistBackground } = useBackgroundJobs()
 
 const isValidUrl = computed(() => {
   if (!playlistUrl.value) return false
@@ -151,8 +156,36 @@ const handleFetchPlaylist = async () => {
   loading.value = true
   
   try {
-    const data = await fetchPlaylist(playlistUrl.value.trim())
-    emit('playlist-loaded', data)
+    if (useBackgroundProcessing.value) {
+      // Use background processing
+      const { jobId, result } = await processPlaylistBackground(playlistUrl.value.trim())
+      
+      // Emit job created event so parent can track it
+      const jobStatus: JobStatus = {
+        id: jobId,
+        type: 'playlist',
+        status: 'pending',
+        progress: 0,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }
+      
+      emit('background-job-created', jobStatus)
+      
+      // Wait for result in background
+      result.then((data) => {
+        emit('playlist-loaded', data)
+      }).catch((err) => {
+        const message = err instanceof Error ? err.message : 'Background processing failed'
+        error.value = message
+        emit('error', message)
+      })
+      
+    } else {
+      // Use immediate processing (legacy)
+      const data = await fetchPlaylist(playlistUrl.value.trim())
+      emit('playlist-loaded', data)
+    }
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Failed to load playlist'
     error.value = message

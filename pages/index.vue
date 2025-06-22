@@ -12,10 +12,18 @@
     <div class="bg-gray-800/50 backdrop-blur-sm p-6 rounded-2xl shadow-xl border border-gray-700/50 mb-8">
       <PlaylistInput 
         @playlist-loaded="handlePlaylistLoaded"
+        @background-job-created="handleBackgroundJobCreated"
         @error="handleError"
         :loading="loading"
       />
     </div>
+
+    <!-- Background Job Progress -->
+    <BackgroundJobProgress 
+      v-if="currentJob"
+      :job="currentJob"
+      @close="closeJobProgress"
+    />
 
     <!-- Error Message -->
     <div v-if="error" 
@@ -59,10 +67,13 @@
 <script setup lang="ts">
 import { ref, computed, watchEffect, inject, type Ref, onMounted } from 'vue'
 import type { Track, PlaylistInfo, PlaylistResponse } from '@/types'
+import type { JobStatus } from '@/composables/useBackgroundJobs'
 import { usePlaylist } from '@/composables/usePlaylist'
+import { useBackgroundJobs } from '@/composables/useBackgroundJobs'
 import { useLogger } from '@/composables/useLogger'
 
 const { error: playlistError } = usePlaylist()
+const { getJobStatus } = useBackgroundJobs()
 const logger = useLogger()
 
 // Inject download functionality from layout
@@ -75,6 +86,7 @@ const playlistInfo = ref<PlaylistInfo | null>(null)
 const loading = ref(false)
 const error = ref('')
 const isDownloadingAll = ref(false)
+const currentJob = ref<JobStatus | null>(null)
 
 async function handlePlaylistLoaded(data: PlaylistResponse) {
   tracks.value = data.tracks
