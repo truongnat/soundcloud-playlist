@@ -169,6 +169,17 @@
             </svg>
             Reset Metrics
           </button>
+          
+          <button
+            @click="testMetrics"
+            class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors flex items-center gap-2"
+          >
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Test Metrics
+          </button>
         </div>
       </div>
     </Transition>
@@ -231,6 +242,14 @@ const applyOptimalSettings = () => {
 
 const resetMetrics = () => {
   performanceStore.resetMetrics()
+}
+
+const testMetrics = () => {
+  // Test with fake data to verify the system works
+  const fakeSpeed = 1024 * 1024 * 1.5 // 1.5 MB/s
+  const fakeConversionTime = 5000 // 5 seconds
+  console.log('[PerformanceDashboard] Testing metrics with fake data')
+  performanceStore.updateMetrics(fakeSpeed, fakeConversionTime, true)
 }
 </script>
 

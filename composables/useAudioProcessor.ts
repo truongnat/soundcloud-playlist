@@ -3,12 +3,12 @@ import { FFmpeg } from '@ffmpeg/ffmpeg'
 import { toBlobURL } from '@ffmpeg/util'
 import type { FFmpegType } from '@/types'
 import { validateAudioFormat, validateMP3Output } from '~/utils/audio'
-import { useDownloadPerformance } from './useDownloadPerformance'
+import { usePerformanceStore } from '@/stores/performance'
 
 export const useAudioProcessor = () => {
   const ffmpeg = ref<FFmpegType>()
   const isLoadingFFmpeg = ref(false)
-  const { settings: performanceSettings } = useDownloadPerformance()
+  const performanceStore = usePerformanceStore()
   
   // Detect number of CPU cores for optimal threading
   const getOptimalThreadCount = (): number => {
@@ -225,7 +225,7 @@ export const useAudioProcessor = () => {
         '-acodec', 'libmp3lame',           // Explicitly set audio codec
         '-ar', '44100',                    // Set sample rate
         '-ac', '2',                        // Set to stereo
-        '-b:a', performanceSettings.value.audioQuality, // Use dynamic bitrate
+        '-b:a', performanceStore.settings.audioQuality, // Use dynamic bitrate
         '-f', 'mp3',                       // Force MP3 format
         '-y',                              // Overwrite output
         'output.mp3'
