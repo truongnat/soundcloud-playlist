@@ -449,6 +449,9 @@ provide('errorTracks', errorTracks)
 
 // Enhanced lifecycle management
 onMounted(() => {
+  // Force reset UI state to ensure settings panel is closed
+  uiStore.resetUIState()
+  
   // Initialize any necessary state
   console.log('Layout mounted successfully')
 })

@@ -52,6 +52,13 @@ export const useUIStore = defineStore('ui', {
 
     hideSettingsPanel() {
       this.showSettingsPanel = false
+    },
+
+    // Force reset all UI state
+    resetUIState() {
+      this.showDownloadQueue = false
+      this.shouldKeepQueueOpen = false
+      this.showSettingsPanel = false
     }
   }
 })
