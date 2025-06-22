@@ -15,6 +15,7 @@ const downloadSemaphore = ref(0) // Current active downloads count
 
 export const useDownloadQueue = () => {
   const store = useDownloadQueueStore()
+  const performanceStore = usePerformanceStore()
 
   // Helper functions
   const getTrackId = (id: string | number): string => id.toString()
@@ -156,7 +157,7 @@ export const useDownloadQueue = () => {
           const contentLength = +(audioResponse.headers.get('Content-Length') || 0)
           let receivedLength = 0
           const chunks: Uint8Array[] = []
-          const chunkSize = performanceSettings.value.chunkSize
+          const chunkSize = performanceStore.settings.chunkSize
 
           while (true) {
             // Kiểm tra cancel trong quá trình download
@@ -250,7 +251,7 @@ export const useDownloadQueue = () => {
       
       // Update performance metrics
       console.log(`Updating metrics - Speed: ${downloadSpeed} B/s, Conversion: ${conversionTime}ms, Success: true`)
-      updateMetrics(downloadSpeed, conversionTime, true)
+      performanceStore.updateMetrics(downloadSpeed, conversionTime, true)
       console.log(`Download completed: ${track.title} (Speed: ${Math.round(downloadSpeed / 1024)}KB/s, Conversion: ${Math.round(conversionTime / 1000)}s)`)
     } catch (error: any) {
       console.error('Download failed:', error)
@@ -264,7 +265,7 @@ export const useDownloadQueue = () => {
         store.updateTrackStatus(trackId, 'error', error.message)
         store.updateTrackProgress(trackId, 0)
         // Update metrics for failed download
-        updateMetrics(downloadSpeed, 0, false)
+        performanceStore.updateMetrics(downloadSpeed, 0, false)
       }
     } finally {
       // Cleanup abort controller
@@ -284,14 +285,14 @@ export const useDownloadQueue = () => {
     
     if (queuedItems.length === 0) return
     
-    console.log(`Starting batch download of ${queuedItems.length} tracks with max ${performanceSettings.value.maxConcurrentDownloads} concurrent downloads`)
+    console.log(`Starting batch download of ${queuedItems.length} tracks with max ${performanceStore.settings.maxConcurrentDownloads} concurrent downloads`)
     
     // Process downloads with concurrency limit
     const downloadPromises: Promise<void>[] = []
     
     for (const item of queuedItems) {
       // Wait if we've reached the concurrent download limit
-      while (downloadSemaphore.value >= performanceSettings.value.maxConcurrentDownloads) {
+      while (downloadSemaphore.value >= performanceStore.settings.maxConcurrentDownloads) {
         await new Promise(resolve => setTimeout(resolve, 100))
       }
       

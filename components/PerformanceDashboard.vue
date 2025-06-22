@@ -177,19 +177,12 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import { useDownloadPerformance } from '~/composables/useDownloadPerformance'
+import { usePerformanceStore } from '@/stores/performance'
 
-const { 
-  settings, 
-  metrics, 
-  recommendations, 
-  applyOptimalSettings: applyOptimal,
-  updateSettings: updatePerformanceSettings,
-  resetMetrics
-} = useDownloadPerformance()
+const performanceStore = usePerformanceStore()
 
 // Debug: Watch metrics changes
-watch(metrics, (newMetrics) => {
+watch(() => performanceStore.metrics, (newMetrics) => {
   console.log('[PerformanceDashboard] Metrics updated:', newMetrics)
 }, { deep: true })
 
@@ -203,13 +196,7 @@ const localSettings = ref({
 })
 
 // Computed properties for display
-const successRate = computed(() => {
-  const rate = metrics.successRate
-  if (isNaN(rate) || rate === undefined || rate === null) {
-    return 0
-  }
-  return Math.round(rate)
-})
+const successRate = computed(() => performanceStore.formattedSuccessRate)
 
 const successRateColor = computed(() => {
   const rate = successRate.value
@@ -218,37 +205,12 @@ const successRateColor = computed(() => {
   return 'text-red-400'
 })
 
-const avgSpeed = computed(() => {
-  const speed = metrics.averageDownloadSpeed
-  
-  // Handle invalid values only (allow zero as valid)
-  if (isNaN(speed) || speed === undefined || speed === null) {
-    return '0 B/s'
-  }
-  
-  // Handle zero speed
-  if (speed === 0) {
-    return '0 B/s'
-  }
-  
-  if (speed > 1024 * 1024) {
-    return `${Math.round(speed / (1024 * 1024))}MB/s`
-  } else if (speed > 1024) {
-    return `${Math.round(speed / 1024)}KB/s`
-  }
-  return `${Math.round(speed)}B/s`
-})
+const avgSpeed = computed(() => performanceStore.formattedAverageSpeed)
 
-const avgConversionTime = computed(() => {
-  const time = metrics.averageConversionTime
-  if (isNaN(time) || time === undefined || time === null) {
-    return 0
-  }
-  return Math.round(time / 1000)
-})
+const avgConversionTime = computed(() => performanceStore.formattedConversionTime)
 
 // Watch for settings changes and initialize localSettings
-watch(settings, (newSettings) => {
+watch(() => performanceStore.settings, (newSettings) => {
   if (newSettings) {
     localSettings.value = { ...newSettings }
   }
