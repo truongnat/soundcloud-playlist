@@ -105,6 +105,7 @@ const logger = useLogger()
 // Inject download functionality from layout
 const handleDownloadTrack = inject('handleDownloadTrack') as (track: Track) => Promise<void>
 const handleDownloadAllTracks = inject('handleDownloadAllTracks') as (tracks: Track[]) => Promise<void>
+const discardAllDownloads = inject('discardAllDownloads') as () => Promise<void>
 const downloadingTracks = inject('downloadingTracks') as Ref<string[]>
 const errorTracks = inject('errorTracks') as Ref<Record<string, string>>
 
@@ -233,16 +234,29 @@ function handleBeforeFetch(data: { url: string; useBackground: boolean }) {
 }
 
 // Handle confirm replacement
-function handleConfirmReplace() {
+async function handleConfirmReplace() {
   showConfirmModal.value = false
   
   if (pendingFetchData.value) {
-    // Clear current state
-    clearCurrentPlaylist()
+    // Show loading state while clearing
+    loading.value = true
     
-    // Proceed with fetch
-    proceedWithFetch(pendingFetchData.value.url, pendingFetchData.value.useBackground)
-    pendingFetchData.value = null
+    try {
+      // Clear current state (this will also cancel downloads)
+      await clearCurrentPlaylist()
+      
+      // Small delay to ensure cleanup is complete
+      await new Promise(resolve => setTimeout(resolve, 500))
+      
+      // Proceed with fetch
+      proceedWithFetch(pendingFetchData.value.url, pendingFetchData.value.useBackground)
+      pendingFetchData.value = null
+    } catch (error) {
+      console.error('Error during playlist replacement:', error)
+      error.value = 'Failed to clear current playlist'
+    } finally {
+      loading.value = false
+    }
   }
 }
 
@@ -253,13 +267,20 @@ function handleCancelReplace() {
 }
 
 // Clear current playlist state
-function clearCurrentPlaylist() {
+async function clearCurrentPlaylist() {
+  // First discard all active downloads
+  if (downloadingTracks.value.length > 0) {
+    console.log('Discarding active downloads before clearing playlist...')
+    await discardAllDownloads()
+  }
+  
+  // Then clear playlist state
   tracks.value = []
   playlistInfo.value = null
   error.value = ''
   currentJob.value = null
   
-  logger.logUserAction('Cleared current playlist for new playlist')
+  logger.logUserAction('Cleared current playlist and cancelled downloads for new playlist')
 }
 
 // Proceed with actual fetch
