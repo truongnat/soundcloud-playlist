@@ -1,12 +1,11 @@
 import type { Track } from '@/types'
 import { useAudioProcessor } from './useAudioProcessor'
-import { useDownloadPerformance } from './useDownloadPerformance'
 import { useDownloadQueueStore } from '@/stores/downloadQueue'
+import { usePerformanceStore } from '@/stores/performance'
 import { validateAudioFormat, downloadBlob } from '~/utils/audio'
 import { sanitizeFilename } from '~/utils/api'
 
 const { convertToMp3 } = useAudioProcessor()
-const { settings: performanceSettings, updateMetrics } = useDownloadPerformance()
 
 // Global abort controllers để có thể cancel downloads
 const activeDownloads = new Map<string, AbortController>()
