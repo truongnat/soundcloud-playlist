@@ -129,7 +129,7 @@ interface Props {
   job: JobStatus | null
 }
 
-defineProps<Props>()
+const props = defineProps<Props>()
 defineEmits<{
   close: []
 }>()
@@ -189,6 +189,4 @@ const getProgressBarColor = () => {
 const formatTime = (timestamp: string) => {
   return new Date(timestamp).toLocaleTimeString()
 }
-
-const props = defineProps<Props>()
 </script>
