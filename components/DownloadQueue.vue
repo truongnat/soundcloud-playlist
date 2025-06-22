@@ -158,12 +158,21 @@
                 </div>
 
                 <div v-else-if="item.status === 'completed'" 
-                  class="flex items-center text-sm text-green-400 mt-1 bg-green-900/20 px-3 py-1.5 rounded-lg"
+                  class="text-sm text-green-400 mt-1 bg-green-900/20 px-3 py-1.5 rounded-lg"
                 >
-                  <svg class="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                  </svg>
-                  Download Completed
+                  <div class="flex items-center">
+                    <svg class="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    Download Completed
+                  </div>
+                  <div class="text-xs text-green-300/70 mt-1 flex items-center">
+                    <svg class="w-3 h-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                            d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                    </svg>
+                    Saved to: {{ getResolvedPath }}
+                  </div>
                 </div>
 
                 <div v-else-if="item.status === 'error'"
@@ -205,6 +214,7 @@ import type { Track, QueueItem } from '@/types'
 import { useDownloadQueue } from '@/composables/useDownloadQueue'
 import { useDownloadQueueStore } from '@/stores/downloadQueue'
 import { useUIStore } from '@/stores/ui'
+import { useDownloadPath } from '@/composables/useDownloadPath'
 
 const emit = defineEmits<{
   (e: 'close'): void
@@ -214,6 +224,7 @@ const emit = defineEmits<{
 
 const downloadQueueStore = useDownloadQueueStore()
 const uiStore = useUIStore()
+const { getCurrentDownloadPath, getResolvedPath } = useDownloadPath()
 
 const {
   queueItems,
