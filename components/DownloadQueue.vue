@@ -5,6 +5,18 @@
       <PerformanceDashboard />
     </div>
     
+    <!-- Download Path Info -->
+    <div class="px-4 py-2 bg-gray-800/20 border-b border-gray-700/50">
+      <div class="flex items-center text-xs text-gray-400">
+        <svg class="w-3 h-3 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+        </svg>
+        <span class="mr-1">Downloads to:</span>
+        <span class="text-gray-300 font-mono">{{ getCurrentDownloadPath }}</span>
+      </div>
+    </div>
+    
     <!-- Queue Actions -->
     <div v-if="downloadStats.queued > 0" class="p-4 bg-gray-800/30 border-b border-gray-700/50">
       <button
