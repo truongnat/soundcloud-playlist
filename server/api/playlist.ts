@@ -185,6 +185,8 @@ async function getAllPlaylistTracks(playlist: SoundCloudPlaylist, playlistUrl: s
 export default defineEventHandler(async (event) => {
   const query = getQuery(event)
   let url = query.url as string
+  const background = query.background === 'true'
+  const maxTracks = query.maxTracks ? parseInt(query.maxTracks as string) : undefined
 
   if (!url) {
     throw createError({
@@ -193,7 +195,32 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  // Set timeout for serverless environment
+  // If background processing is requested, create a job and return immediately
+  if (background) {
+    try {
+      const { jobQueue } = await import('@/server/utils/jobQueue')
+      const job = jobQueue.createJob('playlist', {
+        url,
+        maxTracks
+      })
+
+      return {
+        success: true,
+        jobId: job.id,
+        status: job.status,
+        message: 'Background job created. Use the job ID to check progress.',
+        checkStatusUrl: `/api/jobs/status/${job.id}`
+      }
+    } catch (error: any) {
+      console.error('Error creating background job:', error)
+      throw createError({
+        statusCode: 500,
+        message: 'Failed to create background job: ' + error.message
+      })
+    }
+  }
+
+  // Otherwise, process immediately with timeout (legacy behavior)
   const timeoutPromise = new Promise((_, reject) => {
     setTimeout(() => reject(new Error('Request timeout')), 25000) // 25 seconds for Netlify
   })
@@ -207,11 +234,11 @@ export default defineEventHandler(async (event) => {
   } catch (error: any) {
     console.error('Error in playlist handler:', error)
     
-    // Handle timeout specifically
+    // Handle timeout specifically - suggest background processing
     if (error.message === 'Request timeout') {
       throw createError({
         statusCode: 504,
-        message: 'Request timed out. The playlist might be too large or SoundCloud is slow to respond. Please try again or use a smaller playlist.'
+        message: 'Request timed out. The playlist might be too large. Try using background processing by adding ?background=true to your request.'
       })
     }
 
@@ -238,7 +265,8 @@ export default defineEventHandler(async (event) => {
       message: errorMessage,
       data: {
         originalError: error.message,
-        url: url
+        url: url,
+        suggestion: 'For large playlists, try using background processing by adding ?background=true to your request.'
       }
     })
   }
