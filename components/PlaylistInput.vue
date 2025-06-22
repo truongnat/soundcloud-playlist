@@ -106,6 +106,7 @@
 </template>
 
 <script setup lang="ts">
+import { onMounted, onUnmounted } from 'vue'
 import { usePlaylist } from '@/composables/usePlaylist'
 import { useBackgroundJobs } from '@/composables/useBackgroundJobs'
 import type { PlaylistResponse } from '@/types'

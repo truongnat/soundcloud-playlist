@@ -9,7 +9,8 @@
     </div>
 
     <!-- URL Input Section -->
-    <div class="bg-gray-800/50 backdrop-blur-sm p-6 rounded-2xl shadow-xl border border-gray-700/50 mb-8">
+    <div class="bg-gray-800/50 backdrop-blur-sm p-6 rounded-2xl shadow-xl border border-gray-700/50 mb-8"
+         :class="{ 'border-orange-500/30': hasActiveState }">
       <PlaylistInput 
         @playlist-loaded="handlePlaylistLoaded"
         @background-job-created="handleBackgroundJobCreated"
@@ -17,6 +18,16 @@
         @error="handleError"
         :loading="loading"
       />
+      
+      <!-- Active State Indicator -->
+      <div v-if="hasActiveState && !loading" class="mt-4 flex items-center gap-2 text-sm text-orange-400">
+        <div class="w-2 h-2 bg-orange-500 rounded-full animate-pulse"></div>
+        <span>
+          {{ playlistInfo?.title || 'Playlist' }} loaded
+          <span v-if="downloadingTracks.length > 0">({{ downloadingTracks.length }} downloading)</span>
+          <span v-if="currentJob && ['pending', 'processing'].includes(currentJob.status)">(background processing)</span>
+        </span>
+      </div>
     </div>
 
     <!-- Confirm Modal -->
@@ -260,6 +271,14 @@ async function proceedWithFetch(url: string, useBackground: boolean) {
   })
   window.dispatchEvent(playlistInputEvent)
 }
+
+// Computed to check if we have any active state
+const hasActiveState = computed(() => {
+  const hasPlaylist = tracks.value.length > 0 || playlistInfo.value
+  const hasDownloads = downloadingTracks.value.length > 0
+  const hasJob = currentJob.value && ['pending', 'processing'].includes(currentJob.value.status)
+  return hasPlaylist || hasDownloads || hasJob
+})
 
 async function handleDownloadAll() {
   if (!tracks.value || tracks.value.length === 0) return
