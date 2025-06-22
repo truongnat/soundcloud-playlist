@@ -34,6 +34,83 @@
     <!-- Settings Content -->
     <div class="flex-1 overflow-y-auto p-4 space-y-6">
       
+      <!-- Permissions Settings -->
+      <div class="bg-gray-800/30 rounded-lg p-4 border border-gray-700/30">
+        <h3 class="text-md font-medium text-gray-200 mb-4 flex items-center gap-2">
+          <svg class="w-5 h-5 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                  d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+          </svg>
+          Browser Permissions
+        </h3>
+        
+        <div class="space-y-4">
+          <!-- Permission Status -->
+          <div class="bg-gray-900/30 rounded-lg p-3 border border-gray-600/30">
+            <h4 class="text-sm font-medium text-gray-200 mb-2">Current Status</h4>
+            <div class="space-y-1 text-xs">
+              <div v-for="message in permissionMessages" :key="message" 
+                   class="flex items-center gap-2"
+                   :class="{
+                     'text-green-400': message.includes('✓'),
+                     'text-red-400': message.includes('✗'),
+                     'text-yellow-400': message.includes('?')
+                   }">
+                <span>{{ message }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Permission Actions -->
+          <div class="grid grid-cols-1 gap-2">
+            <button
+              @click="requestDownloadPermissions"
+              :disabled="isRequestingPermissions"
+              class="px-3 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-md transition-colors flex items-center gap-2 text-sm"
+            >
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+              </svg>
+              <span v-if="isRequestingPermissions">Requesting...</span>
+              <span v-else>Request Download Permissions</span>
+            </button>
+
+            <button
+              @click="requestDirectoryAccess"
+              :disabled="isRequestingPermissions || !isFileSystemAccessSupported"
+              class="px-3 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-md transition-colors flex items-center gap-2 text-sm"
+            >
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+              </svg>
+              <span v-if="!isFileSystemAccessSupported">Directory Access (Not Supported)</span>
+              <span v-else-if="isRequestingPermissions">Requesting...</span>
+              <span v-else>Request Directory Access</span>
+            </button>
+          </div>
+
+          <!-- Permission Info -->
+          <div class="p-2 bg-blue-900/20 border border-blue-700/30 rounded-md">
+            <div class="flex items-start gap-2">
+              <svg class="w-4 h-4 text-blue-400 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <div class="text-xs text-blue-300">
+                <p class="font-medium mb-1">Permission Benefits:</p>
+                <ul class="space-y-1 text-blue-200/80">
+                  <li>• Download multiple files without browser blocking</li>
+                  <li>• Save files directly to your chosen directory</li>
+                  <li>• Better download experience with fewer interruptions</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Download Settings -->
       <div class="bg-gray-800/30 rounded-lg p-4 border border-gray-700/30">
         <h3 class="text-md font-medium text-gray-200 mb-4 flex items-center gap-2">
@@ -245,16 +322,32 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { usePermissions } from '@/composables/usePermissions'
 
 // Emit events
 const emit = defineEmits<{
   close: []
 }>()
 
+// Composables
+const {
+  downloadPermission,
+  directoryPermission,
+  isFileSystemAccessSupported,
+  requestDownloadPermission,
+  requestDirectoryPermission,
+  getPermissionStatusMessage
+} = usePermissions()
+
 // Reactive state
 const downloadPath = ref('~/Downloads')
 const lastUpdated = ref(new Date())
 const hasChanges = ref(false)
+const isRequestingPermissions = ref(false)
+const selectedDirectoryHandle = ref<FileSystemDirectoryHandle | null>(null)
+
+// Computed
+const permissionMessages = computed(() => getPermissionStatusMessage())
 
 // Load settings from localStorage
 const loadSettings = () => {
@@ -324,6 +417,45 @@ const resetToDefaults = () => {
   if (confirm('Are you sure you want to reset all settings to defaults?')) {
     downloadPath.value = '~/Downloads'
     updateDownloadPath()
+  }
+}
+
+// Request download permissions
+const requestDownloadPermissions = async () => {
+  isRequestingPermissions.value = true
+  try {
+    const granted = await requestDownloadPermission()
+    if (granted) {
+      alert('Download permissions granted! You can now download multiple files without interruption.')
+    } else {
+      alert('Download permissions were not granted. Some browsers may still block multiple downloads.')
+    }
+  } catch (error) {
+    console.error('Failed to request download permissions:', error)
+    alert('Failed to request download permissions. Please check your browser settings.')
+  } finally {
+    isRequestingPermissions.value = false
+  }
+}
+
+// Request directory access
+const requestDirectoryAccess = async () => {
+  isRequestingPermissions.value = true
+  try {
+    const dirHandle = await requestDirectoryPermission()
+    if (dirHandle) {
+      selectedDirectoryHandle.value = dirHandle
+      downloadPath.value = dirHandle.name
+      updateDownloadPath()
+      alert(`Directory access granted! Files can now be saved to: ${dirHandle.name}`)
+    } else {
+      alert('Directory access was not granted or cancelled.')
+    }
+  } catch (error) {
+    console.error('Failed to request directory access:', error)
+    alert('Failed to request directory access. This feature may not be supported in your browser.')
+  } finally {
+    isRequestingPermissions.value = false
   }
 }
 

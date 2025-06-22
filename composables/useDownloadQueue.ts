@@ -3,6 +3,7 @@ import { useAudioProcessor } from './useAudioProcessor'
 import { useDownloadQueueStore } from '@/stores/downloadQueue'
 import { usePerformanceStore } from '@/stores/performance'
 import { useDownloadPath } from './useDownloadPath'
+import { usePermissions } from './usePermissions'
 import { validateAudioFormat, downloadBlob } from '~/utils/audio'
 import { sanitizeFilename } from '~/utils/api'
 
