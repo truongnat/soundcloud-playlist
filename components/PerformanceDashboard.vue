@@ -188,7 +188,7 @@ const localSettings = ref({
 // Computed properties for display
 const successRate = computed(() => {
   const rate = metrics.successRate
-  if (!rate || isNaN(rate)) {
+  if (isNaN(rate) || rate === undefined || rate === null) {
     return 0
   }
   return Math.round(rate)
@@ -204,8 +204,13 @@ const successRateColor = computed(() => {
 const avgSpeed = computed(() => {
   const speed = metrics.averageDownloadSpeed
   
-  // Handle invalid or zero values
-  if (!speed || speed === 0 || isNaN(speed)) {
+  // Handle invalid values only (allow zero as valid)
+  if (isNaN(speed) || speed === undefined || speed === null) {
+    return '0 B/s'
+  }
+  
+  // Handle zero speed
+  if (speed === 0) {
     return '0 B/s'
   }
   
@@ -219,7 +224,7 @@ const avgSpeed = computed(() => {
 
 const avgConversionTime = computed(() => {
   const time = metrics.averageConversionTime
-  if (!time || isNaN(time)) {
+  if (isNaN(time) || time === undefined || time === null) {
     return 0
   }
   return Math.round(time / 1000)
