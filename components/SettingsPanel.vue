@@ -197,6 +197,17 @@
         
         <div class="space-y-2">
           <button
+            @click="openDownloadsFolder"
+            class="w-full px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors flex items-center gap-2 text-sm"
+          >
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                    d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+            </svg>
+            <span>Open Downloads Folder</span>
+          </button>
+          
+          <button
             disabled
             class="w-full px-3 py-2 bg-gray-600 text-gray-400 rounded-md cursor-not-allowed flex items-center gap-2 text-sm opacity-50"
           >
@@ -313,6 +324,30 @@ const resetToDefaults = () => {
   if (confirm('Are you sure you want to reset all settings to defaults?')) {
     downloadPath.value = '~/Downloads'
     updateDownloadPath()
+  }
+}
+
+// Open downloads folder
+const openDownloadsFolder = () => {
+  try {
+    // Try to open downloads folder using different methods
+    if (navigator.userAgent.includes('Chrome') || navigator.userAgent.includes('Edge')) {
+      // For Chrome/Edge, open downloads page
+      window.open('chrome://downloads/', '_blank')
+    } else if (navigator.userAgent.includes('Firefox')) {
+      // For Firefox, open downloads page
+      window.open('about:downloads', '_blank')
+    } else {
+      // Fallback: show instructions
+      alert('To access your downloads:\n\n' +
+            '• Chrome/Edge: chrome://downloads/\n' +
+            '• Firefox: Ctrl+Shift+Y or about:downloads\n' +
+            '• Safari: Option+Cmd+L\n' +
+            '• Or check your browser\'s Downloads menu')
+    }
+  } catch (error) {
+    console.error('Failed to open downloads folder:', error)
+    alert('Unable to open downloads folder automatically.\nPlease check your browser\'s Downloads menu or press Ctrl+J (Cmd+J on Mac).')
   }
 }
 
