@@ -432,9 +432,32 @@ const handleDiscardAll = () => {
   Object.keys(errorTracks.value).forEach(key => delete errorTracks.value[key])
 }
 
+// Function to discard all downloads (for external use)
+const discardAllDownloads = async () => {
+  try {
+    console.log('Discarding all downloads from layout...')
+    
+    // Call discard on the download queue component
+    if (downloadQueueRef.value?.discardAll) {
+      await downloadQueueRef.value.discardAll()
+    } else {
+      // Fallback: call the store directly
+      downloadQueueStore.discardAll()
+    }
+    
+    // Clear local state
+    handleDiscardAll()
+    
+    console.log('All downloads discarded successfully')
+  } catch (error) {
+    console.error('Error discarding downloads:', error)
+  }
+}
+
 // Provide functionality to child components
 provide('handleDownloadTrack', handleDownloadTrack)
 provide('handleDownloadAllTracks', handleDownloadAllTracks)
+provide('discardAllDownloads', discardAllDownloads)
 provide('downloadingTracks', downloadingTracks)
 provide('errorTracks', errorTracks)
 

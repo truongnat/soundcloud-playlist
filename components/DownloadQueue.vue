@@ -292,7 +292,7 @@ const handleDownloadAll = async () => {
 
 // Handle discard all
 const handleDiscardAll = () => {
-  downloadQueueStore.discardAll()
+  discardAll() // Call the composable function to cancel active downloads
   emit('discard-all')
 }
 
@@ -339,7 +339,8 @@ const handleRetry = async (trackId: string | number) => {
 // Expose methods for parent component
 defineExpose({
   addToQueue,
-  startAllDownloads
+  startAllDownloads,
+  discardAll: handleDiscardAll
 })
 </script>
 
