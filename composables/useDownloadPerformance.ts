@@ -154,6 +154,18 @@ export const useDownloadPerformance = () => {
     return recommendations
   })
 
+  // Reset metrics for testing
+  const resetMetrics = () => {
+    metrics.value = {
+      averageDownloadSpeed: 0,
+      averageConversionTime: 0,
+      successRate: 0,
+      totalDownloads: 0,
+      failedDownloads: 0
+    }
+    console.log('[Performance] Metrics reset')
+  }
+
   // Initialize with optimal settings
   if (typeof window !== 'undefined') {
     applyOptimalSettings()
@@ -166,6 +178,7 @@ export const useDownloadPerformance = () => {
     detectOptimalSettings,
     applyOptimalSettings,
     updateMetrics,
+    resetMetrics,
     updateSettings: (newSettings: Partial<PerformanceSettings>) => {
       settings.value = { ...settings.value, ...newSettings }
     }

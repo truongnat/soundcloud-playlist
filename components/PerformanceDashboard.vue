@@ -146,8 +146,8 @@
           </ul>
         </div>
 
-        <!-- Auto-optimize Button -->
-        <div class="flex justify-center">
+        <!-- Action Buttons -->
+        <div class="flex justify-center gap-3">
           <button
             @click="applyOptimalSettings"
             class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center gap-2"
@@ -157,6 +157,17 @@
                     d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
             Auto-Optimize Settings
+          </button>
+          
+          <button
+            @click="resetMetrics"
+            class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors flex items-center gap-2"
+          >
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            Reset Metrics
           </button>
         </div>
       </div>
@@ -173,7 +184,8 @@ const {
   metrics, 
   recommendations, 
   applyOptimalSettings: applyOptimal,
-  updateSettings: updatePerformanceSettings 
+  updateSettings: updatePerformanceSettings,
+  resetMetrics
 } = useDownloadPerformance()
 
 // Debug: Watch metrics changes
