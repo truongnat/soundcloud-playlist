@@ -19,6 +19,12 @@ export const useDownloadQueue = () => {
   const store = useDownloadQueueStore()
   const performanceStore = usePerformanceStore()
   const { getCurrentDownloadPath, getResolvedPath } = useDownloadPath()
+  const { 
+    downloadPermission, 
+    directoryPermission, 
+    requestSaveFilePermission,
+    isFileSystemAccessSupported 
+  } = usePermissions()
 
   // Helper functions
   const getTrackId = (id: string | number): string => id.toString()
@@ -250,8 +256,30 @@ export const useDownloadQueue = () => {
       // Log download path info
       console.log(`Downloading to path: ${downloadPath}`)
       
-      await downloadBlob(mp3Blob, filename, downloadPath)
-      console.log('File saved successfully:', filename)
+      // Try to use File System Access API if permissions are granted
+      let savedSuccessfully = false
+      
+      if (isFileSystemAccessSupported.value && directoryPermission.value.granted) {
+        try {
+          // Try to save using File System Access API
+          const fileHandle = await requestSaveFilePermission(filename)
+          if (fileHandle) {
+            const writable = await fileHandle.createWritable()
+            await writable.write(mp3Blob)
+            await writable.close()
+            console.log('File saved using File System Access API:', filename)
+            savedSuccessfully = true
+          }
+        } catch (error) {
+          console.warn('File System Access API failed, falling back to default download:', error)
+        }
+      }
+      
+      // Fallback to default download if File System Access API failed or not available
+      if (!savedSuccessfully) {
+        await downloadBlob(mp3Blob, filename, downloadPath)
+        console.log('File saved using default download:', filename)
+      }
 
       // Mark as completed
       store.updateTrackStatus(trackId, 'completed')
