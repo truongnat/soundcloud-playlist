@@ -119,6 +119,7 @@ const useBackgroundProcessing = ref(false)
 const emit = defineEmits<{
   'playlist-loaded': [data: PlaylistResponse]
   'background-job-created': [job: JobStatus]
+  'before-fetch': [data: { url: string; useBackground: boolean }]
   'error': [message: string]
 }>()
 
@@ -152,13 +153,22 @@ const handleFetchPlaylist = async () => {
     error.value = 'Please enter a valid SoundCloud playlist URL (must contain /sets/)'
     return
   }
-  
+
+  // Emit before-fetch event to check if confirmation is needed
+  emit('before-fetch', {
+    url: playlistUrl.value.trim(),
+    useBackground: useBackgroundProcessing.value
+  })
+}
+
+// Function to actually perform the fetch (called after confirmation)
+const performFetch = async (url: string, useBackground: boolean) => {
   loading.value = true
   
   try {
-    if (useBackgroundProcessing.value) {
+    if (useBackground) {
       // Use background processing
-      const { jobId, result } = await processPlaylistBackground(playlistUrl.value.trim())
+      const { jobId, result } = await processPlaylistBackground(url)
       
       // Emit job created event so parent can track it
       const jobStatus: JobStatus = {
@@ -183,7 +193,7 @@ const handleFetchPlaylist = async () => {
       
     } else {
       // Use immediate processing (legacy)
-      const data = await fetchPlaylist(playlistUrl.value.trim())
+      const data = await fetchPlaylist(url)
       emit('playlist-loaded', data)
     }
   } catch (err) {
@@ -194,4 +204,18 @@ const handleFetchPlaylist = async () => {
     loading.value = false
   }
 }
+
+// Listen for proceed-fetch event from parent
+onMounted(() => {
+  const handleProceedFetch = (event: CustomEvent) => {
+    const { url, useBackground } = event.detail
+    performFetch(url, useBackground)
+  }
+  
+  window.addEventListener('proceed-fetch', handleProceedFetch as EventListener)
+  
+  onUnmounted(() => {
+    window.removeEventListener('proceed-fetch', handleProceedFetch as EventListener)
+  })
+})
 </script>

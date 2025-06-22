@@ -85,6 +85,7 @@ import type { JobStatus } from '@/composables/useBackgroundJobs'
 import { usePlaylist } from '@/composables/usePlaylist'
 import { useBackgroundJobs } from '@/composables/useBackgroundJobs'
 import { useLogger } from '@/composables/useLogger'
+import ConfirmModal from '@/components/ConfirmModal.vue'
 
 const { error: playlistError } = usePlaylist()
 const { getJobStatus } = useBackgroundJobs()
@@ -102,6 +103,18 @@ const loading = ref(false)
 const error = ref('')
 const isDownloadingAll = ref(false)
 const currentJob = ref<JobStatus | null>(null)
+
+// Confirm modal state
+const showConfirmModal = ref(false)
+const pendingFetchData = ref<{ url: string; useBackground: boolean } | null>(null)
+const confirmModal = ref({
+  title: '',
+  message: '',
+  additionalInfo: '',
+  confirmText: 'Replace',
+  cancelText: 'Cancel',
+  type: 'warning' as 'warning' | 'danger' | 'info'
+})
 
 async function handlePlaylistLoaded(data: PlaylistResponse) {
   tracks.value = data.tracks
@@ -159,6 +172,93 @@ async function handleBackgroundJobCreated(job: JobStatus) {
 
 function closeJobProgress() {
   currentJob.value = null
+}
+
+// Handle before fetch - check if we need to confirm replacement
+function handleBeforeFetch(data: { url: string; useBackground: boolean }) {
+  const hasExistingPlaylist = tracks.value.length > 0 || playlistInfo.value
+  const hasActiveDownloads = downloadingTracks.value.length > 0
+  const hasActiveJob = currentJob.value && ['pending', 'processing'].includes(currentJob.value.status)
+
+  if (!hasExistingPlaylist && !hasActiveDownloads && !hasActiveJob) {
+    // No existing data, proceed directly
+    proceedWithFetch(data.url, data.useBackground)
+    return
+  }
+
+  // Store pending fetch data
+  pendingFetchData.value = data
+
+  // Determine the type of confirmation needed
+  if (hasActiveDownloads || hasActiveJob) {
+    // Active downloads or background job
+    const activeCount = downloadingTracks.value.length
+    const jobInfo = hasActiveJob ? ` and 1 background job` : ''
+    
+    confirmModal.value = {
+      title: 'Active Downloads Detected',
+      message: `You have ${activeCount} active downloads${jobInfo}. Loading a new playlist will clear the current playlist and may interrupt ongoing downloads.`,
+      additionalInfo: 'Active downloads will continue in the background, but you won\'t be able to track their progress.',
+      confirmText: 'Load New Playlist',
+      cancelText: 'Keep Current',
+      type: 'warning'
+    }
+  } else {
+    // Just existing playlist without active downloads
+    const trackCount = tracks.value.length
+    const playlistTitle = playlistInfo.value?.title || 'current playlist'
+    
+    confirmModal.value = {
+      title: 'Replace Current Playlist',
+      message: `You have "${playlistTitle}" loaded with ${trackCount} tracks. Do you want to replace it with the new playlist?`,
+      additionalInfo: 'This will clear the current track list.',
+      confirmText: 'Replace',
+      cancelText: 'Keep Current',
+      type: 'info'
+    }
+  }
+
+  showConfirmModal.value = true
+}
+
+// Handle confirm replacement
+function handleConfirmReplace() {
+  showConfirmModal.value = false
+  
+  if (pendingFetchData.value) {
+    // Clear current state
+    clearCurrentPlaylist()
+    
+    // Proceed with fetch
+    proceedWithFetch(pendingFetchData.value.url, pendingFetchData.value.useBackground)
+    pendingFetchData.value = null
+  }
+}
+
+// Handle cancel replacement
+function handleCancelReplace() {
+  showConfirmModal.value = false
+  pendingFetchData.value = null
+}
+
+// Clear current playlist state
+function clearCurrentPlaylist() {
+  tracks.value = []
+  playlistInfo.value = null
+  error.value = ''
+  currentJob.value = null
+  
+  logger.logUserAction('Cleared current playlist for new playlist')
+}
+
+// Proceed with actual fetch
+async function proceedWithFetch(url: string, useBackground: boolean) {
+  // This will be handled by the PlaylistInput component
+  // We need to emit an event back to it
+  const playlistInputEvent = new CustomEvent('proceed-fetch', {
+    detail: { url, useBackground }
+  })
+  window.dispatchEvent(playlistInputEvent)
 }
 
 async function handleDownloadAll() {
