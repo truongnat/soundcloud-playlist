@@ -65,7 +65,7 @@
           <div class="grid grid-cols-1 gap-2">
             <button
               @click="requestDownloadPermissions"
-              :disabled="isRequestingPermissions"
+              :disabled="isRequestingPermissions || !isClient"
               class="px-3 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-md transition-colors flex items-center gap-2 text-sm"
             >
               <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -78,7 +78,7 @@
 
             <button
               @click="requestDirectoryAccess"
-              :disabled="isRequestingPermissions || !isFileSystemAccessSupported"
+              :disabled="isRequestingPermissions || !isFileSystemAccessSupported || !isClient"
               class="px-3 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-md transition-colors flex items-center gap-2 text-sm"
             >
               <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -345,6 +345,7 @@ const lastUpdated = ref(new Date())
 const hasChanges = ref(false)
 const isRequestingPermissions = ref(false)
 const selectedDirectoryHandle = ref<FileSystemDirectoryHandle | null>(null)
+const isClient = ref(false)
 
 // Computed
 const permissionMessages = computed(() => getPermissionStatusMessage())
@@ -512,6 +513,7 @@ const formatTime = (date: Date) => {
 
 // Initialize on mount
 onMounted(() => {
+  isClient.value = true
   loadSettings()
   
   // Initialize permissions after component is mounted (client-side only)
