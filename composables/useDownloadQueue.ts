@@ -84,6 +84,8 @@ export const useDownloadQueue = () => {
     let downloadStartTime = 0
     let conversionStartTime = 0
     let downloadSpeed = 0
+    let totalDownloadTime = 0
+    let totalBytesDownloaded = 0
 
     try {
       // Update status to downloading using store
@@ -171,7 +173,9 @@ export const useDownloadQueue = () => {
 
             // Calculate download speed
             const elapsed = (Date.now() - downloadStartTime) / 1000
-            downloadSpeed = receivedLength / elapsed // bytes per second
+            if (elapsed > 0) {
+              downloadSpeed = receivedLength / elapsed // bytes per second
+            }
 
             if (contentLength) {
               store.updateTrackProgress(trackId, Math.round((receivedLength / contentLength) * 100))
