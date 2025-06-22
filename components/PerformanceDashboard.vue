@@ -44,7 +44,7 @@
 
     <!-- Expanded Details -->
     <Transition name="slide-down">
-      <div v-if="expanded" class="space-y-4">
+      <div v-if="expanded" class="space-y-4 max-h-96 overflow-y-auto pr-2">
         <!-- Performance Settings -->
         <div class="bg-gray-900/30 rounded-lg p-4">
           <h4 class="text-md font-medium text-gray-200 mb-3">Performance Settings</h4>
@@ -252,7 +252,7 @@ const applyOptimalSettings = () => {
 .slide-down-enter-active,
 .slide-down-leave-active {
   transition: all 0.3s ease;
-  max-height: 1000px;
+  max-height: 400px;
   overflow: hidden;
 }
 
@@ -260,5 +260,24 @@ const applyOptimalSettings = () => {
 .slide-down-leave-to {
   max-height: 0;
   opacity: 0;
+}
+
+/* Custom scrollbar styling for better appearance */
+.overflow-y-auto::-webkit-scrollbar {
+  width: 6px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-track {
+  background: rgba(55, 65, 81, 0.3);
+  border-radius: 3px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb {
+  background: rgba(156, 163, 175, 0.5);
+  border-radius: 3px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb:hover {
+  background: rgba(156, 163, 175, 0.7);
 }
 </style>
