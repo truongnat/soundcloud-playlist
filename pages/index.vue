@@ -13,10 +13,24 @@
       <PlaylistInput 
         @playlist-loaded="handlePlaylistLoaded"
         @background-job-created="handleBackgroundJobCreated"
+        @before-fetch="handleBeforeFetch"
         @error="handleError"
         :loading="loading"
       />
     </div>
+
+    <!-- Confirm Modal -->
+    <ConfirmModal
+      :show="showConfirmModal"
+      :title="confirmModal.title"
+      :message="confirmModal.message"
+      :additional-info="confirmModal.additionalInfo"
+      :confirm-text="confirmModal.confirmText"
+      :cancel-text="confirmModal.cancelText"
+      :type="confirmModal.type"
+      @confirm="handleConfirmReplace"
+      @cancel="handleCancelReplace"
+    />
 
     <!-- Background Job Progress -->
     <BackgroundJobProgress 
