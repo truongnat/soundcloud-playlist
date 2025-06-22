@@ -5,12 +5,12 @@ export const useUIStore = defineStore('ui', {
   state: (): UIState => ({
     showDownloadQueue: false,
     shouldKeepQueueOpen: false,
-    showLogsPanel: false
+    showSettingsPanel: false
   }),
 
   getters: {
     isQueueVisible: (state) => state.showDownloadQueue,
-    isLogsPanelVisible: (state) => state.showLogsPanel
+    isSettingsPanelVisible: (state) => state.showSettingsPanel
   },
 
   actions: {
@@ -41,17 +41,17 @@ export const useUIStore = defineStore('ui', {
       this.hideQueue()
     },
 
-    // Logs Panel Actions
-    toggleLogsPanel() {
-      this.showLogsPanel = !this.showLogsPanel
+    // Settings Panel Actions
+    toggleSettingsPanel() {
+      this.showSettingsPanel = !this.showSettingsPanel
     },
 
-    onShowLogsPanel() {
-      this.showLogsPanel = true
+    showSettingsPanel() {
+      this.showSettingsPanel = true
     },
 
-    hideLogsPanel() {
-      this.showLogsPanel = false
+    hideSettingsPanel() {
+      this.showSettingsPanel = false
     }
   }
 })
