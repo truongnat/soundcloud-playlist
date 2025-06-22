@@ -2,8 +2,60 @@
 export default defineNuxtConfig({
   compatibilityDate: '2025-05-15',
   devtools: { enabled: true },
-  modules: ['@nuxtjs/tailwindcss', '@pinia/nuxt', '@nuxt/ui'],
+  modules: [
+    '@nuxtjs/tailwindcss', 
+    '@pinia/nuxt', 
+    '@nuxt/ui'
+  ],
   css: ['~/assets/css/main.css'],
+  
+  // SEO Configuration
+  app: {
+    head: {
+      charset: 'utf-8',
+      viewport: 'width=device-width, initial-scale=1',
+      title: 'SoundCloud Playlist Downloader - Download Music & Playlists Free',
+      meta: [
+        { name: 'description', content: 'Free SoundCloud playlist downloader. Download entire playlists, convert to MP3, and save your favorite tracks. Fast, easy, and completely free online tool.' },
+        { name: 'keywords', content: 'soundcloud downloader, playlist downloader, soundcloud to mp3, music downloader, soundcloud converter, bulk download' },
+        { name: 'author', content: 'SoundCloud DL' },
+        { name: 'robots', content: 'index, follow' },
+        { name: 'googlebot', content: 'index, follow' },
+        
+        // Open Graph / Facebook
+        { property: 'og:type', content: 'website' },
+        { property: 'og:title', content: 'SoundCloud Playlist Downloader - Free Music Download Tool' },
+        { property: 'og:description', content: 'Download entire SoundCloud playlists and convert to MP3. Fast, free, and easy to use online tool for music lovers.' },
+        { property: 'og:image', content: '/og-image.jpg' },
+        { property: 'og:url', content: 'https://soundcloud-dl.com' },
+        { property: 'og:site_name', content: 'SoundCloud DL' },
+        { property: 'og:locale', content: 'en_US' },
+        
+        // Twitter Card
+        { name: 'twitter:card', content: 'summary_large_image' },
+        { name: 'twitter:title', content: 'SoundCloud Playlist Downloader - Free Music Download' },
+        { name: 'twitter:description', content: 'Download entire SoundCloud playlists and convert to MP3. Fast, free, and easy to use.' },
+        { name: 'twitter:image', content: '/twitter-card.jpg' },
+        { name: 'twitter:creator', content: '@soundcloudDL' },
+        
+        // Additional SEO
+        { name: 'theme-color', content: '#f97316' },
+        { name: 'msapplication-TileColor', content: '#f97316' },
+        { name: 'apple-mobile-web-app-capable', content: 'yes' },
+        { name: 'apple-mobile-web-app-status-bar-style', content: 'black-translucent' },
+        { name: 'format-detection', content: 'telephone=no' }
+      ],
+      link: [
+        { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
+        { rel: 'apple-touch-icon', sizes: '180x180', href: '/apple-touch-icon.png' },
+        { rel: 'icon', type: 'image/png', sizes: '32x32', href: '/favicon-32x32.png' },
+        { rel: 'icon', type: 'image/png', sizes: '16x16', href: '/favicon-16x16.png' },
+        { rel: 'manifest', href: '/site.webmanifest' },
+        { rel: 'canonical', href: 'https://soundcloud-dl.com' }
+      ]
+    }
+  },
+  
   vite: {
     optimizeDeps: {
       exclude: ['@ffmpeg/ffmpeg', '@ffmpeg/util'],
@@ -37,12 +89,16 @@ export default defineNuxtConfig({
     },
     experimental: {
       wasm: true
+    },
+    prerender: {
+      routes: ['/sitemap.xml', '/robots.txt']
     }
   },
   runtimeConfig: {
     // Server-side environment variables
     public: {
       // Client-side environment variables
+      siteUrl: process.env.NUXT_PUBLIC_SITE_URL || 'https://soundcloud-dl.com'
     }
   }
 })

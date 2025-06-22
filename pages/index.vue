@@ -98,6 +98,67 @@ import { useBackgroundJobs } from '@/composables/useBackgroundJobs'
 import { useLogger } from '@/composables/useLogger'
 import ConfirmModal from '@/components/ConfirmModal.vue'
 
+// SEO Meta Tags
+useHead({
+  title: 'SoundCloud Playlist Downloader - Free MP3 Download Tool',
+  meta: [
+    { 
+      name: 'description', 
+      content: 'Download entire SoundCloud playlists and individual tracks for free. Convert to high-quality MP3 format. Fast, easy, and completely free online tool with bulk download support.' 
+    },
+    { 
+      name: 'keywords', 
+      content: 'soundcloud downloader, playlist downloader, soundcloud to mp3, music downloader, bulk download, free music download, soundcloud converter' 
+    },
+    // Open Graph
+    { property: 'og:title', content: 'SoundCloud Playlist Downloader - Free MP3 Download Tool' },
+    { property: 'og:description', content: 'Download entire SoundCloud playlists and convert to MP3. Fast, free, and easy to use online tool for music lovers.' },
+    { property: 'og:type', content: 'website' },
+    { property: 'og:url', content: 'https://soundcloud-dl.com' },
+    // Twitter
+    { name: 'twitter:title', content: 'SoundCloud Playlist Downloader - Free MP3 Download' },
+    { name: 'twitter:description', content: 'Download entire SoundCloud playlists and convert to MP3. Fast, free, and easy to use.' }
+  ],
+  link: [
+    { rel: 'canonical', href: 'https://soundcloud-dl.com' }
+  ],
+  script: [
+    {
+      type: 'application/ld+json',
+      children: JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'WebApplication',
+        name: 'SoundCloud Playlist Downloader',
+        description: 'Free online tool to download SoundCloud playlists and convert to MP3',
+        url: 'https://soundcloud-dl.com',
+        applicationCategory: 'MultimediaApplication',
+        operatingSystem: 'Web Browser',
+        browserRequirements: 'Requires JavaScript. Requires HTML5.',
+        offers: {
+          '@type': 'Offer',
+          price: '0',
+          priceCurrency: 'USD'
+        },
+        creator: {
+          '@type': 'Organization',
+          name: 'SoundCloud DL',
+          url: 'https://soundcloud-dl.com'
+        },
+        featureList: [
+          'Download entire SoundCloud playlists',
+          'Convert to MP3 format',
+          'Bulk download multiple tracks',
+          'High-quality audio conversion',
+          'Free and unlimited downloads',
+          'No registration required',
+          'Fast processing speed'
+        ],
+        screenshot: 'https://soundcloud-dl.com/screenshot.jpg'
+      })
+    }
+  ]
+})
+
 const { error: playlistError } = usePlaylist()
 const { getJobStatus } = useBackgroundJobs()
 const logger = useLogger()
