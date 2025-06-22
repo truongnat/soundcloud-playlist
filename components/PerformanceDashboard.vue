@@ -176,6 +176,11 @@ const {
   updateSettings: updatePerformanceSettings 
 } = useDownloadPerformance()
 
+// Debug: Watch metrics changes
+watch(metrics, (newMetrics) => {
+  console.log('[PerformanceDashboard] Metrics updated:', newMetrics)
+}, { deep: true })
+
 const expanded = ref(false)
 const localSettings = ref({ 
   maxConcurrentDownloads: 3,

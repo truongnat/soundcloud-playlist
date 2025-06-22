@@ -187,6 +187,13 @@ export const useDownloadQueue = () => {
             throw new Error('Downloaded file too small')
           }
 
+          // Calculate final download metrics
+          totalDownloadTime = (Date.now() - downloadStartTime) / 1000
+          totalBytesDownloaded = receivedLength
+          if (totalDownloadTime > 0) {
+            downloadSpeed = totalBytesDownloaded / totalDownloadTime // Final download speed
+          }
+
           // Combine chunks
           audioData = new Uint8Array(receivedLength)
           let position = 0
@@ -243,6 +250,7 @@ export const useDownloadQueue = () => {
       store.updateTrackProgress(trackId, 100)
       
       // Update performance metrics
+      console.log(`Updating metrics - Speed: ${downloadSpeed} B/s, Conversion: ${conversionTime}ms, Success: true`)
       updateMetrics(downloadSpeed, conversionTime, true)
       console.log(`Download completed: ${track.title} (Speed: ${Math.round(downloadSpeed / 1024)}KB/s, Conversion: ${Math.round(conversionTime / 1000)}s)`)
     } catch (error: any) {

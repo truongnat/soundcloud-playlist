@@ -76,9 +76,13 @@ export const useDownloadPerformance = () => {
 
   // Update metrics
   const updateMetrics = (downloadSpeed: number, conversionTime: number, success: boolean) => {
+    console.log(`[Performance] Updating metrics - Input: Speed=${downloadSpeed}, Time=${conversionTime}, Success=${success}`)
+    
     // Validate input parameters
     const validDownloadSpeed = isNaN(downloadSpeed) || downloadSpeed < 0 ? 0 : downloadSpeed
     const validConversionTime = isNaN(conversionTime) || conversionTime < 0 ? 0 : conversionTime
+    
+    console.log(`[Performance] Validated: Speed=${validDownloadSpeed}, Time=${validConversionTime}`)
     
     metrics.value.totalDownloads++
     if (!success) {
@@ -88,12 +92,17 @@ export const useDownloadPerformance = () => {
     // Calculate running averages with validation
     const total = metrics.value.totalDownloads
     if (total > 0) {
+      const oldAvgSpeed = metrics.value.averageDownloadSpeed
+      const oldAvgTime = metrics.value.averageConversionTime
+      
       metrics.value.averageDownloadSpeed = 
         (metrics.value.averageDownloadSpeed * (total - 1) + validDownloadSpeed) / total
       metrics.value.averageConversionTime = 
         (metrics.value.averageConversionTime * (total - 1) + validConversionTime) / total
       metrics.value.successRate = 
         ((total - metrics.value.failedDownloads) / total) * 100
+      
+      console.log(`[Performance] Updated averages: Speed ${oldAvgSpeed} -> ${metrics.value.averageDownloadSpeed}, Time ${oldAvgTime} -> ${metrics.value.averageConversionTime}`)
     }
     
     // Ensure no NaN values
@@ -106,6 +115,14 @@ export const useDownloadPerformance = () => {
     if (isNaN(metrics.value.successRate)) {
       metrics.value.successRate = 0
     }
+    
+    console.log(`[Performance] Final metrics:`, {
+      totalDownloads: metrics.value.totalDownloads,
+      failedDownloads: metrics.value.failedDownloads,
+      averageDownloadSpeed: metrics.value.averageDownloadSpeed,
+      averageConversionTime: metrics.value.averageConversionTime,
+      successRate: metrics.value.successRate
+    })
   }
 
   // Get performance recommendations
