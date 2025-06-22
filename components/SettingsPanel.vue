@@ -513,6 +513,12 @@ const formatTime = (date: Date) => {
 // Initialize on mount
 onMounted(() => {
   loadSettings()
+  
+  // Initialize permissions after component is mounted (client-side only)
+  if (typeof window !== 'undefined') {
+    // Check initial permission status
+    requestDownloadPermission().catch(console.warn)
+  }
 })
 </script>
 

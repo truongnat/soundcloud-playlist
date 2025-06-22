@@ -27,7 +27,7 @@
     </div>
 
     <!-- Permissions Prompt -->
-    <div v-if="!downloadPermission.granted && downloadStats.total > 1" 
+    <div v-if="isClient && !downloadPermission.granted && downloadStats.total > 1" 
          class="mx-4 mt-2 p-3 bg-purple-900/20 border border-purple-700/30 rounded-md">
       <div class="flex items-start gap-2">
         <svg class="w-4 h-4 text-purple-400 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -259,7 +259,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import type { Track, QueueItem } from '@/types'
 import { useDownloadQueue } from '@/composables/useDownloadQueue'
 import { useDownloadQueueStore } from '@/stores/downloadQueue'
@@ -277,6 +277,13 @@ const downloadQueueStore = useDownloadQueueStore()
 const uiStore = useUIStore()
 const { getCurrentDownloadPath, getResolvedPath } = useDownloadPath()
 const { downloadPermission } = usePermissions()
+
+// Client-side check for SSR compatibility
+const isClient = ref(false)
+
+onMounted(() => {
+  isClient.value = true
+})
 
 const {
   queueItems,

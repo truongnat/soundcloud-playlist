@@ -97,6 +97,18 @@ export const usePermissions = () => {
 
   // Request directory access permission
   const requestDirectoryPermission = async (): Promise<FileSystemDirectoryHandle | null> => {
+    // Check if we're in browser environment
+    if (typeof window === 'undefined') {
+      console.log('Not in browser environment')
+      directoryPermission.value = {
+        granted: false,
+        denied: false,
+        prompt: false,
+        unsupported: true
+      }
+      return null
+    }
+
     try {
       if (!isFileSystemAccessSupported.value) {
         console.log('File System Access API not supported')
@@ -147,6 +159,12 @@ export const usePermissions = () => {
 
   // Request permission to save file to specific location
   const requestSaveFilePermission = async (filename: string): Promise<FileSystemFileHandle | null> => {
+    // Check if we're in browser environment
+    if (typeof window === 'undefined') {
+      console.log('Not in browser environment')
+      return null
+    }
+
     try {
       if (!isFileSystemAccessSupported.value) {
         console.log('File System Access API not supported')
