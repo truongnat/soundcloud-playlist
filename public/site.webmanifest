@@ -1,0 +1,86 @@
+{
+  "name": "SoundCloud Playlist Downloader",
+  "short_name": "SoundCloud DL",
+  "description": "Download SoundCloud playlists and tracks for free. Convert to MP3 with high quality.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#111827",
+  "theme_color": "#f97316",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "en",
+  "categories": ["music", "entertainment", "utilities"],
+  "icons": [
+    {
+      "src": "/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "/favicon-32x32.png",
+      "sizes": "32x32",
+      "type": "image/png"
+    },
+    {
+      "src": "/favicon-16x16.png",
+      "sizes": "16x16",
+      "type": "image/png"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshot-desktop.jpg",
+      "sizes": "1280x720",
+      "type": "image/jpeg",
+      "form_factor": "wide",
+      "label": "SoundCloud Playlist Downloader - Desktop View"
+    },
+    {
+      "src": "/screenshot-mobile.jpg",
+      "sizes": "390x844",
+      "type": "image/jpeg",
+      "form_factor": "narrow",
+      "label": "SoundCloud Playlist Downloader - Mobile View"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Download Playlist",
+      "short_name": "Playlist",
+      "description": "Download entire SoundCloud playlist",
+      "url": "/",
+      "icons": [
+        {
+          "src": "/shortcut-playlist.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Download Single Track",
+      "short_name": "Track",
+      "description": "Download individual SoundCloud track",
+      "url": "/track",
+      "icons": [
+        {
+          "src": "/shortcut-track.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    }
+  ]
+}
