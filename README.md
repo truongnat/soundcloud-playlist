@@ -222,6 +222,167 @@ SOUNDCLOUD_CLIENT_ID=your_client_id
 - **Caching**: Strategic caching of playlist data
 - **Timeout Handling**: Prevents hanging requests
 - **Batch Processing**: Efficient track processing
+- **Background Processing**: Handles large playlists without timeout limits
+
+## 🔄 Background Processing System
+
+For large playlists (>50 tracks), the application now supports background processing to avoid serverless timeout limits and provide better user experience.
+
+### Architecture
+
+```
+┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
+│   Frontend      │    │   Job Queue      │    │   Background    │
+│   (Vue/Nuxt)    │    │   (In-Memory)    │    │   Processor     │
+├─────────────────┤    ├──────────────────┤    ├─────────────────┤
+│ • Job Creation  │───▶│ • Queue Mgmt     │───▶│ • Playlist Proc │
+│ • Progress UI   │    │ • Status Track   │    │ • Track Extract │
+│ • Real-time     │◀───│ • Result Cache   │◀───│ • Error Handle │
+│   Updates       │    │ • Cleanup        │    │ • Progress Rpt  │
+└─────────────────┘    └──────────────────┘    └─────────────────┘
+```
+
+### Key Features
+
+- **Unlimited Track Processing**: No artificial limits on playlist size
+- **Real-time Progress Tracking**: Live updates with percentage completion
+- **Automatic Retry Logic**: Built-in resilience for API failures
+- **Concurrent Job Processing**: Configurable concurrency limits
+- **Resource Management**: Intelligent batching and rate limiting
+- **Job Persistence**: In-memory storage with automatic cleanup
+
+### Usage
+
+#### Frontend Integration
+```vue
+<template>
+  <!-- Background processing toggle -->
+  <label>
+    <input v-model="useBackgroundProcessing" type="checkbox">
+    Use background processing (recommended for large playlists)
+  </label>
+  
+  <!-- Progress tracking -->
+  <BackgroundJobProgress 
+    v-if="currentJob"
+    :job="currentJob"
+    @close="closeJobProgress"
+  />
+</template>
+```
+
+#### API Endpoints
+
+**Create Background Job:**
+```bash
+POST /api/jobs/create
+Content-Type: application/json
+
+{
+  "type": "playlist",
+  "url": "https://soundcloud.com/user/sets/large-playlist",
+  "maxTracks": 200
+}
+
+Response:
+{
+  "success": true,
+  "jobId": "job_1234567890_abc123",
+  "status": "pending",
+  "message": "Job created successfully. Processing will begin shortly.",
+  "checkStatusUrl": "/api/jobs/status/job_1234567890_abc123"
+}
+```
+
+**Check Job Status:**
+```bash
+GET /api/jobs/status/{jobId}
+
+Response:
+{
+  "id": "job_1234567890_abc123",
+  "type": "playlist",
+  "status": "processing",
+  "progress": 75,
+  "createdAt": "2024-01-01T12:00:00Z",
+  "updatedAt": "2024-01-01T12:05:00Z",
+  "result": null  // Available when status is "completed"
+}
+```
+
+**Get Job Statistics:**
+```bash
+GET /api/jobs/stats
+
+Response:
+{
+  "success": true,
+  "stats": {
+    "total": 15,
+    "pending": 2,
+    "processing": 1,
+    "completed": 10,
+    "failed": 2,
+    "processingCapacity": 3,
+    "currentlyProcessing": 1
+  }
+}
+```
+
+#### Direct Playlist API with Background Processing
+```bash
+# Enable background processing
+GET /api/playlist?url=PLAYLIST_URL&background=true&maxTracks=200
+
+# Traditional processing (50 track limit)
+GET /api/playlist?url=PLAYLIST_URL
+```
+
+### Job Lifecycle
+
+1. **Creation**: Job added to queue with "pending" status
+2. **Processing**: Job picked up by background processor
+3. **Progress Updates**: Real-time progress reporting (0-100%)
+4. **Completion**: Result stored and status updated to "completed"
+5. **Cleanup**: Automatic cleanup after 1 hour
+
+### Configuration
+
+```typescript
+// Job queue configuration
+const jobQueue = new JobQueue({
+  maxConcurrentJobs: 3,        // Process up to 3 jobs simultaneously
+  batchSize: 10,               // Process tracks in batches of 10
+  retryAttempts: 5,            // Retry failed operations up to 5 times
+  cleanupInterval: 30 * 60,    // Cleanup completed jobs every 30 minutes
+  maxJobAge: 60 * 60           // Remove jobs older than 1 hour
+})
+```
+
+### Benefits
+
+- **No Track Limits**: Process playlists of any size (tested up to 500+ tracks)
+- **Better Reliability**: Comprehensive retry logic and error handling
+- **Resource Efficiency**: Controlled concurrency prevents API rate limiting
+- **User Experience**: Non-blocking UI with real-time progress feedback
+- **Scalability**: Can be extended with Redis/database for production use
+- **Monitoring**: Built-in job statistics and admin interface
+
+### Admin Interface
+
+Access the job monitoring dashboard at `/admin/jobs` to:
+- View real-time job statistics
+- Monitor active and completed jobs
+- Create test jobs for debugging
+- Track system performance
+
+### Production Considerations
+
+For production deployments, consider:
+- **Redis Integration**: Replace in-memory storage with Redis
+- **Database Persistence**: Store job history and analytics
+- **Load Balancing**: Distribute jobs across multiple instances
+- **Monitoring**: Integrate with APM tools for observability
 
 ### Memory Management
 - **Stream Processing**: Handles large audio files efficiently
