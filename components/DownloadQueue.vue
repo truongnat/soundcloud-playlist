@@ -338,7 +338,8 @@ const handleRetry = async (trackId: string | number) => {
 
 // Expose methods for parent component
 defineExpose({
-  addToQueue
+  addToQueue,
+  startAllDownloads
 })
 </script>
 

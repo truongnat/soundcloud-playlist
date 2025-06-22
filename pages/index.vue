@@ -78,6 +78,7 @@ const logger = useLogger()
 
 // Inject download functionality from layout
 const handleDownloadTrack = inject('handleDownloadTrack') as (track: Track) => Promise<void>
+const handleDownloadAllTracks = inject('handleDownloadAllTracks') as (tracks: Track[]) => Promise<void>
 const downloadingTracks = inject('downloadingTracks') as Ref<string[]>
 const errorTracks = inject('errorTracks') as Ref<Record<string, string>>
 
@@ -158,28 +159,21 @@ async function handleDownloadAll() {
       return !downloadingTracks.value.includes(trackId) && !errorTracks.value[trackId]
     })
 
+    if (tracksToDownload.length === 0) {
+      logger.logUserAction('No new tracks to download')
+      return
+    }
+
     // Log batch download start
     logger.logDownloadQueueStart(tracksToDownload.length)
     logger.logUserAction(`Started batch download of ${tracksToDownload.length} tracks`)
 
-    let successCount = 0
-    let errorCount = 0
-
-    // Add all tracks to the queue
-    for (const track of tracksToDownload) {
-      try {
-        await handleDownloadTrack(track)
-        successCount++
-        // Add a small delay between each track to prevent overwhelming the server
-        await new Promise(resolve => setTimeout(resolve, 500))
-      } catch (error) {
-        errorCount++
-        logger.logDownloadError(track.title, error instanceof Error ? error.message : 'Unknown error')
-      }
-    }
+    // Use the optimized batch download function - much faster!
+    await handleDownloadAllTracks(tracksToDownload)
 
     // Log batch download completion
-    logger.logDownloadQueueComplete(successCount, tracksToDownload.length)
+    logger.logDownloadQueueComplete(tracksToDownload.length, tracksToDownload.length)
+    logger.logUserAction(`Successfully added ${tracksToDownload.length} tracks to download queue`)
     
   } catch (error) {
     logger.logError('Batch Download Failed', error instanceof Error ? error.message : 'Unknown error')

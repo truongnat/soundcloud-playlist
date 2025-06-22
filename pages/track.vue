@@ -127,6 +127,7 @@ import type { Track } from '~/types'
 
 // Inject download functionality from layout
 const handleDownloadTrack = inject('handleDownloadTrack') as (track: Track) => Promise<void>
+const handleDownloadAllTracks = inject('handleDownloadAllTracks') as (tracks: Track[]) => Promise<void>
 const downloadingTracks = inject('downloadingTracks') as Ref<string[]>
 const errorTracks = inject('errorTracks') as Ref<Record<string, string>>
 
