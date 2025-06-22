@@ -24,7 +24,7 @@
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
       <div class="bg-gray-900/50 rounded-lg p-3 text-center">
         <div class="text-sm text-gray-400">Concurrent</div>
-        <div class="text-lg font-bold text-blue-400">{{ settings?.maxConcurrentDownloads || 3 }}</div>
+        <div class="text-lg font-bold text-blue-400">{{ performanceStore.settings.maxConcurrentDownloads }}</div>
       </div>
       <div class="bg-gray-900/50 rounded-lg p-3 text-center">
         <div class="text-sm text-gray-400">Success Rate</div>
@@ -36,8 +36,8 @@
       </div>
       <div class="bg-gray-900/50 rounded-lg p-3 text-center">
         <div class="text-sm text-gray-400">Threading</div>
-        <div class="text-lg font-bold" :class="settings?.enableMultiThreading ? 'text-green-400' : 'text-gray-400'">
-          {{ settings?.enableMultiThreading ? 'ON' : 'OFF' }}
+        <div class="text-lg font-bold" :class="performanceStore.settings.enableMultiThreading ? 'text-green-400' : 'text-gray-400'">
+          {{ performanceStore.settings.enableMultiThreading ? 'ON' : 'OFF' }}
         </div>
       </div>
     </div>
@@ -115,7 +115,7 @@
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <div class="text-sm text-gray-400">Total Downloads</div>
-              <div class="text-xl font-bold text-gray-200">{{ metrics.totalDownloads }}</div>
+              <div class="text-xl font-bold text-gray-200">{{ performanceStore.metrics.totalDownloads }}</div>
             </div>
             <div>
               <div class="text-sm text-gray-400">Average Conversion Time</div>
@@ -123,13 +123,13 @@
             </div>
             <div>
               <div class="text-sm text-gray-400">Failed Downloads</div>
-              <div class="text-xl font-bold text-red-400">{{ metrics.failedDownloads }}</div>
+              <div class="text-xl font-bold text-red-400">{{ performanceStore.metrics.failedDownloads }}</div>
             </div>
           </div>
         </div>
 
         <!-- Recommendations -->
-        <div v-if="recommendations.length > 0" class="bg-yellow-900/20 border border-yellow-700/50 rounded-lg p-4">
+        <div v-if="performanceStore.recommendations.length > 0" class="bg-yellow-900/20 border border-yellow-700/50 rounded-lg p-4">
           <h4 class="text-md font-medium text-yellow-400 mb-2 flex items-center gap-2">
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
@@ -138,7 +138,7 @@
             Performance Recommendations
           </h4>
           <ul class="space-y-1">
-            <li v-for="recommendation in recommendations" :key="recommendation" 
+            <li v-for="recommendation in performanceStore.recommendations" :key="recommendation" 
                 class="text-sm text-yellow-300 flex items-start gap-2">
               <span class="text-yellow-500 mt-1">•</span>
               {{ recommendation }}
@@ -221,14 +221,16 @@ const toggleExpanded = () => {
 }
 
 const updateSettings = () => {
-  updatePerformanceSettings(localSettings.value)
+  performanceStore.updateSettings(localSettings.value)
 }
 
 const applyOptimalSettings = () => {
-  applyOptimal()
-  if (settings) {
-    localSettings.value = { ...settings }
-  }
+  performanceStore.applyOptimalSettings()
+  localSettings.value = { ...performanceStore.settings }
+}
+
+const resetMetrics = () => {
+  performanceStore.resetMetrics()
 }
 </script>
 
