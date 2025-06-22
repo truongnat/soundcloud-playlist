@@ -7,42 +7,13 @@
     
     <!-- Download Path Info -->
     <div class="px-4 py-2 bg-gray-800/20 border-b border-gray-700/50">
-      <div class="flex items-center justify-between text-xs">
-        <div class="flex items-center text-gray-400">
-          <svg class="w-3 h-3 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                  d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
-          </svg>
-          <span class="mr-1">Downloads to:</span>
-          <span class="text-orange-300 font-mono">Browser default folder</span>
-        </div>
-        <div v-if="getCurrentDownloadPath !== '~/Downloads'" class="flex items-center text-amber-400">
-          <svg class="w-3 h-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.314 16.5c-.77.833.192 2.5 1.732 2.5z" />
-          </svg>
-          <span>Move to: {{ getCurrentDownloadPath }}</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- Permissions Prompt -->
-    <div v-if="isClient && !downloadPermission.granted && downloadStats.total > 1" 
-         class="mx-4 mt-2 p-3 bg-purple-900/20 border border-purple-700/30 rounded-md">
-      <div class="flex items-start gap-2">
-        <svg class="w-4 h-4 text-purple-400 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <div class="flex items-center text-xs text-gray-400">
+        <svg class="w-3 h-3 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
         </svg>
-        <div class="text-xs text-purple-200">
-          <p class="font-medium mb-1">💡 Improve Download Experience</p>
-          <p class="text-purple-200/80 mb-2">Grant permissions in Settings to download multiple files without browser blocking and save directly to your chosen folder.</p>
-          <button 
-            @click="uiStore.toggleSettingsPanel()"
-            class="text-purple-300 hover:text-purple-200 underline font-medium">
-            Open Settings →
-          </button>
-        </div>
+        <span class="mr-1">Downloads to:</span>
+        <span class="text-gray-300 font-mono">Browser default folder</span>
       </div>
     </div>
     
@@ -207,21 +178,12 @@
                     </svg>
                     Download Completed
                   </div>
-                  <div class="text-xs text-green-300/70 mt-1">
-                    <div class="flex items-center">
-                      <svg class="w-3 h-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                              d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
-                      </svg>
-                      <span>Downloaded to browser's default folder</span>
-                    </div>
-                    <div v-if="getCurrentDownloadPath !== '~/Downloads'" class="flex items-center mt-1 text-amber-300/80">
-                      <svg class="w-3 h-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                              d="M7 16l-4-4m0 0l4-4m-4 4h18" />
-                      </svg>
-                      <span>Move to: {{ getCurrentDownloadPath }}</span>
-                    </div>
+                  <div class="text-xs text-green-300/70 mt-1 flex items-center">
+                    <svg class="w-3 h-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                            d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                    </svg>
+                    <span>Downloaded to browser's default folder</span>
                   </div>
                 </div>
 
@@ -259,13 +221,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, onMounted } from 'vue'
+import { computed } from 'vue'
 import type { Track, QueueItem } from '@/types'
 import { useDownloadQueue } from '@/composables/useDownloadQueue'
 import { useDownloadQueueStore } from '@/stores/downloadQueue'
 import { useUIStore } from '@/stores/ui'
-import { useDownloadPath } from '@/composables/useDownloadPath'
-import { usePermissions } from '@/composables/usePermissions'
 
 const emit = defineEmits<{
   (e: 'close'): void
@@ -275,15 +235,6 @@ const emit = defineEmits<{
 
 const downloadQueueStore = useDownloadQueueStore()
 const uiStore = useUIStore()
-const { getCurrentDownloadPath, getResolvedPath } = useDownloadPath()
-const { downloadPermission } = usePermissions()
-
-// Client-side check for SSR compatibility
-const isClient = ref(false)
-
-onMounted(() => {
-  isClient.value = true
-})
 
 const {
   queueItems,
