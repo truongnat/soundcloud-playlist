@@ -92,6 +92,7 @@ async function handlePlaylistLoaded(data: PlaylistResponse) {
   tracks.value = data.tracks
   playlistInfo.value = data.playlistInfo
   error.value = ''
+  currentJob.value = null // Clear job when completed
   
   // Log successful playlist load
   logger.logPlaylistLoad(data.playlistInfo.url || 'Unknown URL', data.tracks.length)
@@ -106,6 +107,43 @@ function handleError(errorMessage: string) {
   // Log playlist error
   logger.logPlaylistError('Unknown URL', errorMessage)
   logger.logError('Playlist Load Failed', errorMessage)
+}
+
+async function handleBackgroundJobCreated(job: JobStatus) {
+  currentJob.value = job
+  error.value = ''
+  
+  logger.logUserAction(`Started background processing job: ${job.id}`)
+  
+  // Start polling for job status
+  const pollJob = async () => {
+    try {
+      const updatedJob = await getJobStatus(job.id)
+      currentJob.value = updatedJob
+      
+      if (updatedJob.status === 'completed' && updatedJob.result) {
+        logger.logUserAction(`Background job completed: ${job.id}`)
+        handlePlaylistLoaded(updatedJob.result)
+      } else if (updatedJob.status === 'failed') {
+        logger.logError('Background Job Failed', updatedJob.error || 'Unknown error')
+        handleError(updatedJob.error || 'Background processing failed')
+        currentJob.value = null
+      } else if (updatedJob.status === 'processing' || updatedJob.status === 'pending') {
+        // Continue polling
+        setTimeout(pollJob, 2000)
+      }
+    } catch (err) {
+      console.error('Error polling job status:', err)
+      setTimeout(pollJob, 5000) // Retry with longer delay
+    }
+  }
+  
+  // Start polling
+  setTimeout(pollJob, 1000)
+}
+
+function closeJobProgress() {
+  currentJob.value = null
 }
 
 async function handleDownloadAll() {
