@@ -45,6 +45,9 @@
     <!-- Expanded Details -->
     <Transition name="slide-down">
       <div v-if="expanded" class="space-y-4 max-h-96 overflow-y-auto pr-2">
+        <!-- Performance Optimizer -->
+        <PerformanceOptimizer />
+        
         <!-- Performance Settings -->
         <div class="bg-gray-900/30 rounded-lg p-4">
           <h4 class="text-md font-medium text-gray-200 mb-3">Performance Settings</h4>
