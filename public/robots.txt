@@ -1,2 +1,29 @@
-User-Agent: *
-Disallow:
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://soundcloud-dl.com/sitemap.xml
+
+# Crawl-delay for respectful crawling
+Crawl-delay: 1
+
+# Block admin and API routes
+Disallow: /admin/
+Disallow: /api/
+Disallow: /_nuxt/
+Disallow: /.nuxt/
+
+# Allow important pages
+Allow: /
+Allow: /track
+Allow: /privacy
+Allow: /terms
+Allow: /faq
+
+# Block common bot traps
+Disallow: /wp-admin/
+Disallow: /wp-content/
+Disallow: /wp-includes/
+Disallow: /cgi-bin/
+Disallow: /tmp/
+Disallow: /logs/

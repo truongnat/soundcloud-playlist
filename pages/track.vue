@@ -119,11 +119,37 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, inject, type Ref, onMounted, onUnmounted } from 'vue'
+import { ref, computed, inject, type Ref, onMounted, onUnmounted, watch } from 'vue'
 import { TransitionRoot } from '@headlessui/vue'
 import { useTrack } from '@/composables/useTrack'
 import { useLogger } from '@/composables/useLogger'
 import type { Track } from '~/types'
+
+// Base SEO
+useHead({
+  title: 'Download Single SoundCloud Track - Free MP3 Converter',
+  meta: [
+    { 
+      name: 'description', 
+      content: 'Download individual SoundCloud tracks and convert to MP3. Fast, free, and high-quality audio conversion. No registration required.' 
+    },
+    { 
+      name: 'keywords', 
+      content: 'soundcloud track downloader, single track download, soundcloud to mp3, music converter, free download' 
+    },
+    // Open Graph
+    { property: 'og:title', content: 'Download Single SoundCloud Track - Free MP3 Converter' },
+    { property: 'og:description', content: 'Download individual SoundCloud tracks and convert to MP3. Fast, free, and high-quality audio conversion.' },
+    { property: 'og:type', content: 'website' },
+    { property: 'og:url', content: 'https://soundcloud-dl.com/track' },
+    // Twitter
+    { name: 'twitter:title', content: 'Download Single SoundCloud Track - Free MP3 Converter' },
+    { name: 'twitter:description', content: 'Download individual SoundCloud tracks and convert to MP3. Fast, free, and high-quality.' }
+  ],
+  link: [
+    { rel: 'canonical', href: 'https://soundcloud-dl.com/track' }
+  ]
+})
 
 // Inject download functionality from layout
 const handleDownloadTrack = inject('handleDownloadTrack') as (track: Track) => Promise<void>
@@ -203,6 +229,52 @@ function downloadTrack() {
   
   handleDownloadTrack(track.value)
 }
+
+// Dynamic SEO updates when track is loaded
+watch(track, (newTrack) => {
+  if (newTrack) {
+    const trackTitle = `Download "${newTrack.title}" by ${newTrack.artist} - SoundCloud to MP3`
+    const trackDescription = `Download "${newTrack.title}" by ${newTrack.artist} from SoundCloud and convert to high-quality MP3. Free, fast, and easy to use.`
+    
+    useHead({
+      title: trackTitle,
+      meta: [
+        { name: 'description', content: trackDescription },
+        { property: 'og:title', content: trackTitle },
+        { property: 'og:description', content: trackDescription },
+        { property: 'og:image', content: newTrack.artwork || '/og-image.jpg' },
+        { name: 'twitter:title', content: trackTitle },
+        { name: 'twitter:description', content: trackDescription },
+        { name: 'twitter:image', content: newTrack.artwork || '/twitter-card.jpg' }
+      ],
+      script: [
+        {
+          type: 'application/ld+json',
+          children: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'MusicRecording',
+            name: newTrack.title,
+            byArtist: {
+              '@type': 'Person',
+              name: newTrack.artist
+            },
+            duration: `PT${Math.floor(newTrack.duration / 60000)}M${Math.floor((newTrack.duration % 60000) / 1000)}S`,
+            url: newTrack.url,
+            image: newTrack.artwork,
+            downloadUrl: 'https://soundcloud-dl.com/track',
+            encodingFormat: 'MP3',
+            offers: {
+              '@type': 'Offer',
+              price: '0',
+              priceCurrency: 'USD',
+              availability: 'https://schema.org/InStock'
+            }
+          })
+        }
+      ]
+    })
+  }
+}, { immediate: true })
 
 // Log page visit
 onMounted(() => {
