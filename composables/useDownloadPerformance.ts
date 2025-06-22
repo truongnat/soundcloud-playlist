@@ -8,15 +8,34 @@ export interface PerformanceSettings {
   chunkSize: number
 }
 
+// Global singleton state
+let globalSettings: any = null
+let globalMetrics: any = null
+
 export const useDownloadPerformance = () => {
-  // Default performance settings
-  const settings = ref<PerformanceSettings>({
-    maxConcurrentDownloads: 3,
-    enableMultiThreading: true,
-    compressionPreset: 'fast',
-    audioQuality: '320k',
-    chunkSize: 1024 * 1024 // 1MB chunks
-  })
+  // Use singleton pattern to ensure same instance across components
+  if (!globalSettings) {
+    globalSettings = ref<PerformanceSettings>({
+      maxConcurrentDownloads: 3,
+      enableMultiThreading: true,
+      compressionPreset: 'fast',
+      audioQuality: '320k',
+      chunkSize: 1024 * 1024 // 1MB chunks
+    })
+  }
+
+  if (!globalMetrics) {
+    globalMetrics = ref({
+      averageDownloadSpeed: 0,
+      averageConversionTime: 0,
+      successRate: 0,
+      totalDownloads: 0,
+      failedDownloads: 0
+    })
+  }
+
+  const settings = globalSettings
+  const metrics = globalMetrics
 
   // Auto-detect optimal settings based on device capabilities
   const detectOptimalSettings = (): PerformanceSettings => {
@@ -64,15 +83,6 @@ export const useDownloadPerformance = () => {
     settings.value = optimal
     console.log('Applied optimal performance settings:', optimal)
   }
-
-  // Performance metrics
-  const metrics = ref({
-    averageDownloadSpeed: 0,
-    averageConversionTime: 0,
-    successRate: 0,
-    totalDownloads: 0,
-    failedDownloads: 0
-  })
 
   // Update metrics
   const updateMetrics = (downloadSpeed: number, conversionTime: number, success: boolean) => {
