@@ -161,36 +161,37 @@
       </div>
 
       <!-- Quick Actions -->
-      <div class="bg-gray-800/30 rounded-lg p-4 border border-gray-700/30">
-        <h3 class="text-md font-medium text-gray-200 mb-4 flex items-center gap-2">
-          <svg class="w-5 h-5 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <div class="bg-gray-800/30 rounded-lg p-3 border border-gray-700/30">
+        <h3 class="text-sm font-medium text-gray-200 mb-3 flex items-center gap-2">
+          <svg class="w-4 h-4 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
                   d="M13 10V3L4 14h7v7l9-11h-7z" />
           </svg>
           Quick Actions
         </h3>
         
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div class="space-y-2">
           <button
             disabled
-            class="px-4 py-3 bg-gray-600 text-gray-400 rounded-lg cursor-not-allowed flex items-center gap-2 justify-center opacity-50"
+            class="w-full px-3 py-2 bg-gray-600 text-gray-400 rounded-md cursor-not-allowed flex items-center gap-2 text-sm opacity-50"
           >
-            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
                     d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
-            Auto-Optimize (Soon)
+            <span>Auto-Optimize</span>
+            <span class="ml-auto text-xs bg-gray-500/30 px-1.5 py-0.5 rounded">Soon</span>
           </button>
           
           <button
             @click="clearCache"
-            class="px-4 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors flex items-center gap-2 justify-center"
+            class="w-full px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md transition-colors flex items-center gap-2 text-sm"
           >
-            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
                     d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
             </svg>
-            Clear Cache
+            <span>Clear Cache</span>
           </button>
         </div>
       </div>
