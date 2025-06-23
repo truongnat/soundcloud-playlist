@@ -1,12 +1,5 @@
 import { ref, computed, readonly } from 'vue'
-
-export interface PerformanceSettings {
-  maxConcurrentDownloads: number
-  enableMultiThreading: boolean
-  compressionPreset: 'ultrafast' | 'fast' | 'medium' | 'slow'
-  audioQuality: '128k' | '192k' | '256k' | '320k'
-  chunkSize: number
-}
+import type { PerformanceSettings } from '@/stores/performance'
 
 // Global singleton state
 let globalSettings: any = null
@@ -20,7 +13,11 @@ export const useDownloadPerformance = () => {
       enableMultiThreading: true,
       compressionPreset: 'fast',
       audioQuality: '320k',
-      chunkSize: 1024 * 1024 // 1MB chunks
+      chunkSize: 1024 * 1024, // 1MB chunks
+      enableAutoOptimization: true,
+      enableStreamCaching: true,
+      enableConnectionPooling: true,
+      enableAdaptiveBitrate: true
     })
   }
 
