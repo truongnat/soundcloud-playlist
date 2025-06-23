@@ -83,7 +83,7 @@
     <UAlert
       v-else-if="error"
       :title="error"
-      color="red"
+      color="error"
       variant="soft"
       icon="i-heroicons-exclamation-triangle"
       class="bg-red-900/20 text-red-100 border-red-900"

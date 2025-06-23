@@ -128,27 +128,8 @@ export default defineNuxtConfig({
 
   // Enhanced SEO Configuration
   sitemap: {
-    hostname: 'https://soundcloud-playlist.netlify.app',
-    gzip: true,
-    routes: [
-      {
-        url: '/',
-        changefreq: 'weekly',
-        priority: 1.0,
-        lastmod: new Date().toISOString()
-      },
-      {
-        url: '/track',
-        changefreq: 'weekly', 
-        priority: 0.8,
-        lastmod: new Date().toISOString()
-      },
-      {
-        url: '/faq',
-        changefreq: 'monthly',
-        priority: 0.7,
-        lastmod: new Date().toISOString()
-      }
+    sources: [
+      '/api/__sitemap__/urls'
     ]
   },
 

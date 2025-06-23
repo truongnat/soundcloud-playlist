@@ -261,11 +261,9 @@ export const useOptimizedDownloader = () => {
       
       // Use recommended bitrate for conversion
       const bitrate = bandwidthEstimator.getRecommendedBitrate()
-      const { processAudio } = await import('@/composables/useAudioProcessor')
-      const mp3Data = await processAudio(audioData, {
-        bitrate,
-        preset: 'ultrafast' // Always use fastest preset for speed
-      })
+      const { useAudioProcessor } = await import('@/composables/useAudioProcessor')
+      const { convertToMp3 } = useAudioProcessor()
+      const mp3Data = await convertToMp3(audioData)
       
       conversionTime = Date.now() - conversionStartTime
       downloadQueueStore.updateTrackProgress(trackId, 90)
@@ -290,8 +288,7 @@ export const useOptimizedDownloader = () => {
       console.error(`[OptimizedDownloader] Failed to download ${track.title}:`, error)
       
       // Update status and metrics
-      downloadQueueStore.updateTrackStatus(trackId, 'error')
-      downloadQueueStore.updateTrackError(trackId, error.message || 'Download failed')
+      downloadQueueStore.updateTrackStatus(trackId, 'error', error.message || 'Download failed')
       performanceStore.updateMetrics(0, 0, false)
       
       throw error
