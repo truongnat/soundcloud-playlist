@@ -48,7 +48,7 @@
       <p class="text-gray-300 mb-6">
         Can't find the answer you're looking for? We're here to help!
       </p>
-      <a href="mailto:support@soundcloud-dl.com" 
+      <a href="mailto:support@soundcloud-playlist.netlify.app" 
          class="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition-colors">
         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />

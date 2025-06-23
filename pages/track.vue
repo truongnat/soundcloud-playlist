@@ -238,7 +238,7 @@ watch(track, (newTrack) => {
             duration: `PT${Math.floor(newTrack.duration / 60000)}M${Math.floor((newTrack.duration % 60000) / 1000)}S`,
             url: newTrack.url,
             image: newTrack.artwork,
-            downloadUrl: 'https://soundcloud-dl.com/track',
+            downloadUrl: 'https://soundcloud-playlist.netlify.app/track',
             encodingFormat: 'MP3',
             offers: {
               '@type': 'Offer',

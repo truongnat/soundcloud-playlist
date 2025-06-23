@@ -158,8 +158,8 @@
         <div class="space-y-4 text-gray-300">
           <p>If you have any questions about these Terms of Service, please contact us:</p>
           <ul class="list-none space-y-2">
-            <li><strong>Email:</strong> <a href="mailto:legal@soundcloud-dl.com" class="text-blue-400 hover:text-blue-300">legal@soundcloud-dl.com</a></li>
-            <li><strong>Website:</strong> <a href="https://soundcloud-dl.com" class="text-blue-400 hover:text-blue-300">https://soundcloud-dl.com</a></li>
+            <li><strong>Email:</strong> <a href="mailto:legal@soundcloud-playlist.netlify.app" class="text-blue-400 hover:text-blue-300">legal@soundcloud-playlist.netlify.app</a></li>
+            <li><strong>Website:</strong> <a href="https://soundcloud-playlist.netlify.app" class="text-blue-400 hover:text-blue-300">https://soundcloud-playlist.netlify.app</a></li>
           </ul>
         </div>
       </div>

@@ -213,7 +213,7 @@ export const useTrackPageSEO = () => {
     title: 'Download Single SoundCloud Track - Free MP3 Converter',
     description: 'Download individual SoundCloud tracks and convert to MP3 format. High-quality audio conversion with fast download speeds. Completely free and easy to use.',
     keywords: 'soundcloud track downloader, single track download, soundcloud to mp3, individual track converter, free music download',
-    url: 'https://soundcloud-dl.com/track'
+    url: 'https://soundcloud-playlist.netlify.app/track'
   })
 }
 
@@ -222,7 +222,7 @@ export const useFAQSEO = () => {
     title: 'FAQ - SoundCloud Playlist Downloader Help & Support',
     description: 'Frequently asked questions about downloading SoundCloud playlists and tracks. Get help with our free MP3 converter and downloader tool.',
     keywords: 'soundcloud downloader faq, help, support, how to download, troubleshooting, soundcloud to mp3 help',
-    url: 'https://soundcloud-dl.com/faq',
+    url: 'https://soundcloud-playlist.netlify.app/faq',
     structuredData: {
       '@context': 'https://schema.org',
       '@type': 'FAQPage',
@@ -253,7 +253,7 @@ export const usePrivacySEO = () => {
     title: 'Privacy Policy - SoundCloud Playlist Downloader',
     description: 'Privacy policy for SoundCloud Playlist Downloader. Learn how we protect your data and privacy when downloading music and playlists.',
     keywords: 'privacy policy, data protection, soundcloud downloader privacy, user data, security',
-    url: 'https://soundcloud-dl.com/privacy',
+    url: 'https://soundcloud-playlist.netlify.app/privacy',
     noindex: false // Keep indexed for transparency
   })
 }
@@ -263,7 +263,7 @@ export const useTermsSEO = () => {
     title: 'Terms of Service - SoundCloud Playlist Downloader',
     description: 'Terms of service for SoundCloud Playlist Downloader. Read our terms and conditions for using our free music download service.',
     keywords: 'terms of service, terms and conditions, soundcloud downloader terms, legal, user agreement',
-    url: 'https://soundcloud-dl.com/terms',
+    url: 'https://soundcloud-playlist.netlify.app/terms',
     noindex: false // Keep indexed for transparency
   })
 }
