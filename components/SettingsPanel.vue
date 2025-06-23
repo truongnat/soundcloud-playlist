@@ -368,7 +368,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
-import { usePerformanceStore } from '@/stores/performance'
+import { usePerformanceStore, type PerformanceSettings } from '@/stores/performance'
 import { useOptimizedDownloader } from '@/composables/useOptimizedDownloader'
 
 // Emit events
@@ -381,10 +381,11 @@ const performanceStore = usePerformanceStore()
 const { autoOptimize, clearCache, getOptimizationStats, isOptimizing } = useOptimizedDownloader()
 
 // Local settings state
-const localSettings = ref({
+const localSettings = ref<PerformanceSettings>({
   maxConcurrentDownloads: 3,
   audioQuality: '128k',
   compressionPreset: 'fast',
+  chunkSize: 1024 * 1024,
   enableAutoOptimization: true,
   enableStreamCaching: true,
   enableConnectionPooling: true,

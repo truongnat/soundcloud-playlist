@@ -191,7 +191,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import { usePerformanceStore } from '@/stores/performance'
+import { usePerformanceStore, type PerformanceSettings } from '@/stores/performance'
 
 const performanceStore = usePerformanceStore()
 
@@ -201,12 +201,16 @@ watch(() => performanceStore.metrics, (newMetrics) => {
 }, { deep: true })
 
 const expanded = ref(false)
-const localSettings = ref({ 
+const localSettings = ref<PerformanceSettings>({ 
   maxConcurrentDownloads: 3,
   enableMultiThreading: true,
-  compressionPreset: 'fast' as const,
-  audioQuality: '320k' as const,
-  chunkSize: 1024 * 1024
+  compressionPreset: 'fast',
+  audioQuality: '128k',
+  chunkSize: 1024 * 1024,
+  enableAutoOptimization: true,
+  enableStreamCaching: true,
+  enableConnectionPooling: true,
+  enableAdaptiveBitrate: true
 })
 
 // Computed properties for display

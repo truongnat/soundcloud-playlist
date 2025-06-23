@@ -66,8 +66,8 @@
           <!-- Track Banner -->
           <div class="relative h-48 md:h-64">
             <img
-              :src="track.artwork"
-              :alt="track.title"
+              :src="track?.artwork"
+              :alt="track?.title"
               class="w-full h-full object-cover"
             />
             <div class="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent"></div>
