@@ -74,8 +74,8 @@
             
             <!-- Track Info Overlay -->
             <div class="absolute bottom-0 left-0 right-0 p-6">
-              <h2 class="text-2xl font-bold text-white mb-2 line-clamp-1">{{ track.title }}</h2>
-              <p class="text-gray-300 line-clamp-1">{{ track.artist }}</p>
+              <h2 class="text-2xl font-bold text-white mb-2 line-clamp-1">{{ track?.title }}</h2>
+              <p class="text-gray-300 line-clamp-1">{{ track?.artist }}</p>
             </div>
           </div>
 
@@ -83,8 +83,8 @@
           <div class="p-6">
             <div class="flex items-center justify-between gap-4">
               <div class="flex items-center gap-3">
-                <span class="text-gray-400 text-sm">Duration: {{ formatDuration(track.duration) }}</span>
-                <a :href="track.url" target="_blank" rel="noopener noreferrer" 
+                <span class="text-gray-400 text-sm">Duration: {{ formatDuration(track?.duration || 0) }}</span>
+                <a :href="track?.url" target="_blank" rel="noopener noreferrer" 
                    class="text-blue-400 hover:text-blue-300 transition-colors text-sm flex items-center gap-1">
                   <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm0 21.75c-5.385 0-9.75-4.365-9.75-9.75S6.615 2.25 12 2.25s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75z"/>
@@ -227,7 +227,7 @@ watch(track, (newTrack) => {
       script: [
         {
           type: 'application/ld+json',
-          children: JSON.stringify({
+          innerHTML: JSON.stringify({
             '@context': 'https://schema.org',
             '@type': 'MusicRecording',
             name: newTrack.title,
