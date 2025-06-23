@@ -168,31 +168,8 @@
 </template>
 
 <script setup lang="ts">
-// SEO Meta Tags
-useHead({
-  title: 'Terms of Service - SoundCloud Playlist Downloader',
-  meta: [
-    { 
-      name: 'description', 
-      content: 'Terms of service for SoundCloud Playlist Downloader. Read our terms and conditions for using our free music download service.' 
-    },
-    { 
-      name: 'keywords', 
-      content: 'terms of service, terms and conditions, soundcloud downloader terms, legal, user agreement' 
-    },
-    // Open Graph
-    { property: 'og:title', content: 'Terms of Service - SoundCloud Playlist Downloader' },
-    { property: 'og:description', content: 'Read our terms and conditions for using the SoundCloud Playlist Downloader service.' },
-    { property: 'og:type', content: 'website' },
-    { property: 'og:url', content: 'https://soundcloud-dl.com/terms' },
-    // Twitter
-    { name: 'twitter:title', content: 'Terms of Service - SoundCloud Playlist Downloader' },
-    { name: 'twitter:description', content: 'Read our terms and conditions for using the SoundCloud Playlist Downloader service.' }
-  ],
-  link: [
-    { rel: 'canonical', href: 'https://soundcloud-dl.com/terms' }
-  ]
-})
+// SEO optimization using composable
+useTermsSEO()
 
 const lastUpdated = 'December 19, 2024'
 </script>

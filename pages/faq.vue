@@ -62,66 +62,8 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 
-// SEO Meta Tags
-useHead({
-  title: 'FAQ - SoundCloud Playlist Downloader Help & Support',
-  meta: [
-    { 
-      name: 'description', 
-      content: 'Frequently asked questions about downloading SoundCloud playlists and tracks. Get help with our free MP3 converter and downloader tool.' 
-    },
-    { 
-      name: 'keywords', 
-      content: 'soundcloud downloader faq, help, support, how to download, troubleshooting, soundcloud to mp3 help' 
-    },
-    // Open Graph
-    { property: 'og:title', content: 'FAQ - SoundCloud Playlist Downloader Help & Support' },
-    { property: 'og:description', content: 'Get answers to common questions about downloading SoundCloud playlists and tracks.' },
-    { property: 'og:type', content: 'website' },
-    { property: 'og:url', content: 'https://soundcloud-dl.com/faq' },
-    // Twitter
-    { name: 'twitter:title', content: 'FAQ - SoundCloud Playlist Downloader Help' },
-    { name: 'twitter:description', content: 'Get answers to common questions about downloading SoundCloud playlists and tracks.' }
-  ],
-  link: [
-    { rel: 'canonical', href: 'https://soundcloud-dl.com/faq' }
-  ],
-  script: [
-    {
-      type: 'application/ld+json',
-      children: JSON.stringify({
-        '@context': 'https://schema.org',
-        '@type': 'FAQPage',
-        mainEntity: [
-          {
-            '@type': 'Question',
-            name: 'Is it legal to download SoundCloud tracks?',
-            acceptedAnswer: {
-              '@type': 'Answer',
-              text: 'You should only download tracks that you have permission to download or that are available under Creative Commons licenses. Always respect copyright laws and artists\' rights.'
-            }
-          },
-          {
-            '@type': 'Question',
-            name: 'Is this service free?',
-            acceptedAnswer: {
-              '@type': 'Answer',
-              text: 'Yes, our SoundCloud playlist downloader is completely free to use. There are no hidden fees, subscriptions, or limitations on the number of downloads.'
-            }
-          },
-          {
-            '@type': 'Question',
-            name: 'What audio quality do I get?',
-            acceptedAnswer: {
-              '@type': 'Answer',
-              text: 'We provide high-quality MP3 downloads with bitrates up to 320kbps, depending on the original track quality available on SoundCloud.'
-            }
-          }
-        ]
-      })
-    }
-  ]
-})
+// SEO optimization using composable
+useFAQSEO()
 
 const openFaqs = ref<number[]>([])
 

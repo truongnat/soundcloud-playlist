@@ -131,31 +131,8 @@
 </template>
 
 <script setup lang="ts">
-// SEO Meta Tags
-useHead({
-  title: 'Privacy Policy - SoundCloud Playlist Downloader',
-  meta: [
-    { 
-      name: 'description', 
-      content: 'Privacy policy for SoundCloud Playlist Downloader. Learn how we protect your data and privacy when downloading music and playlists.' 
-    },
-    { 
-      name: 'keywords', 
-      content: 'privacy policy, data protection, soundcloud downloader privacy, user data, security' 
-    },
-    // Open Graph
-    { property: 'og:title', content: 'Privacy Policy - SoundCloud Playlist Downloader' },
-    { property: 'og:description', content: 'Learn how we protect your privacy and data when using our SoundCloud downloader service.' },
-    { property: 'og:type', content: 'website' },
-    { property: 'og:url', content: 'https://soundcloud-dl.com/privacy' },
-    // Twitter
-    { name: 'twitter:title', content: 'Privacy Policy - SoundCloud Playlist Downloader' },
-    { name: 'twitter:description', content: 'Learn how we protect your privacy and data when using our SoundCloud downloader service.' }
-  ],
-  link: [
-    { rel: 'canonical', href: 'https://soundcloud-dl.com/privacy' }
-  ]
-})
+// SEO optimization using composable
+usePrivacySEO()
 
 const lastUpdated = 'December 19, 2024'
 </script>
