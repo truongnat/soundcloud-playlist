@@ -1,47 +1,58 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
         http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
   
-  <!-- Homepage -->
+  <!-- Homepage - Main landing page for playlist downloads -->
   <url>
     <loc>https://soundcloud-dl.com/</loc>
-    <lastmod>2024-12-19</lastmod>
+    <lastmod>2024-12-19T12:00:00+00:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
+    <image:image>
+      <image:loc>https://soundcloud-dl.com/og-image.jpg</image:loc>
+      <image:title>SoundCloud Playlist Downloader - Free MP3 Download Tool</image:title>
+      <image:caption>Download entire SoundCloud playlists and convert to MP3 format for free</image:caption>
+    </image:image>
   </url>
   
-  <!-- Single Track Download -->
+  <!-- Single Track Download Page -->
   <url>
     <loc>https://soundcloud-dl.com/track</loc>
-    <lastmod>2024-12-19</lastmod>
+    <lastmod>2024-12-19T12:00:00+00:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://soundcloud-dl.com/track-download-preview.jpg</image:loc>
+      <image:title>Download Individual SoundCloud Tracks</image:title>
+      <image:caption>Download single SoundCloud tracks and convert to high-quality MP3</image:caption>
+    </image:image>
+  </url>
+  
+  <!-- FAQ Page - Help and Support -->
+  <url>
+    <loc>https://soundcloud-dl.com/faq</loc>
+    <lastmod>2024-12-19T12:00:00+00:00</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
   </url>
   
   <!-- Privacy Policy -->
   <url>
     <loc>https://soundcloud-dl.com/privacy</loc>
-    <lastmod>2024-12-19</lastmod>
+    <lastmod>2024-12-19T12:00:00+00:00</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.3</priority>
+    <priority>0.4</priority>
   </url>
   
   <!-- Terms of Service -->
   <url>
     <loc>https://soundcloud-dl.com/terms</loc>
-    <lastmod>2024-12-19</lastmod>
+    <lastmod>2024-12-19T12:00:00+00:00</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.3</priority>
-  </url>
-  
-  <!-- FAQ -->
-  <url>
-    <loc>https://soundcloud-dl.com/faq</loc>
-    <lastmod>2024-12-19</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
+    <priority>0.4</priority>
   </url>
   
 </urlset>
