@@ -77,6 +77,11 @@ export default defineNuxtConfig({
     },
     build: {
       target: 'esnext'
+    },
+    server: {
+      fs: {
+        strict: false
+      }
     }
   },
   nitro: {
@@ -93,6 +98,11 @@ export default defineNuxtConfig({
           'Access-Control-Allow-Origin': '*',
           'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
           'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+        }
+      },
+      '/_nuxt/**': {
+        headers: {
+          'Cache-Control': 'max-age=31536000'
         }
       }
     },
@@ -140,5 +150,10 @@ export default defineNuxtConfig({
   // Performance optimizations for SEO
   experimental: {
     payloadExtraction: false
+  },
+
+  // Build configuration
+  build: {
+    transpile: ['@headlessui/vue']
   }
 })
