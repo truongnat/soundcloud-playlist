@@ -35,7 +35,7 @@ export default defineNuxtConfig({
         { property: 'og:title', content: 'SoundCloud Playlist Downloader - Free Music Download Tool' },
         { property: 'og:description', content: 'Download entire SoundCloud playlists and convert to MP3. Fast, free, and easy to use online tool for music lovers.' },
         { property: 'og:image', content: '/og-image.jpg' },
-        { property: 'og:url', content: 'https://soundcloud-dl.com' },
+        { property: 'og:url', content: 'https://soundcloud-playlist.netlify.app' },
         { property: 'og:site_name', content: 'SoundCloud DL' },
         { property: 'og:locale', content: 'en_US' },
         
@@ -59,7 +59,7 @@ export default defineNuxtConfig({
         { rel: 'icon', type: 'image/png', sizes: '32x32', href: '/favicon-32x32.png' },
         { rel: 'icon', type: 'image/png', sizes: '16x16', href: '/favicon-16x16.png' },
         { rel: 'manifest', href: '/site.webmanifest' },
-        { rel: 'canonical', href: 'https://soundcloud-dl.com' }
+        { rel: 'canonical', href: 'https://soundcloud-playlist.netlify.app' }
       ]
     }
   },
@@ -112,7 +112,7 @@ export default defineNuxtConfig({
 
   // Enhanced SEO Configuration
   sitemap: {
-    hostname: 'https://soundcloud-dl.com',
+    hostname: 'https://soundcloud-playlist.netlify.app',
     gzip: true,
     routes: [
       {

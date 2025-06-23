@@ -1,13 +1,13 @@
 # Robots.txt for SoundCloud Playlist Downloader
-# https://soundcloud-dl.com/robots.txt
+# https://soundcloud-playlist.netlify.app/robots.txt
 
 User-agent: *
 Allow: /
 
 # Sitemap locations
-Sitemap: https://soundcloud-dl.com/sitemap.xml
-Sitemap: https://soundcloud-dl.com/sitemap-pages.xml
-Sitemap: https://soundcloud-dl.com/sitemap-images.xml
+Sitemap: https://soundcloud-playlist.netlify.app/sitemap.xml
+Sitemap: https://soundcloud-playlist.netlify.app/sitemap-pages.xml
+Sitemap: https://soundcloud-playlist.netlify.app/sitemap-images.xml
 
 # Crawl-delay for respectful crawling
 Crawl-delay: 1
@@ -122,4 +122,4 @@ Disallow: /
 # Disallow: /
 
 # Host directive (helps with canonicalization)
-Host: https://soundcloud-dl.com
+Host: https://soundcloud-playlist.netlify.app
