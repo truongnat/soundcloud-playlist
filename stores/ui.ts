@@ -46,11 +46,11 @@ export const useUIStore = defineStore('ui', {
       this.showSettingsPanel = !this.showSettingsPanel
     },
 
-    showSettingsPanel() {
+    openSettingsPanel() {
       this.showSettingsPanel = true
     },
 
-    hideSettingsPanel() {
+    closeSettingsPanel() {
       this.showSettingsPanel = false
     },
 

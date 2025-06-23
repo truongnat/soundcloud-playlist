@@ -43,6 +43,7 @@ export interface PlaylistInfo {
   artwork: string
   tracksCount: number
   user?: string
+  url?: string
 }
 
 export interface PlaylistResponse {

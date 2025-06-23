@@ -255,8 +255,8 @@ async function handleConfirmReplace() {
       // Proceed with fetch
       proceedWithFetch(pendingFetchData.value.url, pendingFetchData.value.useBackground)
       pendingFetchData.value = null
-    } catch (error) {
-      console.error('Error during playlist replacement:', error)
+    } catch (err) {
+      console.error('Error during playlist replacement:', err)
       error.value = 'Failed to clear current playlist'
     } finally {
       loading.value = false
