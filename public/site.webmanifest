@@ -1,15 +1,17 @@
 {
-  "name": "SoundCloud Playlist Downloader",
+  "name": "SoundCloud Playlist Downloader - Free MP3 Converter",
   "short_name": "SoundCloud DL",
-  "description": "Download SoundCloud playlists and tracks for free. Convert to MP3 with high quality.",
-  "start_url": "/",
+  "description": "Download SoundCloud playlists and tracks for free. Convert to high-quality MP3 with bulk download support. Fast, easy, and completely free online tool.",
+  "start_url": "/?utm_source=pwa",
   "display": "standalone",
   "background_color": "#111827",
   "theme_color": "#f97316",
-  "orientation": "portrait-primary",
+  "orientation": "any",
   "scope": "/",
-  "lang": "en",
-  "categories": ["music", "entertainment", "utilities"],
+  "lang": "en-US",
+  "dir": "ltr",
+  "categories": ["music", "entertainment", "utilities", "productivity"],
+  "iarc_rating_id": "e84b072d-71b3-4d3e-86ae-31a8ce4e53b7",
   "icons": [
     {
       "src": "/android-chrome-192x192.png",
