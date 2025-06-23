@@ -125,31 +125,8 @@ import { useTrack } from '@/composables/useTrack'
 import { useLogger } from '@/composables/useLogger'
 import type { Track } from '~/types'
 
-// Base SEO
-useHead({
-  title: 'Download Single SoundCloud Track - Free MP3 Converter',
-  meta: [
-    { 
-      name: 'description', 
-      content: 'Download individual SoundCloud tracks and convert to MP3. Fast, free, and high-quality audio conversion. No registration required.' 
-    },
-    { 
-      name: 'keywords', 
-      content: 'soundcloud track downloader, single track download, soundcloud to mp3, music converter, free download' 
-    },
-    // Open Graph
-    { property: 'og:title', content: 'Download Single SoundCloud Track - Free MP3 Converter' },
-    { property: 'og:description', content: 'Download individual SoundCloud tracks and convert to MP3. Fast, free, and high-quality audio conversion.' },
-    { property: 'og:type', content: 'website' },
-    { property: 'og:url', content: 'https://soundcloud-dl.com/track' },
-    // Twitter
-    { name: 'twitter:title', content: 'Download Single SoundCloud Track - Free MP3 Converter' },
-    { name: 'twitter:description', content: 'Download individual SoundCloud tracks and convert to MP3. Fast, free, and high-quality.' }
-  ],
-  link: [
-    { rel: 'canonical', href: 'https://soundcloud-dl.com/track' }
-  ]
-})
+// SEO optimization using composable
+useTrackPageSEO()
 
 // Inject download functionality from layout
 const handleDownloadTrack = inject('handleDownloadTrack') as (track: Track) => Promise<void>
