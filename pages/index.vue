@@ -96,6 +96,7 @@ import type { JobStatus } from '@/composables/useBackgroundJobs'
 import { usePlaylist } from '@/composables/usePlaylist'
 import { useBackgroundJobs } from '@/composables/useBackgroundJobs'
 import { useLogger } from '@/composables/useLogger'
+import { useHomepageSEO } from '@/composables/useSEO'
 import ConfirmModal from '@/components/ConfirmModal.vue'
 
 // SEO optimization using composable
