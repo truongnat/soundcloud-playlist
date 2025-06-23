@@ -1,11 +1,8 @@
 import type { Track } from '@/types'
-import { useAudioProcessor } from './useAudioProcessor'
 import { useDownloadQueueStore } from '@/stores/downloadQueue'
 import { usePerformanceStore } from '@/stores/performance'
 import { validateAudioFormat, downloadBlob } from '~/utils/audio'
 import { sanitizeFilename } from '~/utils/api'
-
-const { convertToMp3 } = useAudioProcessor()
 
 // Global abort controllers để có thể cancel downloads
 const activeDownloads = new Map<string, AbortController>()
@@ -230,7 +227,12 @@ export const useDownloadQueue = () => {
       console.log('Starting conversion for track:', track.title)
       store.updateTrackStatus(trackId, 'converting')
       conversionStartTime = Date.now()
+      
+      // Dynamic import to avoid circular dependency
+      const { useAudioProcessor } = await import('./useAudioProcessor')
+      const { convertToMp3 } = useAudioProcessor()
       const mp3Blob = await convertToMp3(audioData!)
+      
       const conversionTime = Date.now() - conversionStartTime
       console.log('Conversion completed for track:', track.title, 'Time:', conversionTime + 'ms')
 

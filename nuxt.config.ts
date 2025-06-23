@@ -110,7 +110,7 @@ export default defineNuxtConfig({
       wasm: true
     },
     prerender: {
-      routes: ['/sitemap.xml', '/robots.txt']
+      routes: ['/robots.txt']
     }
   },
   runtimeConfig: {
@@ -119,6 +119,11 @@ export default defineNuxtConfig({
       // Client-side environment variables
       siteUrl: process.env.NUXT_PUBLIC_SITE_URL || 'https://soundcloud-playlist.netlify.app'
     }
+  },
+
+  // Site configuration for sitemap
+  site: {
+    url: process.env.NUXT_PUBLIC_SITE_URL || 'https://soundcloud-playlist.netlify.app'
   },
 
   // Enhanced SEO Configuration
