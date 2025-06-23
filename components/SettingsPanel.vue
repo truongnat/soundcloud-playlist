@@ -466,6 +466,7 @@ const resetToDefaults = () => {
       maxConcurrentDownloads: 3,
       audioQuality: '128k',
       compressionPreset: 'fast',
+      chunkSize: 1024 * 1024,
       enableAutoOptimization: true,
       enableStreamCaching: true,
       enableConnectionPooling: true,

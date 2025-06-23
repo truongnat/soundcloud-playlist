@@ -37,7 +37,7 @@
 
         <!-- Download Status -->
         <div
-          v-if="activeDownloads.includes(getTrackId(track.id))"
+          v-if="activeDownloads?.includes(getTrackId(track.id))"
           class="absolute top-2 right-2 bg-gradient-to-r from-orange-500 to-pink-500 
                  text-white p-1.5 rounded-full shadow-lg animate-bounce"
         >
@@ -151,7 +151,7 @@
 
           <!-- Download Status -->
           <div
-            v-if="activeDownloads.includes(getTrackId(track.id))"
+            v-if="activeDownloads?.includes(getTrackId(track.id))"
             class="absolute -top-1 -right-1 bg-gradient-to-r from-orange-500 to-pink-500 
                    text-white p-1 lg:p-1.5 rounded-full shadow-lg animate-bounce"
           >
