@@ -106,7 +106,7 @@ export default defineNuxtConfig({
     // Server-side environment variables
     public: {
       // Client-side environment variables
-      siteUrl: process.env.NUXT_PUBLIC_SITE_URL || 'https://soundcloud-dl.com'
+      siteUrl: process.env.NUXT_PUBLIC_SITE_URL || 'https://soundcloud-playlist.netlify.app'
     }
   },
 
