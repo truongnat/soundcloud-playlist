@@ -49,7 +49,7 @@
 
         <!-- Download Complete Status -->
         <div
-          v-else-if="completedDownloads.includes(getTrackId(track.id))"
+          v-else-if="isCompleted"
           class="absolute top-2 right-2 bg-gradient-to-r from-green-500 to-emerald-500 
                  text-white p-1.5 rounded-full shadow-lg"
         >
@@ -163,7 +163,7 @@
 
           <!-- Download Complete Status -->
           <div
-            v-else-if="completedDownloads.includes(getTrackId(track.id))"
+            v-else-if="isCompleted"
             class="absolute -top-1 -right-1 bg-gradient-to-r from-green-500 to-emerald-500 
                    text-white p-1 lg:p-1.5 rounded-full shadow-lg"
           >
@@ -238,6 +238,7 @@ import { useUIStore } from '@/stores/ui'
 const props = defineProps<{
   track: Track
   activeDownloads?: string[]
+  completedDownloads?: string[]
   errorTracks?: Record<string, string>
 }>()
 
@@ -269,13 +270,8 @@ const formatDuration = (ms: number) => {
   return `${minutes}:${seconds.toString().padStart(2, '0')}`
 }
 
-const completedDownloads = computed(() => {
-  // Logic for completed downloads would go here
-  return []
-})
-
 const isCompleted = computed(() => 
-  completedDownloads.value.includes(getTrackId(props.track.id))
+  props.completedDownloads?.includes(getTrackId(props.track.id)) ?? false
 )
 </script>
 
