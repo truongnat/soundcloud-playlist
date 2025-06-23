@@ -5,7 +5,8 @@ export default defineNuxtConfig({
   modules: [
     '@nuxtjs/tailwindcss', 
     '@pinia/nuxt', 
-    '@nuxt/ui'
+    '@nuxt/ui',
+    '@nuxtjs/sitemap'
   ],
   css: ['~/assets/css/main.css'],
   
@@ -16,11 +17,18 @@ export default defineNuxtConfig({
       viewport: 'width=device-width, initial-scale=1',
       title: 'SoundCloud Playlist Downloader - Download Music & Playlists Free',
       meta: [
-        { name: 'description', content: 'Free SoundCloud playlist downloader. Download entire playlists, convert to MP3, and save your favorite tracks. Fast, easy, and completely free online tool.' },
-        { name: 'keywords', content: 'soundcloud downloader, playlist downloader, soundcloud to mp3, music downloader, soundcloud converter, bulk download' },
+        { name: 'description', content: 'Free SoundCloud playlist downloader. Download entire playlists, convert to MP3, and save your favorite tracks. Fast, easy, and completely free online tool with bulk download support.' },
+        { name: 'keywords', content: 'soundcloud downloader, playlist downloader, soundcloud to mp3, music downloader, soundcloud converter, bulk download, free music download, soundcloud playlist converter, download soundcloud music, soundcloud mp3 converter' },
         { name: 'author', content: 'SoundCloud DL' },
-        { name: 'robots', content: 'index, follow' },
-        { name: 'googlebot', content: 'index, follow' },
+        { name: 'robots', content: 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1' },
+        { name: 'googlebot', content: 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1' },
+        { name: 'bingbot', content: 'index, follow' },
+        { name: 'language', content: 'English' },
+        { name: 'geo.region', content: 'US' },
+        { name: 'geo.placename', content: 'United States' },
+        { name: 'distribution', content: 'global' },
+        { name: 'rating', content: 'general' },
+        { name: 'revisit-after', content: '7 days' },
         
         // Open Graph / Facebook
         { property: 'og:type', content: 'website' },
@@ -100,5 +108,36 @@ export default defineNuxtConfig({
       // Client-side environment variables
       siteUrl: process.env.NUXT_PUBLIC_SITE_URL || 'https://soundcloud-dl.com'
     }
+  },
+
+  // Enhanced SEO Configuration
+  sitemap: {
+    hostname: 'https://soundcloud-dl.com',
+    gzip: true,
+    routes: [
+      {
+        url: '/',
+        changefreq: 'weekly',
+        priority: 1.0,
+        lastmod: new Date().toISOString()
+      },
+      {
+        url: '/track',
+        changefreq: 'weekly', 
+        priority: 0.8,
+        lastmod: new Date().toISOString()
+      },
+      {
+        url: '/faq',
+        changefreq: 'monthly',
+        priority: 0.7,
+        lastmod: new Date().toISOString()
+      }
+    ]
+  },
+
+  // Performance optimizations for SEO
+  experimental: {
+    payloadExtraction: false
   }
 })
