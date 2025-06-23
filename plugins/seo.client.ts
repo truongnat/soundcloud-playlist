@@ -12,8 +12,8 @@ export default defineNuxtPlugin(() => {
     '@context': 'https://schema.org',
     '@type': 'Organization',
     name: 'SoundCloud DL',
-    url: 'https://soundcloud-dl.com',
-    logo: 'https://soundcloud-dl.com/logo.png',
+    url: 'https://soundcloud-playlist.netlify.app',
+    logo: 'https://soundcloud-playlist.netlify.app/logo.png',
     description: 'Free SoundCloud playlist downloader and MP3 converter',
     sameAs: [
       'https://twitter.com/soundcloudDL',
@@ -22,7 +22,7 @@ export default defineNuxtPlugin(() => {
     contactPoint: {
       '@type': 'ContactPoint',
       contactType: 'customer service',
-      email: 'support@soundcloud-dl.com'
+      email: 'support@soundcloud-playlist.netlify.app'
     }
   }
 
@@ -31,20 +31,20 @@ export default defineNuxtPlugin(() => {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
     name: 'SoundCloud Playlist Downloader',
-    url: 'https://soundcloud-dl.com',
+    url: 'https://soundcloud-playlist.netlify.app',
     description: 'Free online tool to download SoundCloud playlists and convert to MP3',
     potentialAction: {
       '@type': 'SearchAction',
       target: {
         '@type': 'EntryPoint',
-        urlTemplate: 'https://soundcloud-dl.com/?url={search_term_string}'
+        urlTemplate: 'https://soundcloud-playlist.netlify.app/?url={search_term_string}'
       },
       'query-input': 'required name=search_term_string'
     },
     publisher: {
       '@type': 'Organization',
       name: 'SoundCloud DL',
-      url: 'https://soundcloud-dl.com'
+      url: 'https://soundcloud-playlist.netlify.app'
     }
   }
 
@@ -54,7 +54,7 @@ export default defineNuxtPlugin(() => {
     '@type': 'SoftwareApplication',
     name: 'SoundCloud Playlist Downloader',
     description: 'Free online tool to download SoundCloud playlists and convert to MP3 format',
-    url: 'https://soundcloud-dl.com',
+    url: 'https://soundcloud-playlist.netlify.app',
     applicationCategory: 'MultimediaApplication',
     operatingSystem: 'Web Browser',
     browserRequirements: 'Requires JavaScript. Requires HTML5.',
@@ -70,7 +70,7 @@ export default defineNuxtPlugin(() => {
     creator: {
       '@type': 'Organization',
       name: 'SoundCloud DL',
-      url: 'https://soundcloud-dl.com'
+      url: 'https://soundcloud-playlist.netlify.app'
     },
     featureList: [
       'Download entire SoundCloud playlists',
@@ -82,7 +82,7 @@ export default defineNuxtPlugin(() => {
       'Mobile-friendly interface',
       'Background processing for large playlists'
     ],
-    screenshot: 'https://soundcloud-dl.com/screenshot.jpg',
+    screenshot: 'https://soundcloud-playlist.netlify.app/screenshot.jpg',
     aggregateRating: {
       '@type': 'AggregateRating',
       ratingValue: '4.8',

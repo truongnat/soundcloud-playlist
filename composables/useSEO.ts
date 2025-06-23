@@ -23,7 +23,7 @@ export const useSEO = (options: SEOOptions = {}) => {
   const config = useRuntimeConfig()
   const route = useRoute()
   
-  const siteUrl = config.public.siteUrl || 'https://soundcloud-dl.com'
+  const siteUrl = config.public.siteUrl || 'https://soundcloud-playlist.netlify.app'
   const siteName = options.siteName || 'SoundCloud Playlist Downloader'
   
   // Default values
@@ -190,7 +190,7 @@ export const useHomepageSEO = () => {
       '@type': 'WebApplication',
       name: 'SoundCloud Playlist Downloader',
       description: 'Free online tool to download SoundCloud playlists and convert to MP3',
-      url: 'https://soundcloud-dl.com',
+      url: 'https://soundcloud-playlist.netlify.app',
       applicationCategory: 'MultimediaApplication',
       operatingSystem: 'Web Browser',
       offers: {
