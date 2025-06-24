@@ -131,6 +131,8 @@
 </template>
 
 <script setup lang="ts">
+import { usePrivacySEO } from '@/composables/useSEO'
+
 // SEO optimization using composable
 usePrivacySEO()
 

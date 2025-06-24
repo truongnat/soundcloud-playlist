@@ -168,6 +168,8 @@
 </template>
 
 <script setup lang="ts">
+import { useTermsSEO } from '@/composables/useSEO'
+
 // SEO optimization using composable
 useTermsSEO()
 
