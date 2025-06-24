@@ -242,9 +242,6 @@ async function handleConfirmReplace() {
   showConfirmModal.value = false
   
   if (pendingFetchData.value) {
-    // Show loading state while clearing
-    loading.value = true
-    
     try {
       // Clear current state (this will also cancel downloads)
       await clearCurrentPlaylist()
@@ -258,8 +255,10 @@ async function handleConfirmReplace() {
     } catch (err) {
       console.error('Error during playlist replacement:', err)
       error.value = 'Failed to clear current playlist'
-    } finally {
-      loading.value = false
+      
+      // Reset loading state in PlaylistInput on error
+      const cancelFetchEvent = new CustomEvent('cancel-fetch')
+      window.dispatchEvent(cancelFetchEvent)
     }
   }
 }

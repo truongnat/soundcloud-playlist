@@ -221,6 +221,9 @@ onMounted(() => {
     loading.value = false
     error.value = ''
     console.log('Fetch cancelled by user - resetting loading state')
+    
+    // Also emit error event to parent to clear any error states
+    emit('error', '')
   }
   
   window.addEventListener('proceed-fetch', handleProceedFetch as EventListener)
