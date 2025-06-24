@@ -155,6 +155,9 @@ const handleFetchPlaylist = async () => {
     return
   }
 
+  // Set loading state temporarily while checking for confirmation
+  loading.value = true
+
   // Emit before-fetch event to check if confirmation is needed
   emit('before-fetch', {
     url: playlistUrl.value.trim(),
@@ -206,17 +209,26 @@ const performFetch = async (url: string, useBackground: boolean) => {
   }
 }
 
-// Listen for proceed-fetch event from parent
+// Listen for proceed-fetch and cancel-fetch events from parent
 onMounted(() => {
   const handleProceedFetch = (event: CustomEvent) => {
     const { url, useBackground } = event.detail
     performFetch(url, useBackground)
   }
   
+  const handleCancelFetch = () => {
+    // Reset loading state when user cancels
+    loading.value = false
+    error.value = ''
+    console.log('Fetch cancelled by user - resetting loading state')
+  }
+  
   window.addEventListener('proceed-fetch', handleProceedFetch as EventListener)
+  window.addEventListener('cancel-fetch', handleCancelFetch as EventListener)
   
   onUnmounted(() => {
     window.removeEventListener('proceed-fetch', handleProceedFetch as EventListener)
+    window.removeEventListener('cancel-fetch', handleCancelFetch as EventListener)
   })
 })
 </script>

@@ -267,7 +267,17 @@ async function handleConfirmReplace() {
 // Handle cancel replacement
 function handleCancelReplace() {
   showConfirmModal.value = false
+  
+  // Reset loading state in PlaylistInput component
+  if (pendingFetchData.value) {
+    const cancelFetchEvent = new CustomEvent('cancel-fetch')
+    window.dispatchEvent(cancelFetchEvent)
+  }
+  
   pendingFetchData.value = null
+  
+  // Log user action
+  logger.logUserAction('User chose to keep current playlist instead of replacing')
 }
 
 // Clear current playlist state
