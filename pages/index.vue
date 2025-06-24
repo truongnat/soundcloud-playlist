@@ -271,12 +271,16 @@ function handleCancelReplace() {
   if (pendingFetchData.value) {
     const cancelFetchEvent = new CustomEvent('cancel-fetch')
     window.dispatchEvent(cancelFetchEvent)
+    
+    // Clear any error states
+    error.value = ''
+    
+    // Log user action with more detail
+    const playlistTitle = playlistInfo.value?.title || 'current playlist'
+    logger.logUserAction(`User chose to keep "${playlistTitle}" instead of loading new playlist`)
   }
   
   pendingFetchData.value = null
-  
-  // Log user action
-  logger.logUserAction('User chose to keep current playlist instead of replacing')
 }
 
 // Clear current playlist state
