@@ -123,6 +123,7 @@ import { ref, computed, inject, type Ref, onMounted, onUnmounted, watch } from '
 import { TransitionRoot } from '@headlessui/vue'
 import { useTrack } from '@/composables/useTrack'
 import { useLogger } from '@/composables/useLogger'
+import { useTrackPageSEO } from '@/composables/useSEO'
 import type { Track } from '~/types'
 
 // SEO optimization using composable
