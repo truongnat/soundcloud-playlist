@@ -44,8 +44,7 @@ export default defineNuxtConfig({
           manualChunks: {
             'vue-vendor': ['vue', 'vue-router'],
             'ui-vendor': ['@headlessui/vue'],
-            'audio-vendor': ['@ffmpeg/ffmpeg', '@ffmpeg/util', '@ffmpeg/core'],
-            'utils-vendor': ['axios', 'howler']
+            'audio-vendor': ['@ffmpeg/ffmpeg', '@ffmpeg/util', '@ffmpeg/core']
           }
         }
       }
@@ -56,7 +55,6 @@ export default defineNuxtConfig({
         'vue',
         'vue-router',
         '@headlessui/vue',
-        'axios',
         'pinia'
       ],
       exclude: [
