@@ -16,8 +16,8 @@
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
-    "clean": "rm -rf .nuxt .output dist node_modules/.cache",
-    "clean:all": "rm -rf .nuxt .output dist node_modules/.cache node_modules/.vite",
+    "clean": "rimraf .nuxt .output dist node_modules/.cache",
+    "clean:all": "rimraf .nuxt .output dist node_modules/.cache node_modules/.vite",
     "fix-dev": "node scripts/fix-dev-server.js",
     "typecheck": "nuxt typecheck",
     "build:monitor": "node scripts/build-monitor.js",
@@ -48,6 +48,7 @@
   },
   "devDependencies": {
     "@types/m3u8-parser": "^7.2.2",
-    "cross-env": "^7.0.3"
+    "cross-env": "^7.0.3",
+    "rimraf": "^6.0.1"
   }
 }
