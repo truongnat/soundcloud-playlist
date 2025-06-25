@@ -6,8 +6,6 @@ export default defineNuxtPlugin((nuxtApp) => {
   const lazyComponents = {
     PerformanceDashboard: () => import('~/components/PerformanceDashboard.vue'),
     PerformanceOptimizer: () => import('~/components/PerformanceOptimizer.vue'),
-    OptimizationGuide: () => import('~/components/OptimizationGuide.vue'),
-    LogsPanel: () => import('~/components/LogsPanel.vue'),
     BackgroundJobProgress: () => import('~/components/BackgroundJobProgress.vue')
   }
 
