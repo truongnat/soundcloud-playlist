@@ -181,7 +181,6 @@ export default defineNuxtConfig({
     // Disable features that can cause build issues on Windows
     payloadExtraction: false,
     viewTransition: false,
-    inlineSSRStyles: false,
     asyncContext: false,
     // Enable stable features
     typedPages: false,
