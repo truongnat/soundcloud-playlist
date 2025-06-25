@@ -153,19 +153,25 @@ export default defineNuxtConfig({
 
   // Site configuration
   site: {
-    url: process.env.NUXT_PUBLIC_SITE_URL || 'https://soundcloud-playlist.netlify.app'
+    url: process.env.NUXT_PUBLIC_SITE_URL || 'https://soundcloud-playlist.netlify.app',
+    name: 'SoundCloud Playlist Downloader'
   },
 
-  // FIX: Simplified sitemap configuration
+  // Sitemap configuration according to latest docs
   sitemap: {
-    hostname: process.env.NUXT_PUBLIC_SITE_URL || 'https://soundcloud-playlist.netlify.app',
-    gzip: true,
-    routes: [
-      '/',
-      '/track',
-      '/privacy',
-      '/terms'
-    ]
+    urls: async () => {
+      return [
+        '/',
+        '/track',
+        '/privacy',
+        '/terms'
+      ]
+    },
+    defaults: {
+      changefreq: 'daily',
+      priority: 0.7,
+      lastmod: new Date().toISOString()
+    }
   },
 
   // FIX: Disable experimental features that cause build issues
