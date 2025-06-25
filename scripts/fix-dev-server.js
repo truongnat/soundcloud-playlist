@@ -2,9 +2,14 @@
  * Development server fix script for ECONNRESET issues
  */
 
-const fs = require('fs')
-const path = require('path')
-const { execSync } = require('child_process')
+import fs from 'fs'
+import path from 'path'
+import { execSync } from 'child_process'
+import { fileURLToPath } from 'url'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+const projectRoot = path.dirname(__dirname)
 
 console.log('🔧 Fixing Nuxt development server issues...\n')
 
@@ -14,7 +19,7 @@ try {
   const cacheDirs = ['.nuxt', '.output', 'node_modules/.cache', 'node_modules/.vite']
   
   for (const dir of cacheDirs) {
-    const fullPath = path.join(process.cwd(), dir)
+    const fullPath = path.join(projectRoot, dir)
     if (fs.existsSync(fullPath)) {
       console.log(`   Removing ${dir}...`)
       fs.rmSync(fullPath, { recursive: true, force: true })
@@ -62,9 +67,9 @@ try {
 // Step 4: Create improved nuxt.config.ts
 console.log('4. Creating improved development configuration...')
 try {
-  const configPath = path.join(process.cwd(), 'nuxt.config.ts')
-  const backupPath = path.join(process.cwd(), 'nuxt.config.backup.ts')
-  const fixedConfigPath = path.join(process.cwd(), 'nuxt.config.dev-fix.ts')
+  const configPath = path.join(projectRoot, 'nuxt.config.ts')
+  const backupPath = path.join(projectRoot, 'nuxt.config.backup.ts')
+  const fixedConfigPath = path.join(projectRoot, 'nuxt.config.dev-fix.ts')
   
   // Backup current config
   if (fs.existsSync(configPath)) {
@@ -87,7 +92,7 @@ try {
 console.log('5. Checking dependencies...')
 try {
   console.log('   Running npm install to ensure dependencies are up to date...')
-  execSync('npm install', { stdio: 'inherit' })
+  execSync('npm install', { stdio: 'inherit', cwd: projectRoot })
   console.log('   ✅ Dependencies updated\n')
 } catch (error) {
   console.log('   ⚠️  Could not update dependencies:', error.message, '\n')
@@ -125,7 +130,7 @@ pause
 `
 
 try {
-  fs.writeFileSync(path.join(process.cwd(), 'dev-troubleshoot.bat'), troubleshootScript)
+  fs.writeFileSync(path.join(projectRoot, 'dev-troubleshoot.bat'), troubleshootScript)
   console.log('   ✅ Created dev-troubleshoot.bat for quick fixes')
 } catch (error) {
   console.log('   ⚠️  Could not create troubleshooting script')

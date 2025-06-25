@@ -27,13 +27,7 @@ export default defineNuxtConfig({
     }
   },
   
-  // Development server configuration to fix ECONNRESET issues
-  devServer: {
-    port: 3000,
-    host: 'localhost'
-  },
-  
-  // Optimized Vite configuration for faster builds and better dev experience
+  // Optimized Vite configuration for faster builds
   vite: {
     // Build optimizations
     build: {
@@ -77,39 +71,17 @@ export default defineNuxtConfig({
       format: 'es'
     },
     
-    // Enhanced server configuration for development stability
+    // Server configuration
     server: {
       fs: {
         strict: false
-      },
-      hmr: {
-        port: 24678,
-        clientPort: 24678,
-        overlay: false
-      },
-      watch: {
-        usePolling: process.env.NODE_ENV === 'development',
-        interval: 1000,
-        ignored: ['**/node_modules/**', '**/.git/**']
-      },
-      cors: true,
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization'
       }
     },
     
     // CSS optimization
     css: {
       devSourcemap: false
-    },
-    
-    // Clear screen on rebuild
-    clearScreen: false,
-    
-    // Logging level
-    logLevel: process.env.NODE_ENV === 'development' ? 'info' : 'warn'
+    }
   },
   
   // Optimized Nitro configuration
@@ -120,11 +92,6 @@ export default defineNuxtConfig({
     
     // Compression
     compressPublicAssets: true,
-    
-    // Development server configuration
-    devServer: {
-      watch: process.env.NODE_ENV === 'development'
-    },
     
     // Route rules for caching
     routeRules: {
@@ -200,9 +167,7 @@ export default defineNuxtConfig({
   // Performance optimizations
   experimental: {
     payloadExtraction: false,
-    viewTransition: false,
-    // Fix for dynamic imports in development
-    inlineSSRStyles: false
+    viewTransition: false
   },
 
   // TypeScript configuration
@@ -228,27 +193,5 @@ export default defineNuxtConfig({
     server: false,
     client: process.env.NODE_ENV === 'development'
   },
-  
-  // SSR configuration
   ssr: true,
-  
-  // Router configuration for better development experience
-  router: {
-    options: {
-      hashMode: false,
-      scrollBehaviorType: 'smooth'
-    }
-  },
-  
-  // Hooks for better error handling in development
-  hooks: {
-    'render:errorMiddleware': (app) => {
-      if (process.env.NODE_ENV === 'development') {
-        app.use((error, req, res, next) => {
-          console.error('Development server error:', error)
-          next(error)
-        })
-      }
-    }
-  }
 })
