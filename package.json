@@ -13,7 +13,8 @@
     "postinstall": "nuxt prepare",
     "clean": "rm -rf .nuxt .output dist node_modules/.cache",
     "typecheck": "nuxt typecheck",
-    "build:monitor": "node scripts/build-monitor.js"
+    "build:monitor": "node scripts/build-monitor.js",
+    "test:build": "node scripts/test-build-performance.js"
   },
   "dependencies": {
     "@ffmpeg/core": "^0.12.10",
