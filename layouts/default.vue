@@ -456,14 +456,10 @@ onMounted(() => {
   console.log('Layout mounted successfully')
 })
 
-// SEO and meta improvements
-useHead({
-  titleTemplate: '%s - SoundCloud DL',
-  meta: [
-    { name: 'description', content: 'Download SoundCloud playlists and tracks easily' },
-    { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-    { name: 'theme-color', content: '#1f2937' }
-  ]
+// Use optimized SEO composable
+const { seoData } = useSEOOptimized({
+  title: 'SoundCloud Playlist Downloader',
+  description: 'Download SoundCloud playlists and tracks easily with our fast, free online tool.'
 })
 </script>
 

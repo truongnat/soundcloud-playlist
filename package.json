@@ -4,10 +4,16 @@
   "type": "module",
   "scripts": {
     "build": "nuxt build",
+    "build:fast": "node scripts/build-optimize.js",
+    "build:analyze": "NUXT_ANALYZE=true nuxt build",
     "dev": "nuxt dev",
+    "dev:fast": "nuxt dev --no-fork",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare"
+    "postinstall": "nuxt prepare",
+    "clean": "rm -rf .nuxt .output dist node_modules/.cache",
+    "typecheck": "nuxt typecheck",
+    "build:monitor": "node scripts/build-monitor.js"
   },
   "dependencies": {
     "@ffmpeg/core": "^0.12.10",
