@@ -98,8 +98,13 @@ export default defineNuxtConfig({
       '/track': { prerender: true },
       '/privacy': { prerender: true },
       '/terms': { prerender: true },
+      '/sitemap.xml': { prerender: true },
       '/_nuxt/**': { 
         headers: { 'Cache-Control': 'max-age=31536000' }
+      },
+      '/api/__sitemap__/**': { 
+        prerender: true,
+        headers: { 'Cache-Control': 'max-age=3600' }
       },
       '/api/**': {
         cors: true,
@@ -118,7 +123,7 @@ export default defineNuxtConfig({
     
     // Prerendering
     prerender: {
-      routes: ['/robots.txt', '/sitemap.xml']
+      routes: ['/robots.txt', '/sitemap.xml', '/api/__sitemap__/urls']
     }
   },
   
@@ -136,7 +141,30 @@ export default defineNuxtConfig({
 
   // Sitemap configuration
   sitemap: {
-    sources: ['/api/__sitemap__/urls']
+    hostname: process.env.NUXT_PUBLIC_SITE_URL || 'https://soundcloud-playlist.netlify.app',
+    gzip: true,
+    routes: [
+      {
+        url: '/',
+        changefreq: 'daily',
+        priority: 1.0
+      },
+      {
+        url: '/track',
+        changefreq: 'weekly',
+        priority: 0.8
+      },
+      {
+        url: '/privacy',
+        changefreq: 'monthly',
+        priority: 0.3
+      },
+      {
+        url: '/terms',
+        changefreq: 'monthly',
+        priority: 0.3
+      }
+    ]
   },
 
   // Performance optimizations
