@@ -38,16 +38,7 @@ export default defineNuxtConfig({
     build: {
       target: 'esnext',
       minify: 'esbuild',
-      cssMinify: 'esbuild',
-      rollupOptions: {
-        output: {
-          manualChunks: {
-            'vue-vendor': ['vue', 'vue-router'],
-            'ui-vendor': ['@headlessui/vue'],
-            'audio-vendor': ['@ffmpeg/ffmpeg', '@ffmpeg/util', '@ffmpeg/core']
-          }
-        }
-      }
+      cssMinify: 'esbuild'
     },
     
     optimizeDeps: {
@@ -61,86 +52,28 @@ export default defineNuxtConfig({
         '@ffmpeg/ffmpeg', 
         '@ffmpeg/util',
         '@ffmpeg/core'
-      ],
-      esbuildOptions: {
-        target: 'esnext'
-      }
-    },
-    
-    worker: {
-      format: 'es'
+      ]
     },
     
     server: {
       fs: {
-        strict: false,
-        allow: ['..']
+        strict: false
       },
       hmr: {
-        overlay: false,
-        port: 24678
+        overlay: false
       },
-      watch: {
-        usePolling: true,
-        interval: 1000,
-        ignored: ['**/node_modules/**', '**/.git/**', '**/.nuxt/**']
-      },
-      middlewareMode: false,
-      cors: true,
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization'
-      }
+      cors: true
     },
     
     css: {
       devSourcemap: false
-    },
-    
-    clearScreen: false,
-    logLevel: 'info'
+    }
   },
   
-  // FIX: Simplified Nitro configuration to avoid Windows build issues
+  // Simplified Nitro configuration
   nitro: {
-    preset: 'node-server',
-    minify: true,
-    compressPublicAssets: true,
-    
-    // FIX: Disable storage that causes file path issues
-    storage: {},
-    
-    // FIX: Simplified route rules without prerendering
-    routeRules: {
-      '/_nuxt/**': { 
-        headers: { 'Cache-Control': 'max-age=31536000' }
-      },
-      '/api/**': {
-        cors: true,
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type, Authorization'
-        }
-      }
-    },
-    
-    // FIX: Disable experimental features that cause issues
     experimental: {
       wasm: false
-    },
-    
-    // FIX: Disable prerendering completely to avoid file path issues
-    prerender: {
-      routes: []
-    },
-    
-    // FIX: Add esbuild configuration for better Windows compatibility
-    esbuild: {
-      options: {
-        target: 'esnext'
-      }
     }
   },
   
