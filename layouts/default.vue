@@ -262,6 +262,7 @@ import { ref, nextTick, onMounted, computed, provide } from 'vue'
 import { useUIStore } from '@/stores/ui'
 import { useDownloadQueueStore } from '@/stores/downloadQueue'
 import type { Track } from '@/types'
+import { useSEOOptimized } from '~/composables/useSEOOptimized'
 
 // Enhanced error handling
 const handleError = (error: Error) => {
