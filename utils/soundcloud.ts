@@ -64,12 +64,52 @@ export function getTranscoding(trackDetails: SoundCloudAPITrack): TranscodingInf
 }
 
 export async function getStreamUrl(transcodingUrl: string, clientId: string): Promise<string> {
-  const response = await fetch(`${transcodingUrl}?client_id=${clientId}`)
+  const maxRetries = 3
+  let lastError: Error | null = null
   
-  if (!response.ok) {
-    throw new Error(`Failed to get stream URL: ${response.status} ${response.statusText}`)
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      // Create abort controller for timeout
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
+      
+      const response = await fetch(`${transcodingUrl}?client_id=${clientId}`, {
+        signal: controller.signal,
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Accept': 'application/json',
+          'Connection': 'keep-alive'
+        }
+      })
+      
+      clearTimeout(timeoutId)
+      
+      if (!response.ok) {
+        throw new Error(`Failed to get stream URL: ${response.status} ${response.statusText}`)
+      }
+      
+      const data = await response.json()
+      return data.url
+    } catch (error: any) {
+      lastError = error
+      console.error(`Stream URL attempt ${attempt + 1}/${maxRetries} failed:`, error.message)
+      
+      if (attempt === maxRetries - 1) {
+        break
+      }
+      
+      // Wait before retry with exponential backoff, longer for connection errors
+      const isConnectionError = error.code === 'ECONNRESET' || 
+                               error.message?.includes('ECONNRESET') ||
+                               error.name === 'AbortError'
+      const delay = isConnectionError 
+        ? 2000 * Math.pow(2, attempt) + Math.random() * 1000
+        : 1000 * Math.pow(2, attempt) + Math.random() * 500
+      
+      console.log(`Retrying stream URL in ${delay}ms...`)
+      await new Promise(resolve => setTimeout(resolve, delay))
+    }
   }
   
-  const data = await response.json()
-  return data.url
+  throw lastError || new Error('Failed to get stream URL after multiple attempts')
 }
