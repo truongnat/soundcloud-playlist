@@ -86,6 +86,7 @@ export default defineNuxtConfig({
   
   // Optimized Nitro configuration
   nitro: {
+    preset: 'node-server',
     // Minification
     minify: true,
     
@@ -166,7 +167,6 @@ export default defineNuxtConfig({
   // Performance optimizations
   experimental: {
     payloadExtraction: false,
-    inlineSSRStyles: false,
     viewTransition: false
   },
 
@@ -192,5 +192,6 @@ export default defineNuxtConfig({
   sourcemap: {
     server: false,
     client: process.env.NODE_ENV === 'development'
-  }
+  },
+  ssr: true,
 })
