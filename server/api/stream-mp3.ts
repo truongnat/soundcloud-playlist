@@ -3,6 +3,7 @@ import type { Track, StreamResponse, SoundCloudAPITrack } from '~/types'
 import { getClientId } from '../utils/soundcloud'
 import { getTranscoding, getStreamUrl } from '~/utils/soundcloud'
 import { fetchWithRetry, handleApiError } from '~/utils/api'
+import { withConnectionRetry, isConnectionError } from '~/utils/connection-handler'
 
 let soundcloud: Soundcloud
 

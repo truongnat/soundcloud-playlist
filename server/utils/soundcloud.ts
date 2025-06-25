@@ -19,23 +19,52 @@ let lastClientIdFetch = 0
 
 // Validate if a client ID is still working
 async function validateClientId(clientId: string): Promise<boolean> {
-  try {
-    // Use a more reliable test endpoint
-    const testUrl = `https://api-v2.soundcloud.com/tracks/1234567890?client_id=${clientId}`
-    const response = await fetch(testUrl, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+  const maxRetries = 2
+  
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      // Create abort controller for timeout
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 8000) // 8 second timeout
+      
+      // Use a more reliable test endpoint
+      const testUrl = `https://api-v2.soundcloud.com/tracks/1234567890?client_id=${clientId}`
+      const response = await fetch(testUrl, {
+        signal: controller.signal,
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Accept': 'application/json',
+          'Connection': 'keep-alive'
+        }
+      })
+      
+      clearTimeout(timeoutId)
+      
+      // Even if the track doesn't exist (404), if we don't get a 401/403, the client ID is valid
+      const isValid = response.status !== 401 && response.status !== 403
+      console.log(`Client ID ${clientId} validation: ${response.status} - ${isValid ? 'VALID' : 'INVALID'}`)
+      return isValid
+    } catch (error: any) {
+      console.error(`Client ID validation attempt ${attempt + 1}/${maxRetries} failed:`, error.message)
+      
+      if (attempt === maxRetries - 1) {
+        console.error('Error validating client ID after retries:', error)
+        return false
       }
-    })
-    
-    // Even if the track doesn't exist (404), if we don't get a 401/403, the client ID is valid
-    const isValid = response.status !== 401 && response.status !== 403
-    console.log(`Client ID ${clientId} validation: ${response.status} - ${isValid ? 'VALID' : 'INVALID'}`)
-    return isValid
-  } catch (error) {
-    console.error('Error validating client ID:', error)
-    return false
+      
+      // Wait before retry for connection errors
+      const isConnectionError = error.code === 'ECONNRESET' || 
+                               error.message?.includes('ECONNRESET') ||
+                               error.name === 'AbortError'
+      if (isConnectionError) {
+        const delay = 1000 + Math.random() * 1000
+        console.log(`Retrying client ID validation in ${delay}ms...`)
+        await new Promise(resolve => setTimeout(resolve, delay))
+      }
+    }
   }
+  
+  return false
 }
 
 async function getFallbackClientId(): Promise<string | null> {
