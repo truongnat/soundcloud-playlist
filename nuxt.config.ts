@@ -129,7 +129,9 @@ export default defineNuxtConfig({
     },
     
     // FIX: Disable experimental features that cause issues
-    experimental: {},
+    experimental: {
+      wasm: false
+    },
     
     // FIX: Disable prerendering completely to avoid file path issues
     prerender: {
