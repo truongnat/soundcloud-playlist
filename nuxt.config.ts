@@ -102,10 +102,6 @@ export default defineNuxtConfig({
       '/_nuxt/**': { 
         headers: { 'Cache-Control': 'max-age=31536000' }
       },
-      '/api/__sitemap__/**': { 
-        prerender: true,
-        headers: { 'Cache-Control': 'max-age=3600' }
-      },
       '/api/**': {
         cors: true,
         headers: {
@@ -123,7 +119,7 @@ export default defineNuxtConfig({
     
     // Prerendering
     prerender: {
-      routes: ['/robots.txt', '/sitemap.xml', '/api/__sitemap__/urls']
+      routes: ['/robots.txt', '/sitemap.xml']
     }
   },
   
