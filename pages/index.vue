@@ -1,54 +1,385 @@
 <template>
-  <div class="min-h-screen bg-gray-900 text-white p-8">
-    <div class="max-w-4xl mx-auto">
-      <h1 class="text-4xl font-bold text-center mb-8">
+  <div>
+    <!-- Header -->
+    <div class="mb-8 text-center">
+      <h1 class="text-3xl md:text-4xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 bg-clip-text text-transparent mb-4">
         SoundCloud Playlist Downloader
       </h1>
+      <p class="text-gray-400">Enter a SoundCloud playlist URL to download all tracks</p>
+    </div>
+
+    <!-- URL Input Section -->
+    <div class="bg-gray-800/50 backdrop-blur-sm p-6 rounded-2xl shadow-xl border border-gray-700/50 mb-8"
+         :class="{ 'border-orange-500/30': hasActiveState }">
+      <PlaylistInput 
+        @playlist-loaded="handlePlaylistLoaded"
+        @background-job-created="handleBackgroundJobCreated"
+        @before-fetch="handleBeforeFetch"
+        @error="handleError"
+        :loading="loading"
+      />
       
-      <div class="bg-gray-800 p-6 rounded-lg">
-        <p class="text-center text-gray-300">
-          Simple test page - If you see this, the ECONNRESET issue is fixed!
-        </p>
-        
-        <div class="mt-4 text-cei mean error above occcur when Failed to fetch dynamically imported module: http://localhost:3000/_nuxt/pages/index.vue
+      <!-- Active State Indicator -->
+      <div v-if="hasActiveState && !loading" class="mt-4 flex items-center gap-2 text-sm text-orange-400">
+        <div class="w-2 h-2 bg-orange-500 rounded-full animate-pulse"></div>
+        <span>
+          {{ playlistInfo?.title || 'Playlist' }} loaded
+          <span v-if="downloadingTracks.length > 0">({{ downloadingTracks.length }} downloading)</span>
+          <span v-if="currentJob && ['pending', 'processing'].includes(currentJob.status)">(background processing)</span>
+        </span>
+      </div>
+    </div>
 
+    <!-- Confirm Modal -->
+    <ConfirmModal
+      :show="showConfirmModal"
+      :title="confirmModal.title"
+      :message="confirmModal.message"
+      :additional-info="confirmModal.additionalInfo"
+      :confirm-text="confirmModal.confirmText"
+      :cancel-text="confirmModal.cancelText"
+      :type="confirmModal.type"
+      @confirm="handleConfirmReplace"
+      @cancel="handleCancelReplace"
+    />
 
-nter">
-          <button 
-            @click="testClick"
-            class="bg-orange-500 hover:bg-orange-600 px-6 py-2 rounded-lg transition-colors"
-          >
-            Test Button
-          </button>
-        </div>
-        
-        <div v-if="clicked" class="mt-4 text-center text-green-400">
-          ✅ Button clicked successfully! Vue is working.
-        </div>
+    <!-- Background Job Progress -->
+    <BackgroundJobProgress 
+      v-if="currentJob"
+      :job="currentJob"
+      @close="closeJobProgress"
+    />
+
+    <!-- Error Message -->
+    <div v-if="error" 
+         class="bg-red-900/20 border border-red-800/50 text-red-200 p-4 rounded-xl mb-8 backdrop-blur-sm">
+      <div class="flex items-center gap-3">
+        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+        </svg>
+        <span>{{ error }}</span>
+      </div>
+    </div>
+
+    <!-- Track List -->
+    <TrackList 
+      v-if="playlistInfo && tracks && tracks.length > 0"
+      :tracks="tracks"
+      :is-loading="loading"
+      :error="error"
+      :playlist-title="playlistInfo?.title"
+      :playlist-artwork="playlistInfo?.artwork"
+      :is-downloading-all="isDownloadingAll"
+      :downloading-tracks="Array.from(downloadingTracks).map(String)"
+      :error-tracks="{}"
+      @download="handleDownloadTrack"
+      @download-all="handleDownloadAll"
+    />
+
+    <!-- Loading State -->
+    <div v-else-if="loading" class="text-center py-12">
+      <div class="inline-flex items-center gap-3 text-gray-400">
+        <svg class="animate-spin h-6 w-6" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <span>Loading playlist...</span>
       </div>
     </div>
   </div>
 </template>
 
-<script setup>
-import { ref } from 'vue'
+<script setup lang="ts">
+import { ref, computed, watchEffect, inject, type Ref, onMounted } from 'vue'
+import type { Track, PlaylistInfo, PlaylistResponse } from '@/types'
+import type { JobStatus } from '@/composables/useBackgroundJobs'
+import { usePlaylist } from '@/composables/usePlaylist'
+import { useBackgroundJobs } from '@/composables/useBackgroundJobs'
+import { useLogger } from '@/composables/useLogger'
+import { useHomepageSEO } from '@/composables/useSEO'
+import ConfirmModal from '@/components/ConfirmModal.vue'
 
-// Simple reactive state
-const clicked = ref(false)
+// SEO optimization using composable
+useHomepageSEO()
 
-// Simple method
-function testClick() {
-  clicked.value = true
-  console.log('Button clicked - Vue is working!')
-}
+const { error: playlistError } = usePlaylist()
+const { getJobStatus } = useBackgroundJobs()
+const logger = useLogger()
 
-// Simple SEO
-useHead({
-  title: 'SoundCloud Playlist Downloader - Test Page',
-  meta: [
-    { name: 'description', content: 'Test page for ECONNRESET fix' }
-  ]
+// Inject download functionality from layout
+const handleDownloadTrack = inject('handleDownloadTrack') as (track: Track) => Promise<void>
+const handleDownloadAllTracks = inject('handleDownloadAllTracks') as (tracks: Track[]) => Promise<void>
+const discardAllDownloads = inject('discardAllDownloads') as () => Promise<void>
+const downloadingTracks = inject('downloadingTracks') as Ref<string[]>
+const errorTracks = inject('errorTracks') as Ref<Record<string, string>>
+
+const tracks = ref<Track[]>([])
+const playlistInfo = ref<PlaylistInfo | null>(null)
+const loading = ref(false)
+const error = ref('')
+const isDownloadingAll = ref(false)
+const currentJob = ref<JobStatus | null>(null)
+
+// Confirm modal state
+const showConfirmModal = ref(false)
+const pendingFetchData = ref<{ url: string; useBackground: boolean } | null>(null)
+const confirmModal = ref({
+  title: '',
+  message: '',
+  additionalInfo: '',
+  confirmText: 'Replace',
+  cancelText: 'Cancel',
+  type: 'warning' as 'warning' | 'danger' | 'info'
 })
 
-console.log('Simple index page loaded successfully!')
+async function handlePlaylistLoaded(data: PlaylistResponse) {
+  tracks.value = data.tracks
+  playlistInfo.value = data.playlistInfo
+  error.value = ''
+  currentJob.value = null // Clear job when completed
+  
+  // Log successful playlist load
+  logger.logPlaylistLoad(data.playlistInfo.url || 'Unknown URL', data.tracks.length)
+  logger.logUserAction(`Loaded playlist: ${data.playlistInfo.title}`)
+}
+
+function handleError(errorMessage: string) {
+  error.value = errorMessage
+  tracks.value = []
+  playlistInfo.value = null
+  
+  // Log playlist error
+  logger.logPlaylistError('Unknown URL', errorMessage)
+  logger.logError('Playlist Load Failed', errorMessage)
+}
+
+async function handleBackgroundJobCreated(job: JobStatus) {
+  currentJob.value = job
+  error.value = ''
+  
+  logger.logUserAction(`Started background processing job: ${job.id}`)
+  
+  // Start polling for job status
+  const pollJob = async () => {
+    try {
+      const updatedJob = await getJobStatus(job.id)
+      currentJob.value = updatedJob
+      
+      if (updatedJob.status === 'completed' && updatedJob.result) {
+        logger.logUserAction(`Background job completed: ${job.id}`)
+        handlePlaylistLoaded(updatedJob.result)
+      } else if (updatedJob.status === 'failed') {
+        logger.logError('Background Job Failed', updatedJob.error || 'Unknown error')
+        handleError(updatedJob.error || 'Background processing failed')
+        currentJob.value = null
+      } else if (updatedJob.status === 'processing' || updatedJob.status === 'pending') {
+        // Continue polling
+        setTimeout(pollJob, 2000)
+      }
+    } catch (err) {
+      console.error('Error polling job status:', err)
+      setTimeout(pollJob, 5000) // Retry with longer delay
+    }
+  }
+  
+  // Start polling
+  setTimeout(pollJob, 1000)
+}
+
+function closeJobProgress() {
+  currentJob.value = null
+}
+
+// Handle before fetch - check if we need to confirm replacement
+function handleBeforeFetch(data: { url: string; useBackground: boolean }) {
+  const hasExistingPlaylist = tracks.value.length > 0 || playlistInfo.value
+  const hasActiveDownloads = downloadingTracks.value.length > 0
+  const hasActiveJob = currentJob.value && ['pending', 'processing'].includes(currentJob.value.status)
+
+  if (!hasExistingPlaylist && !hasActiveDownloads && !hasActiveJob) {
+    // No existing data, proceed directly
+    proceedWithFetch(data.url, data.useBackground)
+    return
+  }
+
+  // Store pending fetch data
+  pendingFetchData.value = data
+
+  // Determine the type of confirmation needed
+  if (hasActiveDownloads || hasActiveJob) {
+    // Active downloads or background job
+    const activeCount = downloadingTracks.value.length
+    const jobInfo = hasActiveJob ? ` and 1 background job` : ''
+    
+    confirmModal.value = {
+      title: 'Active Downloads Detected',
+      message: `You have ${activeCount} active downloads${jobInfo}. Loading a new playlist will clear the current playlist and may interrupt ongoing downloads.`,
+      additionalInfo: 'Active downloads will continue in the background, but you won\'t be able to track their progress.',
+      confirmText: 'Load New Playlist',
+      cancelText: 'Keep Current',
+      type: 'warning'
+    }
+  } else {
+    // Just existing playlist without active downloads
+    const trackCount = tracks.value.length
+    const playlistTitle = playlistInfo.value?.title || 'current playlist'
+    
+    confirmModal.value = {
+      title: 'Replace Current Playlist',
+      message: `You have "${playlistTitle}" loaded with ${trackCount} tracks. Do you want to replace it with the new playlist?`,
+      additionalInfo: 'This will clear the current track list.',
+      confirmText: 'Replace',
+      cancelText: 'Keep Current',
+      type: 'info'
+    }
+  }
+
+  showConfirmModal.value = true
+}
+
+// Handle confirm replacement
+async function handleConfirmReplace() {
+  showConfirmModal.value = false
+  
+  if (pendingFetchData.value) {
+    try {
+      // Clear current state (this will also cancel downloads)
+      await clearCurrentPlaylist()
+      
+      // Small delay to ensure cleanup is complete
+      await new Promise(resolve => setTimeout(resolve, 500))
+      
+      // Proceed with fetch
+      proceedWithFetch(pendingFetchData.value.url, pendingFetchData.value.useBackground)
+      pendingFetchData.value = null
+    } catch (err) {
+      console.error('Error during playlist replacement:', err)
+      error.value = 'Failed to clear current playlist'
+      
+      // Reset loading state in PlaylistInput on error
+      const cancelFetchEvent = new CustomEvent('cancel-fetch')
+      window.dispatchEvent(cancelFetchEvent)
+    }
+  }
+}
+
+// Handle cancel replacement
+function handleCancelReplace() {
+  showConfirmModal.value = false
+  
+  // Reset loading state in PlaylistInput component
+  if (pendingFetchData.value) {
+    const cancelFetchEvent = new CustomEvent('cancel-fetch')
+    window.dispatchEvent(cancelFetchEvent)
+    
+    // Clear any error states
+    error.value = ''
+    
+    // Log user action with more detail
+    const playlistTitle = playlistInfo.value?.title || 'current playlist'
+    logger.logUserAction(`User chose to keep "${playlistTitle}" instead of loading new playlist`)
+  }
+  
+  pendingFetchData.value = null
+}
+
+// Clear current playlist state
+async function clearCurrentPlaylist() {
+  // First discard all active downloads
+  if (downloadingTracks.value.length > 0) {
+    console.log('Discarding active downloads before clearing playlist...')
+    await discardAllDownloads()
+  }
+  
+  // Then clear playlist state
+  tracks.value = []
+  playlistInfo.value = null
+  error.value = ''
+  currentJob.value = null
+  
+  logger.logUserAction('Cleared current playlist and cancelled downloads for new playlist')
+}
+
+// Proceed with actual fetch
+async function proceedWithFetch(url: string, useBackground: boolean) {
+  // This will be handled by the PlaylistInput component
+  // We need to emit an event back to it
+  const playlistInputEvent = new CustomEvent('proceed-fetch', {
+    detail: { url, useBackground }
+  })
+  window.dispatchEvent(playlistInputEvent)
+}
+
+// Computed to check if we have any active state
+const hasActiveState = computed(() => {
+  const hasPlaylist = tracks.value.length > 0 || playlistInfo.value
+  const hasDownloads = downloadingTracks.value.length > 0
+  const hasJob = currentJob.value && ['pending', 'processing'].includes(currentJob.value.status)
+  return hasPlaylist || hasDownloads || hasJob
+})
+
+async function handleDownloadAll() {
+  if (!tracks.value || tracks.value.length === 0) return
+  
+  isDownloadingAll.value = true
+  
+  try {
+    // Filter out tracks that are already being downloaded or have errors
+    const tracksToDownload = tracks.value.filter(track => {
+      const trackId = track.id.toString()
+      return !downloadingTracks.value.includes(trackId) && !errorTracks.value[trackId]
+    })
+
+    if (tracksToDownload.length === 0) {
+      logger.logUserAction('No new tracks to download')
+      return
+    }
+
+    // Log batch download start
+    logger.logDownloadQueueStart(tracksToDownload.length)
+    logger.logUserAction(`Started batch download of ${tracksToDownload.length} tracks`)
+
+    // Use the optimized batch download function - much faster!
+    await handleDownloadAllTracks(tracksToDownload)
+
+    // Log batch download completion
+    logger.logDownloadQueueComplete(tracksToDownload.length, tracksToDownload.length)
+    logger.logUserAction(`Successfully added ${tracksToDownload.length} tracks to download queue`)
+    
+  } catch (error) {
+    logger.logError('Batch Download Failed', error instanceof Error ? error.message : 'Unknown error')
+  } finally {
+    isDownloadingAll.value = false
+  }
+}
+
+// Watch for playlist errors
+watchEffect(() => {
+  if (playlistError.value) {
+    error.value = playlistError.value
+    logger.logPlaylistError('Unknown URL', playlistError.value)
+  }
+})
+
+// Log page visit
+onMounted(() => {
+  logger.logUserAction('Visited playlist page')
+  logger.logSystemStatus('Playlist Page', 'online', 'Playlist downloader ready')
+})
 </script>
+
+<style scoped>
+.line-clamp-1 {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+</style>
