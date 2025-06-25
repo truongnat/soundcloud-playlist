@@ -176,12 +176,16 @@ export default defineNuxtConfig({
     }
   },
 
-  // FIX: Disable experimental features that cause build issues
+  // Experimental features configuration
   experimental: {
+    // Disable features that can cause build issues on Windows
     payloadExtraction: false,
     viewTransition: false,
     inlineSSRStyles: false,
-    asyncContext: false
+    asyncContext: false,
+    // Enable stable features
+    typedPages: false,
+    watcher: 'chokidar'
   },
 
   // TypeScript configuration
