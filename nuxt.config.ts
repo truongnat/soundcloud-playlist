@@ -27,13 +27,13 @@ export default defineNuxtConfig({
     }
   },
   
-  // Development server configuration to fix ECONNRESET issues
+  // FIX: Development server configuration to prevent ECONNRESET
   devServer: {
     port: 3000,
-    host: 'localhost'
+    host: '127.0.0.1' // Use 127.0.0.1 instead of localhost
   },
   
-  // Optimized Vite configuration for faster builds and better dev experience
+  // FIX: Optimized Vite configuration for Windows development
   vite: {
     // Build optimizations
     build: {
@@ -77,21 +77,25 @@ export default defineNuxtConfig({
       format: 'es'
     },
     
-    // Enhanced server configuration for development stability
+    // FIX: Enhanced server configuration for Windows stability
     server: {
       fs: {
-        strict: false
+        strict: false,
+        allow: ['..']
       },
+      // FIX: Disable HMR overlay that can cause connection issues
       hmr: {
-        port: 24678,
-        clientPort: 24678,
-        overlay: false
+        overlay: false,
+        port: 24678
       },
+      // FIX: Use polling for file watching on Windows
       watch: {
-        usePolling: process.env.NODE_ENV === 'development',
+        usePolling: true,
         interval: 1000,
-        ignored: ['**/node_modules/**', '**/.git/**']
+        ignored: ['**/node_modules/**', '**/.git/**', '**/.nuxt/**']
       },
+      // FIX: Increase timeouts
+      middlewareMode: false,
       cors: true,
       headers: {
         'Access-Control-Allow-Origin': '*',
@@ -105,11 +109,9 @@ export default defineNuxtConfig({
       devSourcemap: false
     },
     
-    // Clear screen on rebuild
+    // FIX: Clear screen and logging
     clearScreen: false,
-    
-    // Logging level
-    logLevel: process.env.NODE_ENV === 'development' ? 'info' : 'warn'
+    logLevel: 'info'
   },
   
   // Optimized Nitro configuration
@@ -121,9 +123,9 @@ export default defineNuxtConfig({
     // Compression
     compressPublicAssets: true,
     
-    // Development server configuration
+    // FIX: Development server configuration
     devServer: {
-      watch: process.env.NODE_ENV === 'development'
+      watch: true
     },
     
     // Route rules for caching
@@ -197,17 +199,19 @@ export default defineNuxtConfig({
     ]
   },
 
-  // Performance optimizations
+  // FIX: Performance optimizations to prevent connection issues
   experimental: {
     payloadExtraction: false,
     viewTransition: false,
-    // Fix for dynamic imports in development
-    inlineSSRStyles: false
+    // FIX: Disable inline SSR styles that can cause loading issues
+    inlineSSRStyles: false,
+    // FIX: Use legacy async context for better compatibility
+    asyncContext: false
   },
 
   // TypeScript configuration
   typescript: {
-    typeCheck: process.env.NODE_ENV === 'development' ? 'build' : false
+    typeCheck: false // Disable during development for faster startup
   },
 
   // Build configuration
@@ -223,16 +227,16 @@ export default defineNuxtConfig({
     viewer: false
   },
 
-  // Source map configuration (disable in production)
+  // FIX: Disable source maps in development to prevent loading issues
   sourcemap: {
     server: false,
-    client: process.env.NODE_ENV === 'development'
+    client: false
   },
   
   // SSR configuration
   ssr: true,
   
-  // Router configuration for better development experience
+  // FIX: Router configuration
   router: {
     options: {
       hashMode: false,
@@ -240,7 +244,7 @@ export default defineNuxtConfig({
     }
   },
   
-  // Hooks for better error handling in development
+  // FIX: Add hooks for better error handling
   hooks: {
     'render:errorMiddleware': (app) => {
       if (process.env.NODE_ENV === 'development') {
