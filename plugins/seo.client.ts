@@ -98,7 +98,7 @@ export default defineNuxtPlugin(() => {
   addStructuredData(softwareData)
 
   // Performance optimizations
-  if (process.client) {
+  if (import.meta.client) {
     // Preload critical resources
     const preloadResource = (href: string, as: string, type?: string) => {
       const link = document.createElement('link')
