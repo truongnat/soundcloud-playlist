@@ -4,8 +4,10 @@
   "type": "module",
   "scripts": {
     "build": "nuxt build",
+    "build:simple": "cross-env NITRO_PRESET=node-server nuxt build",
     "build:fast": "node scripts/build-optimize.js",
     "build:analyze": "NUXT_ANALYZE=true nuxt build",
+    "build:fix": "npm run clean:all && cross-env NODE_OPTIONS=--max-old-space-size=8192 NITRO_PRESET=node-server nuxt build",
     "dev": "nuxt dev",
     "dev:fast": "nuxt dev --no-fork",
     "dev:clean": "npm run clean && nuxt dev",
@@ -45,6 +47,7 @@
     "vue-router": "^4.5.1"
   },
   "devDependencies": {
-    "@types/m3u8-parser": "^7.2.2"
+    "@types/m3u8-parser": "^7.2.2",
+    "cross-env": "^7.0.3"
   }
 }
