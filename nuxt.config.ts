@@ -14,7 +14,7 @@ export default defineNuxtConfig({
   
   css: ['~/assets/css/main.css'],
   
-  // SEO Configuration (moved to useHead for better performance)
+  // SEO Configuration
   app: {
     head: {
       charset: 'utf-8',
@@ -27,15 +27,14 @@ export default defineNuxtConfig({
     }
   },
   
-  // FIX: Development server configuration to prevent ECONNRESET
+  // Development server configuration
   devServer: {
     port: 3000,
-    host: '127.0.0.1' // Use 127.0.0.1 instead of localhost
+    host: '127.0.0.1'
   },
   
-  // FIX: Optimized Vite configuration for Windows development
+  // Vite configuration optimized for Windows
   vite: {
-    // Build optimizations
     build: {
       target: 'esnext',
       minify: 'esbuild',
@@ -43,7 +42,6 @@ export default defineNuxtConfig({
       rollupOptions: {
         output: {
           manualChunks: {
-            // Split vendor chunks for better caching
             'vue-vendor': ['vue', 'vue-router'],
             'ui-vendor': ['@headlessui/vue'],
             'audio-vendor': ['@ffmpeg/ffmpeg', '@ffmpeg/util', '@ffmpeg/core'],
@@ -53,7 +51,6 @@ export default defineNuxtConfig({
       }
     },
     
-    // Dependency optimization
     optimizeDeps: {
       include: [
         'vue',
@@ -72,29 +69,24 @@ export default defineNuxtConfig({
       }
     },
     
-    // Worker configuration
     worker: {
       format: 'es'
     },
     
-    // FIX: Enhanced server configuration for Windows stability
     server: {
       fs: {
         strict: false,
         allow: ['..']
       },
-      // FIX: Disable HMR overlay that can cause connection issues
       hmr: {
         overlay: false,
         port: 24678
       },
-      // FIX: Use polling for file watching on Windows
       watch: {
         usePolling: true,
         interval: 1000,
         ignored: ['**/node_modules/**', '**/.git/**', '**/.nuxt/**']
       },
-      // FIX: Increase timeouts
       middlewareMode: false,
       cors: true,
       headers: {
@@ -104,37 +96,25 @@ export default defineNuxtConfig({
       }
     },
     
-    // CSS optimization
     css: {
       devSourcemap: false
     },
     
-    // FIX: Clear screen and logging
     clearScreen: false,
     logLevel: 'info'
   },
   
-  // Optimized Nitro configuration
+  // FIX: Simplified Nitro configuration to avoid Windows build issues
   nitro: {
     preset: 'node-server',
-    // Minification
     minify: true,
-    
-    // Compression
     compressPublicAssets: true,
     
-    // FIX: Development server configuration
-    devServer: {
-      watch: true
-    },
+    // FIX: Disable storage that causes file path issues
+    storage: {},
     
-    // Route rules for caching
+    // FIX: Simplified route rules without prerendering
     routeRules: {
-      '/': { prerender: true },
-      '/track': { prerender: true },
-      '/privacy': { prerender: true },
-      '/terms': { prerender: true },
-      '/sitemap.xml': { prerender: true },
       '/_nuxt/**': { 
         headers: { 'Cache-Control': 'max-age=31536000' }
       },
@@ -148,14 +128,19 @@ export default defineNuxtConfig({
       }
     },
     
-    // Experimental features
-    experimental: {
-      wasm: true
+    // FIX: Disable experimental features that cause issues
+    experimental: {},
+    
+    // FIX: Disable prerendering completely to avoid file path issues
+    prerender: {
+      routes: []
     },
     
-    // Prerendering
-    prerender: {
-      routes: ['/robots.txt', '/sitemap.xml']
+    // FIX: Add esbuild configuration for better Windows compatibility
+    esbuild: {
+      options: {
+        target: 'esnext'
+      }
     }
   },
   
@@ -171,47 +156,29 @@ export default defineNuxtConfig({
     url: process.env.NUXT_PUBLIC_SITE_URL || 'https://soundcloud-playlist.netlify.app'
   },
 
-  // Sitemap configuration
+  // FIX: Simplified sitemap configuration
   sitemap: {
     hostname: process.env.NUXT_PUBLIC_SITE_URL || 'https://soundcloud-playlist.netlify.app',
     gzip: true,
     routes: [
-      {
-        url: '/',
-        changefreq: 'daily',
-        priority: 1.0
-      },
-      {
-        url: '/track',
-        changefreq: 'weekly',
-        priority: 0.8
-      },
-      {
-        url: '/privacy',
-        changefreq: 'monthly',
-        priority: 0.3
-      },
-      {
-        url: '/terms',
-        changefreq: 'monthly',
-        priority: 0.3
-      }
+      '/',
+      '/track',
+      '/privacy',
+      '/terms'
     ]
   },
 
-  // FIX: Performance optimizations to prevent connection issues
+  // FIX: Disable experimental features that cause build issues
   experimental: {
     payloadExtraction: false,
     viewTransition: false,
-    // FIX: Disable inline SSR styles that can cause loading issues
     inlineSSRStyles: false,
-    // FIX: Use legacy async context for better compatibility
     asyncContext: false
   },
 
   // TypeScript configuration
   typescript: {
-    typeCheck: false // Disable during development for faster startup
+    typeCheck: false
   },
 
   // Build configuration
@@ -227,7 +194,7 @@ export default defineNuxtConfig({
     viewer: false
   },
 
-  // FIX: Disable source maps in development to prevent loading issues
+  // FIX: Disable source maps to prevent build issues
   sourcemap: {
     server: false,
     client: false
@@ -236,23 +203,11 @@ export default defineNuxtConfig({
   // SSR configuration
   ssr: true,
   
-  // FIX: Router configuration
+  // Router configuration
   router: {
     options: {
       hashMode: false,
       scrollBehaviorType: 'smooth'
-    }
-  },
-  
-  // FIX: Add hooks for better error handling
-  hooks: {
-    'render:errorMiddleware': (app) => {
-      if (process.env.NODE_ENV === 'development') {
-        app.use((error, req, res, next) => {
-          console.error('Development server error:', error)
-          next(error)
-        })
-      }
     }
   }
 })
