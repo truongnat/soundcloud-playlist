@@ -1,96 +1,105 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   compatibilityDate: '2025-05-15',
-  devtools: { enabled: true },
+  
+  // Disable devtools in production for faster builds
+  devtools: { enabled: process.env.NODE_ENV === 'development' },
+  
   modules: [
     '@nuxtjs/tailwindcss', 
     '@pinia/nuxt', 
     '@nuxt/ui',
     '@nuxtjs/sitemap'
   ],
+  
   css: ['~/assets/css/main.css'],
   
-  // SEO Configuration
+  // SEO Configuration (moved to useHead for better performance)
   app: {
     head: {
       charset: 'utf-8',
       viewport: 'width=device-width, initial-scale=1',
-      title: 'SoundCloud Playlist Downloader - Download Music & Playlists Free',
+      title: 'SoundCloud Playlist Downloader',
       meta: [
-        { name: 'description', content: 'Free SoundCloud playlist downloader. Download entire playlists, convert to MP3, and save your favorite tracks. Fast, easy, and completely free online tool with bulk download support.' },
-        { name: 'keywords', content: 'soundcloud downloader, playlist downloader, soundcloud to mp3, music downloader, soundcloud converter, bulk download, free music download, soundcloud playlist converter, download soundcloud music, soundcloud mp3 converter' },
-        { name: 'author', content: 'SoundCloud DL' },
-        { name: 'robots', content: 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1' },
-        { name: 'googlebot', content: 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1' },
-        { name: 'bingbot', content: 'index, follow' },
-        { name: 'language', content: 'English' },
-        { name: 'geo.region', content: 'US' },
-        { name: 'geo.placename', content: 'United States' },
-        { name: 'distribution', content: 'global' },
-        { name: 'rating', content: 'general' },
-        { name: 'revisit-after', content: '7 days' },
-        
-        // Open Graph / Facebook
-        { property: 'og:type', content: 'website' },
-        { property: 'og:title', content: 'SoundCloud Playlist Downloader - Free Music Download Tool' },
-        { property: 'og:description', content: 'Download entire SoundCloud playlists and convert to MP3. Fast, free, and easy to use online tool for music lovers.' },
-        { property: 'og:image', content: '/og-image.jpg' },
-        { property: 'og:url', content: 'https://soundcloud-playlist.netlify.app' },
-        { property: 'og:site_name', content: 'SoundCloud DL' },
-        { property: 'og:locale', content: 'en_US' },
-        
-        // Twitter Card
-        { name: 'twitter:card', content: 'summary_large_image' },
-        { name: 'twitter:title', content: 'SoundCloud Playlist Downloader - Free Music Download' },
-        { name: 'twitter:description', content: 'Download entire SoundCloud playlists and convert to MP3. Fast, free, and easy to use.' },
-        { name: 'twitter:image', content: '/twitter-card.jpg' },
-        { name: 'twitter:creator', content: '@soundcloudDL' },
-        
-        // Additional SEO
-        { name: 'theme-color', content: '#f97316' },
-        { name: 'msapplication-TileColor', content: '#f97316' },
-        { name: 'apple-mobile-web-app-capable', content: 'yes' },
-        { name: 'apple-mobile-web-app-status-bar-style', content: 'black-translucent' },
-        { name: 'format-detection', content: 'telephone=no' }
-      ],
-      link: [
-        { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
-        { rel: 'apple-touch-icon', sizes: '180x180', href: '/apple-touch-icon.png' },
-        { rel: 'icon', type: 'image/png', sizes: '32x32', href: '/favicon-32x32.png' },
-        { rel: 'icon', type: 'image/png', sizes: '16x16', href: '/favicon-16x16.png' },
-        { rel: 'manifest', href: '/site.webmanifest' },
-        { rel: 'canonical', href: 'https://soundcloud-playlist.netlify.app' },
-        { rel: 'preload', href: '/fonts/inter.woff2', as: 'font', type: 'font/woff2', crossorigin: 'anonymous' }
+        { name: 'description', content: 'Free SoundCloud playlist downloader. Download entire playlists, convert to MP3, and save your favorite tracks.' },
+        { name: 'theme-color', content: '#f97316' }
       ]
     }
   },
   
+  // Optimized Vite configuration for faster builds
   vite: {
+    // Build optimizations
+    build: {
+      target: 'esnext',
+      minify: 'esbuild',
+      cssMinify: 'esbuild',
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            // Split vendor chunks for better caching
+            'vue-vendor': ['vue', 'vue-router'],
+            'ui-vendor': ['@headlessui/vue'],
+            'audio-vendor': ['@ffmpeg/ffmpeg', '@ffmpeg/util', '@ffmpeg/core'],
+            'utils-vendor': ['axios', 'howler']
+          }
+        }
+      }
+    },
+    
+    // Dependency optimization
     optimizeDeps: {
-      exclude: ['@ffmpeg/ffmpeg', '@ffmpeg/util'],
+      include: [
+        'vue',
+        'vue-router',
+        '@headlessui/vue',
+        'axios',
+        'pinia'
+      ],
+      exclude: [
+        '@ffmpeg/ffmpeg', 
+        '@ffmpeg/util',
+        '@ffmpeg/core'
+      ],
       esbuildOptions: {
         target: 'esnext'
       }
     },
+    
+    // Worker configuration
     worker: {
       format: 'es'
     },
-    build: {
-      target: 'esnext'
-    },
+    
+    // Server configuration
     server: {
       fs: {
         strict: false
       }
+    },
+    
+    // CSS optimization
+    css: {
+      devSourcemap: false
     }
   },
+  
+  // Optimized Nitro configuration
   nitro: {
+    // Minification
+    minify: true,
+    
+    // Compression
+    compressPublicAssets: true,
+    
+    // Route rules for caching
     routeRules: {
-      '/**': {
-        headers: {
-          'Cross-Origin-Embedder-Policy': 'unsafe-none',
-          'Cross-Origin-Opener-Policy': 'same-origin'
-        }
+      '/': { prerender: true },
+      '/track': { prerender: true },
+      '/privacy': { prerender: true },
+      '/terms': { prerender: true },
+      '/_nuxt/**': { 
+        headers: { 'Cache-Control': 'max-age=31536000' }
       },
       '/api/**': {
         cors: true,
@@ -99,47 +108,65 @@ export default defineNuxtConfig({
           'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
           'Access-Control-Allow-Headers': 'Content-Type, Authorization'
         }
-      },
-      '/_nuxt/**': {
-        headers: {
-          'Cache-Control': 'max-age=31536000'
-        }
       }
     },
+    
+    // Experimental features
     experimental: {
       wasm: true
     },
+    
+    // Prerendering
     prerender: {
-      routes: ['/robots.txt']
+      routes: ['/robots.txt', '/sitemap.xml']
     }
   },
+  
+  // Runtime configuration
   runtimeConfig: {
-    // Server-side environment variables
     public: {
-      // Client-side environment variables
       siteUrl: process.env.NUXT_PUBLIC_SITE_URL || 'https://soundcloud-playlist.netlify.app'
     }
   },
 
-  // Site configuration for sitemap
+  // Site configuration
   site: {
     url: process.env.NUXT_PUBLIC_SITE_URL || 'https://soundcloud-playlist.netlify.app'
   },
 
-  // Enhanced SEO Configuration
+  // Sitemap configuration
   sitemap: {
-    sources: [
-      '/api/__sitemap__/urls'
-    ]
+    sources: ['/api/__sitemap__/urls']
   },
 
-  // Performance optimizations for SEO
+  // Performance optimizations
   experimental: {
-    payloadExtraction: false
+    payloadExtraction: false,
+    inlineSSRStyles: false,
+    viewTransition: false
+  },
+
+  // TypeScript configuration
+  typescript: {
+    typeCheck: process.env.NODE_ENV === 'development' ? 'build' : false
   },
 
   // Build configuration
   build: {
     transpile: ['@headlessui/vue']
+  },
+
+  // Tailwind CSS optimization
+  tailwindcss: {
+    cssPath: '~/assets/css/main.css',
+    configPath: 'tailwind.config.js',
+    exposeConfig: false,
+    viewer: false
+  },
+
+  // Source map configuration (disable in production)
+  sourcemap: {
+    server: false,
+    client: process.env.NODE_ENV === 'development'
   }
 })
