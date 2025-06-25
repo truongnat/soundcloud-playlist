@@ -128,28 +128,6 @@ export default defineNuxtConfig({
     transpile: ['@headlessui/vue']
   },
 
-  // Tailwind CSS optimization
-  tailwindcss: {
-    cssPath: '~/assets/css/main.css',
-    configPath: 'tailwind.config.js',
-    exposeConfig: false,
-    viewer: false
-  },
-
-  // FIX: Disable source maps to prevent build issues
-  sourcemap: {
-    server: false,
-    client: false
-  },
-  
   // SSR configuration
-  ssr: true,
-  
-  // Router configuration
-  router: {
-    options: {
-      hashMode: false,
-      scrollBehaviorType: 'smooth'
-    }
-  }
+  ssr: true
 })
